@@ -2,6 +2,7 @@
 import * as React from 'react'
 import { LocationPicker } from '@/components/shared/location-picker'
 import { KeywordInput } from '@/components/shared/keyword-input'
+import { PositionSelect } from '@/components/shared/position-select'
 import { FileUpload } from '@/components/shared/file-upload'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -85,10 +86,10 @@ export default function TalentRegistration() {
 
           <div className="grid gap-3">
             <Label className="text-base font-semibold">Puestos Objetivo</Label>
-            <KeywordInput 
-              keywords={position} 
+            <PositionSelect 
+              selected={position} 
               onChange={setPosition} 
-              placeholder="Ej: Cocinero, Bartender, Recepcionista (Enter para agregar)" 
+              max={2}
             />
           </div>
 
@@ -104,7 +105,13 @@ export default function TalentRegistration() {
             <KeywordInput 
               keywords={keywords} 
               onChange={setKeywords} 
-              placeholder="Ej: Coctelería de autor, Manejo de caja (Enter para agregar)" 
+              placeholder="Escribe una habilidad y presiona Enter..." 
+              suggestions={[
+                "Puntual", "Prolijo", "Comprometido", "Iniciativa", "Liderazgo", 
+                "Organizado", "Creativo", "Proactivo", "Trabajo en Equipo", 
+                "Adaptabilidad", "Resolución de Problemas", "Vocación de Servicio", 
+                "Versatilidad", "Eficiente", "Capacidad de Aprendizaje"
+              ]}
             />
           </div>
 

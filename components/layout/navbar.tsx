@@ -9,11 +9,33 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import * as React from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export function Navbar() {
   const pathname = usePathname()
+  const [user, setUser] = React.useState<any>(null)
   
-  // Simple check for unauthenticated/public routes
+  React.useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  // Simple check for unauthenticated/public routes visually
   const isPublicRoute = pathname === '/' || pathname === '/login' || pathname?.includes('/register')
 
   return (
@@ -24,7 +46,7 @@ export function Navbar() {
           <span className="font-bold text-xl tracking-tight">GOS</span>
         </Link>
         <div className="hidden md:flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          {!isPublicRoute ? (
+          {user || !isPublicRoute ? (
             <nav className="flex items-center space-x-6 text-sm font-medium">
               <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
               <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Panel Emprendedor</Link>
@@ -34,15 +56,20 @@ export function Navbar() {
           ) : (
             <div className="flex-1"></div>
           )}
-          <div className="flex items-center space-x-2 border-l pl-6 ml-6">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Ingresar</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/talent/register">Postularme</Link>
-            </Button>
+            {!user ? (
+              <div className="flex items-center space-x-2 border-l pl-6 ml-6">
+                <Button asChild>
+                  <Link href="/login">Ingresar</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2 border-l pl-6 ml-6">
+                <Button variant="ghost" onClick={handleLogout}>
+                  Cerrar Sesión
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
         <div className="flex flex-1 items-center justify-end md:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -53,7 +80,7 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col space-y-4 mt-6">
-                {!isPublicRoute && (
+                {(user || !isPublicRoute) && (
                   <>
                     <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
                     <Link href="/employer/dashboard" className="text-lg font-medium">Panel Emprendedor</Link>
@@ -62,8 +89,16 @@ export function Navbar() {
                     <div className="h-px bg-border my-2" />
                   </>
                 )}
-                <Link href="/login" className="text-lg font-medium">Ingresar</Link>
-                <Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link>
+                {!user ? (
+                  <>
+                    <Link href="/login" className="text-lg font-medium">Ingresar</Link>
+                    <Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">Cerrar Sesión</button>
+                  </>
+                )}
               </div>
             </SheetContent>
           </Sheet>

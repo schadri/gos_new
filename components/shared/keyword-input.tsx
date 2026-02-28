@@ -8,22 +8,28 @@ import { Badge } from '@/components/ui/badge'
 export function KeywordInput({
   keywords,
   onChange,
-  placeholder = "Escribe y presiona Enter..."
+  placeholder = "Escribe y presiona Enter...",
+  suggestions = []
 }: {
   keywords: string[];
   onChange: (keys: string[]) => void;
   placeholder?: string;
+  suggestions?: string[];
 }) {
   const [inputValue, setInputValue] = React.useState('')
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
-      const val = inputValue.trim()
-      if (val && !keywords.includes(val)) {
-        onChange([...keywords, val])
-        setInputValue('')
-      }
+      addKeyword(inputValue)
+    }
+  }
+
+  const addKeyword = (val: string) => {
+    const cleanVal = val.trim()
+    if (cleanVal && !keywords.includes(cleanVal)) {
+      onChange([...keywords, cleanVal])
+      setInputValue('')
     }
   }
 
@@ -54,6 +60,23 @@ export function KeywordInput({
         placeholder={placeholder}
         className="bg-muted/40 border-muted focus-visible:ring-primary/50 transition-colors"
       />
+      {suggestions.length > 0 && (
+        <div className="pt-2">
+          <p className="text-xs text-muted-foreground mb-2 font-medium">Sugerencias (haz clic para agregar):</p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.filter(s => !keywords.includes(s)).map((s, idx) => (
+              <Badge 
+                key={idx} 
+                variant="outline" 
+                className="cursor-pointer hover:bg-muted font-normal text-muted-foreground transition-colors"
+                onClick={() => addKeyword(s)}
+              >
+                + {s}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

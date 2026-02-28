@@ -36,7 +36,7 @@ const CATEGORY_ROLES: Record<string, string[]> = {
   ]
 }
 
-export default function PostJob() {
+function PostJobForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get('id')
@@ -370,5 +370,20 @@ export default function PostJob() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PostJob() {
+  return (
+    <React.Suspense 
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Cargando formulario...</p>
+        </div>
+      }
+    >
+      <PostJobForm />
+    </React.Suspense>
   )
 }

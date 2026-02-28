@@ -31,14 +31,14 @@ export default function Home() {
             </p>
             
             <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-2xl mt-8">
-              <Link href="/talent/register" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
+              <Link href="/login?flow=talent" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
                 <div className="p-4 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
                   <User className="h-8 w-8" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">Soy Postulante</h3>
                 <p className="text-muted-foreground font-medium text-center text-sm sm:text-base">Busco trabajo en gastronomía u hotelería</p>
               </Link>
-              <Link href="/employer/register" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
+              <Link href="/login?flow=employer" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
                 <div className="p-4 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
                   <Briefcase className="h-8 w-8" />
                 </div>

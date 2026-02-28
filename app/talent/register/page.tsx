@@ -7,12 +7,67 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
+
 export default function TalentRegistration() {
+  const router = useRouter()
   const [position, setPosition] = React.useState<string[]>([])
   const [keywords, setKeywords] = React.useState<string[]>([])
   const [location, setLocation] = React.useState('')
+  const [fullName, setFullName] = React.useState('')
   const [cvUrl, setCvUrl] = React.useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = React.useState<string | null>(null)
+  
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handleSaveProfile = async () => {
+    try {
+      if (!fullName) {
+        toast.error('El nombre completo es obligatorio')
+        return
+      }
+      if (!location) {
+        toast.error('La ubicación es obligatoria')
+        return
+      }
+
+      setIsSubmitting(true)
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.user) {
+        toast.error('No hay una sesión activa, inicie sesión de nuevo.')
+        router.push('/login')
+        return
+      }
+
+      const { error } = await supabase.from('profiles').upsert({
+        id: session.user.id,
+        user_type: 'TALENT',
+        full_name: fullName,
+        location: location,
+        position: position,
+        keywords: keywords,
+        profile_photo: photoUrl,
+        cv_url: cvUrl,
+      })
+
+      if (error) {
+        throw error
+      }
+
+      toast.success('¡Perfil completado exitosamente!')
+      router.push('/profile')
+      
+    } catch (error: any) {
+      toast.error(error.message || 'Ocurrió un error al guardar el perfil.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="container mx-auto max-w-3xl py-12 md:py-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -25,7 +80,7 @@ export default function TalentRegistration() {
         <div className="grid gap-8 p-6 md:p-8 border rounded-2xl bg-card shadow-sm">
           <div className="grid gap-3">
             <Label htmlFor="fullName" className="text-base font-semibold">Nombre Completo</Label>
-            <Input id="fullName" placeholder="Ej: Juan Pérez" className="h-12 text-md bg-muted/40" />
+            <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ej: Juan Pérez" className="h-12 text-md bg-muted/40" />
           </div>
 
           <div className="grid gap-3">
@@ -64,7 +119,19 @@ export default function TalentRegistration() {
             </div>
           </div>
 
-          <Button size="lg" className="w-full mt-6 h-14 text-lg font-bold shadow-md hover:shadow-lg transition-all">Guardar y Buscar Trabajos</Button>
+          <Button 
+            onClick={handleSaveProfile} 
+            disabled={isSubmitting}
+            size="lg" 
+            className="w-full mt-6 h-14 text-lg font-bold shadow-md hover:shadow-lg transition-all"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Guardando...
+              </>
+            ) : "Guardar y Buscar Trabajos"}
+          </Button>
         </div>
       </div>
     </div>

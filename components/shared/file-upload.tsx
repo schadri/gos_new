@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { UploadCloud, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 export function FileUpload({
   value,
@@ -22,12 +24,39 @@ export function FileUpload({
     if (!file) return
 
     setIsUploading(true)
-    // Simulating file upload to Supabase Storage
-    setTimeout(() => {
-      const fakeUrl = URL.createObjectURL(file)
-      onChange(fakeUrl)
+    
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) throw new Error('Debes estar autenticado para subir archivos')
+
+      const isImage = accept.includes('image')
+      const bucket = isImage ? 'avatars' : 'documents'
+      
+      // Clean up file name to avoid issues
+      const fileExt = file.name.split('.').pop()
+      const safeName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+      const filePath = `${user.id}/${safeName}`
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, { upsert: true })
+
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path)
+
+      onChange(publicUrl)
+      toast.success('Archivo subido correctamente')
+    } catch (error: any) {
+      toast.error(error.message || 'Error al subir el archivo. Revisa si el bucket existe.')
+      console.error('Upload Error:', error)
+    } finally {
       setIsUploading(false)
-    }, 1500)
+    }
   }
 
   if (value) {

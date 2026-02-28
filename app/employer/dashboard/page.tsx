@@ -1,7 +1,9 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, MoreVertical } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 const METRICS = [
   { label: 'Ofertas Activas', value: '4', icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10' },
@@ -17,12 +19,28 @@ const ACTIVE_JOBS = [
   { id: 4, title: 'Ayudante de Cocina', views: 0, applicants: 0, matches: 0, publishedAt: 'Borrador', status: 'draft' },
 ]
 
-export default function EmployerDashboard() {
+export default async function EmployerDashboard() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Fetch real profile data
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  const companyName = profile?.company_name || 'Mi Emprendimiento'
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Panel de Control</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Panel de Control: {companyName}</h1>
           <p className="text-muted-foreground mt-2 font-medium">Gestiona tus ofertas y evalúa los matches de talento.</p>
         </div>
         <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>

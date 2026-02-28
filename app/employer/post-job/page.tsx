@@ -7,11 +7,65 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Briefcase, Sparkles, AlertCircle } from 'lucide-react'
+import { Briefcase, Sparkles, AlertCircle, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function PostJob() {
+  const router = useRouter()
+  const [title, setTitle] = React.useState('')
+  const [description, setDescription] = React.useState('')
+  const [salary, setSalary] = React.useState('')
+  const [category, setCategory] = React.useState('')
+  const [contractType, setContractType] = React.useState('')
+  const [experience, setExperience] = React.useState('')
   const [location, setLocation] = React.useState('')
   const [keywords, setKeywords] = React.useState<string[]>([])
+  
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const handlePostJob = async () => {
+    try {
+      if (!title || !description || !location) {
+        toast.error('Por favor completa los campos obligatorios (Título, Descripción, Ubicación)')
+        return
+      }
+
+      setIsSubmitting(true)
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.user) {
+        toast.error('No hay una sesión activa, inicie sesión de nuevo.')
+        router.push('/login')
+        return
+      }
+
+      const { error } = await supabase.from('jobs').insert({
+        created_by: session.user.id,
+        title: title,
+        description: description,
+        category: category,
+        contract_type: contractType,
+        experience_required: experience,
+        salary_range: salary,
+        location: location,
+        keywords: keywords,
+        status: 'active'
+      })
+
+      if (error) throw error
+
+      toast.success('¡Oferta publicada exitosamente!')
+      router.push('/employer/dashboard')
+      
+    } catch (error: any) {
+      toast.error(error.message || 'Error al publicar la oferta')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   
   const suggestKeywords = () => {
     // Mocking AI keyword suggestion
@@ -40,13 +94,13 @@ export default function PostJob() {
           <div className="grid gap-8">
             <div className="grid gap-3">
               <Label htmlFor="title" className="text-base font-bold">Título del Puesto</Label>
-              <Input id="title" placeholder="Ej: Jefe de Cocina, Recepcionista, Bartender..." className="h-14 bg-muted/30 text-lg rounded-2xl focus-visible:ring-primary/50" />
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ej: Jefe de Cocina, Recepcionista, Bartender..." className="h-14 bg-muted/30 text-lg rounded-2xl focus-visible:ring-primary/50" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="grid gap-3">
                 <Label htmlFor="category" className="text-base font-bold">Sector / Categoría</Label>
-                <Select>
+                <Select onValueChange={setCategory}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar sector..." />
                   </SelectTrigger>
@@ -61,7 +115,7 @@ export default function PostJob() {
               
               <div className="grid gap-3">
                 <Label htmlFor="type" className="text-base font-bold">Tipo de Contrato</Label>
-                <Select>
+                <Select onValueChange={setContractType}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar contrato..." />
                   </SelectTrigger>
@@ -89,6 +143,8 @@ export default function PostJob() {
               <Label htmlFor="description" className="text-base font-bold">Descripción del Puesto (Responsabilidades)</Label>
               <Textarea 
                 id="description" 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Detalla qué esperas del candidato, horarios de trabajo, tareas principales..."
                 rows={6}
                 className="bg-muted/30 text-lg rounded-2xl resize-none p-4 focus-visible:ring-primary/50"
@@ -98,7 +154,7 @@ export default function PostJob() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="grid gap-3">
                 <Label htmlFor="exp" className="text-base font-bold">Experiencia Mínima Requerida</Label>
-                <Select>
+                <Select onValueChange={setExperience}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>
@@ -113,7 +169,7 @@ export default function PostJob() {
               
               <div className="grid gap-3">
                 <Label htmlFor="salary" className="text-base font-bold">Rango Salarial (Recomendado)</Label>
-                <Input id="salary" placeholder="Ej: $500k - $700k" className="h-14 bg-muted/30 text-lg rounded-2xl focus-visible:ring-primary/50" />
+                <Input id="salary" value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="Ej: $500k - $700k" className="h-14 bg-muted/30 text-lg rounded-2xl focus-visible:ring-primary/50" />
               </div>
             </div>
 
@@ -143,8 +199,18 @@ export default function PostJob() {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-end pt-8 mb-20">
           <Button variant="ghost" size="lg" className="w-full sm:w-auto h-16 rounded-2xl font-bold text-lg hover:bg-muted/50">Guardar Borrador</Button>
-          <Button size="lg" className="w-full sm:w-auto h-16 px-10 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 hover:-translate-y-1 transition-transform">
-            Publicar e Iniciar Matching
+          <Button 
+            size="lg" 
+            onClick={handlePostJob}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto h-16 px-10 rounded-2xl font-bold text-lg shadow-xl shadow-primary/25 hover:-translate-y-1 transition-transform"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Publicando...
+              </>
+            ) : "Publicar e Iniciar Matching"}
           </Button>
         </div>
       </div>

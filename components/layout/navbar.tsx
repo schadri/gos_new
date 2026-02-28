@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Briefcase, User, Menu } from 'lucide-react'
 import {
@@ -8,6 +11,11 @@ import {
 } from "@/components/ui/sheet"
 
 export function Navbar() {
+  const pathname = usePathname()
+  
+  // Simple check for unauthenticated/public routes
+  const isPublicRoute = pathname === '/' || pathname === '/login' || pathname?.includes('/register')
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
@@ -16,10 +24,16 @@ export function Navbar() {
           <span className="font-bold text-xl tracking-tight">GOS</span>
         </Link>
         <div className="hidden md:flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
-            <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Soy Emprendedor</Link>
-          </nav>
+          {!isPublicRoute ? (
+            <nav className="flex items-center space-x-6 text-sm font-medium">
+              <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
+              <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Panel Emprendedor</Link>
+              <Link href="/profile" className="transition-colors hover:text-foreground/80 text-foreground/60">Mi Perfil</Link>
+              <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+            </nav>
+          ) : (
+            <div className="flex-1"></div>
+          )}
           <div className="flex items-center space-x-2 border-l pl-6 ml-6">
             <Button variant="ghost" asChild>
               <Link href="/login">Ingresar</Link>
@@ -39,9 +53,15 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side="right">
               <div className="flex flex-col space-y-4 mt-6">
-                <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
-                <Link href="/employer/dashboard" className="text-lg font-medium">Soy Emprendedor</Link>
-                <div className="h-px bg-border my-2" />
+                {!isPublicRoute && (
+                  <>
+                    <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
+                    <Link href="/employer/dashboard" className="text-lg font-medium">Panel Emprendedor</Link>
+                    <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
+                    <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                    <div className="h-px bg-border my-2" />
+                  </>
+                )}
                 <Link href="/login" className="text-lg font-medium">Ingresar</Link>
                 <Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link>
               </div>

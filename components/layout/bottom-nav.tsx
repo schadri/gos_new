@@ -1,7 +1,18 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Home, Search, Briefcase, Bell, User } from 'lucide-react'
 
 export function BottomNav() {
+  const pathname = usePathname()
+  
+  // Simple check for unauthenticated/public routes
+  const isPublicRoute = pathname === '/' || pathname === '/login' || pathname?.includes('/register')
+
+  // Hide the bottom app navigation heavily on public routes since there is no target app pages to go to.
+  if (isPublicRoute) return null;
+
   return (
     <div className="fixed bottom-0 z-50 w-full border-t bg-background pb-safe md:hidden">
       <div className="flex justify-around items-center h-16 px-2">

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, MapPin, ChefHat, Coffee, BedDouble, UtensilsCrossed, ArrowRight } from 'lucide-react'
+import { Search, MapPin, ChefHat, Coffee, BedDouble, UtensilsCrossed, ArrowRight, User, Briefcase } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -30,24 +30,21 @@ export default function Home() {
               Conectamos a los mejores profesionales con los emprendimientos más destacados del sector. <br className="hidden md:block"/> Busca trabajos o publica tus ofertas.
             </p>
             
-            <div className="w-full max-w-3xl flex flex-col sm:flex-row items-center gap-3 p-3 bg-background/80 backdrop-blur-md rounded-2xl shadow-xl border border-border/50">
-              <div className="flex-1 flex items-center relative w-full border-b sm:border-b-0 sm:border-r border-border pb-2 sm:pb-0">
-                <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  placeholder="Cargo, palabra clave o empresa..." 
-                  className="pl-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 text-base shadow-none bg-transparent font-medium"
-                />
-              </div>
-              <div className="flex-1 flex items-center relative w-full mb-2 sm:mb-0">
-                <MapPin className="absolute left-3 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  placeholder="Ciudad, provincia..." 
-                  className="pl-10 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 text-base shadow-none bg-transparent font-medium"
-                />
-              </div>
-              <Button size="lg" className="w-full sm:w-auto h-12 rounded-xl px-8 font-bold text-md shadow-lg shadow-primary/25" asChild>
-                <Link href="/jobs">Buscar <ArrowRight className="ml-2 h-4 w-4" /></Link>
-              </Button>
+            <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-2xl mt-8">
+              <Link href="/talent/register" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
+                <div className="p-4 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                  <User className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Soy Postulante</h3>
+                <p className="text-muted-foreground font-medium text-center text-sm sm:text-base">Busco trabajo en gastronomía u hotelería</p>
+              </Link>
+              <Link href="/employer/register" className="group relative flex flex-col items-center p-6 sm:p-8 bg-background/80 backdrop-blur-md rounded-3xl shadow-xl border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all hover:-translate-y-1">
+                <div className="p-4 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                  <Briefcase className="h-8 w-8" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Soy Emprendedor</h3>
+                <p className="text-muted-foreground font-medium text-center text-sm sm:text-base">Busco talento para mi negocio o emprendimiento</p>
+              </Link>
             </div>
           </div>
         </div>

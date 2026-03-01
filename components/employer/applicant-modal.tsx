@@ -98,7 +98,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
           {profile.cv_url && (
             <div className="pt-4 border-t border-border/40">
               <Button variant="default" className="w-full bg-primary font-bold shadow-md rounded-xl" onClick={() => window.open(profile.cv_url, '_blank')}>
-                Descargar CV
+                Ver CV
               </Button>
             </div>
           )}

@@ -1,13 +1,33 @@
 import { Button } from '@/components/ui/button'
-import { Briefcase, Sparkles, MessageSquare, Heart, CheckCircle2 } from 'lucide-react'
+import { Briefcase, Sparkles, MessageSquare, Heart, CheckCircle2, Bell } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
-export default function NotificationsPage() {
-  const notifications = [
-    { id: 1, type: 'match', title: '¡Nuevo Match! Eres el candidato ideal', desc: 'Tu perfil tiene un 95% de coincidencia con "Jefe de Cocina" en La Mar Cevichería. ¡No dejes pasar esta oportunidad!', time: 'Hace 2 horas', icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20', unread: true },
-    { id: 2, type: 'message', title: 'Nuevo mensaje recibido', desc: 'La Mar Cevichería te ha enviado un mensaje sobre tu postulación.', time: 'Hace 3 horas', icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20', unread: true },
-    { id: 3, type: 'app', title: 'Postulación Revisada', desc: 'Tu postulación para "Sous Chef" ha sido revisada por el empleador. Pronto se comunicarán contigo.', time: 'Ayer', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20', unread: false },
-    { id: 4, type: 'system', title: 'Perfil Incompleto', desc: 'Completa tu perfil al 100% subiendo tu CV para obtener más visibilidad y mejores matches.', time: 'Hace 3 días', icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20', unread: false },
-  ]
+export default async function NotificationsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: notifications } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  const hasUnread = notifications?.some(n => !n.is_read)
+
+  const getIconForType = (type: string) => {
+    switch (type) {
+      case 'match': return { icon: Sparkles, color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20' }
+      case 'message': return { icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' }
+      case 'application_update': return { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/20' }
+      default: return { icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' }
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -16,43 +36,66 @@ export default function NotificationsPage() {
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">Notificaciones</h1>
           <p className="text-muted-foreground mt-4 font-medium text-xl">Mantente al tanto de tus matches y aplicaciones en tiempo real.</p>
         </div>
-        <Button variant="outline" className="font-bold text-primary hover:bg-primary/10 transition-colors h-12 px-6 rounded-2xl border-primary/20 shadow-sm shrink-0">Marcar todas como leídas</Button>
       </div>
 
       <div className="space-y-6">
-        {notifications.map(notif => (
-          <div key={notif.id} className={`p-8 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 cursor-pointer hover:-translate-y-1 ${notif.unread ? 'bg-background shadow-lg border-primary/30 ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}>
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 ${notif.bg} ${notif.color} border ${notif.border} shadow-sm`}>
-              <notif.icon className="h-8 w-8" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
-                <h3 className={`text-2xl font-extrabold ${notif.unread ? 'text-foreground' : 'text-foreground/80'}`}>
-                  {notif.title}
-                </h3>
-                <span className="text-sm font-bold text-muted-foreground whitespace-nowrap bg-muted px-3 py-1 rounded-lg w-fit">{notif.time}</span>
-              </div>
-              <p className={`text-lg font-medium leading-relaxed ${notif.unread ? 'text-foreground/90' : 'text-muted-foreground'}`}>
-                {notif.desc}
-              </p>
-              
-              <div className="mt-6 flex gap-4">
-                {notif.type === 'match' && (
-                  <Button className="h-12 px-8 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition-all">Ver Oferta</Button>
+        {notifications && notifications.length > 0 ? (
+          notifications.map(notif => {
+            const { icon: Icon, color, bg, border } = getIconForType(notif.type)
+            const isUnread = !notif.is_read
+            const dateStr = new Date(notif.created_at).toLocaleDateString()
+
+            return (
+              <div key={notif.id} className={`p-8 rounded-[2rem] border transition-all duration-300 flex flex-col sm:flex-row gap-6 cursor-pointer hover:-translate-y-1 ${isUnread ? 'bg-background shadow-lg border-primary/30 ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 ${bg} ${color} border ${border} shadow-sm`}>
+                  <Icon className="h-8 w-8" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
+                    <h3 className={`text-2xl font-extrabold ${isUnread ? 'text-foreground' : 'text-foreground/80'}`}>
+                      {notif.title}
+                    </h3>
+                    <span className="text-sm font-bold text-muted-foreground whitespace-nowrap bg-muted px-3 py-1 rounded-lg w-fit">{dateStr}</span>
+                  </div>
+                  <p className={`text-lg font-medium leading-relaxed ${isUnread ? 'text-foreground/90' : 'text-muted-foreground'}`}>
+                    {notif.description}
+                  </p>
+                  
+                  {notif.link_url && (
+                    <div className="mt-6 flex gap-4">
+                      {notif.type === 'match' && (
+                        <Button asChild className="h-12 px-8 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition-all">
+                          <Link href={notif.link_url}>Ir a Mis Postulaciones</Link>
+                        </Button>
+                      )}
+                      {notif.type === 'message' && (
+                        <Button asChild variant="outline" className="h-12 px-8 rounded-xl font-bold text-base bg-background shadow-sm border-border/60 hover:bg-muted">
+                          <Link href={notif.link_url}>Ir al Chat</Link>
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {isUnread && (
+                  <div className="absolute top-8 right-8">
+                    <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.6)] animate-pulse"></div>
+                  </div>
                 )}
-                {notif.type === 'message' && (
-                  <Button variant="outline" className="h-12 px-8 rounded-xl font-bold text-base bg-background shadow-sm border-border/60 hover:bg-muted">Ir al Chat</Button>
-                )}
               </div>
+            )
+          })
+        ) : (
+          <div className="bg-card p-12 rounded-[2rem] border border-dashed border-border flex flex-col items-center justify-center text-center mt-8">
+            <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-6">
+              <Bell className="h-10 w-10 text-muted-foreground/50" />
             </div>
-            
-            {notif.unread && (
-              <div className="absolute top-8 right-8">
-                <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.6)] animate-pulse"></div>
-              </div>
-            )}
+            <h3 className="text-2xl font-extrabold mb-3">No hay notificaciones</h3>
+            <p className="text-muted-foreground font-medium text-lg max-w-md">
+              Aún no tienes notificaciones recientes. Aquí aparecerán tus matches, mensajes nuevos y actualizaciones.
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   )

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/server'
 import { EditProfileModal } from '@/components/profile/edit-profile-modal'
 import { EditEmployerProfileModal } from '@/components/profile/edit-employer-profile-modal'
+import { ApplicantChatButton } from '@/components/profile/applicant-chat-button'
 
 export default async function TalentProfile() {
   const supabase = await createClient()
@@ -38,6 +39,7 @@ export default async function TalentProfile() {
       status,
       created_at,
       jobs!inner (
+        id,
         title,
         company
       )
@@ -210,17 +212,22 @@ export default async function TalentProfile() {
                   return (
                     <div key={app.id} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/30 transition-colors cursor-pointer group">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-muted border flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform shadow-sm">
+                        <div className="w-12 h-12 rounded-xl bg-muted border flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform shadow-sm shrink-0">
                           {app.jobs?.company?.charAt(0) || 'E'}
                         </div>
-                        <div>
-                          <h4 className="font-bold text-foreground text-lg">{app.jobs?.title}</h4>
-                          <p className="text-sm font-medium text-muted-foreground">{app.jobs?.company} • {date}</p>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-foreground text-lg truncate">{app.jobs?.title}</h4>
+                          <p className="text-sm font-medium text-muted-foreground truncate">{app.jobs?.company} • {date}</p>
                         </div>
                       </div>
-                      <div className={`px-4 py-2 rounded-xl flex items-center text-sm font-bold ${statusBg} ${statusColor}`}>
-                        <StatusIcon className="h-4 w-4 mr-2" />
-                        {statusText}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                        {app.status === 'interview' && (
+                          <ApplicantChatButton jobId={app.jobs?.id} applicantId={user.id} />
+                        )}
+                        <div className={`px-4 py-2 rounded-xl flex items-center justify-center text-sm font-bold w-full sm:w-auto ${statusBg} ${statusColor}`}>
+                          <StatusIcon className="h-4 w-4 mr-2 shrink-0" />
+                          {statusText}
+                        </div>
                       </div>
                     </div>
                   )

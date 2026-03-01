@@ -6,15 +6,18 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Loader2, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { getOrCreateChat } from '@/app/actions/chat'
+import { createMatchNotification } from '@/app/actions/notifications'
 
 interface MatchButtonProps {
   applicationId: string
+  applicantId: string
   jobId: string
   applicantName: string
   initialStatus: string
 }
 
-export function MatchButton({ applicationId, jobId, applicantName, initialStatus }: MatchButtonProps) {
+export function MatchButton({ applicationId, applicantId, jobId, applicantName, initialStatus }: MatchButtonProps) {
   const [isMatching, setIsMatching] = React.useState(false)
   const [hasMatched, setHasMatched] = React.useState(initialStatus === 'interview')
   const router = useRouter()
@@ -42,6 +45,13 @@ export function MatchButton({ applicationId, jobId, applicantName, initialStatus
         // We do not throw because the match still occurred successfully from the applicant's side
       }
 
+      // Dispatch real push notification
+      try {
+        await createMatchNotification(applicantId, jobId, 'La empresa') // Pass proper company name if available, fallback for now
+      } catch (notifErr) {
+        console.error('Error sending match notification:', notifErr)
+      }
+
       setHasMatched(true)
       toast.success(`¡Has hecho Match con ${applicantName}!`)
       router.refresh()
@@ -54,14 +64,26 @@ export function MatchButton({ applicationId, jobId, applicantName, initialStatus
     }
   }
 
+  const handleGoToChat = async () => {
+    try {
+      setIsMatching(true)
+      const chatId = await getOrCreateChat(jobId, applicantId)
+      router.push(`/chat/${chatId}`)
+    } catch (error) {
+      toast.error('Ocurrió un error al intentar abrir el chat.')
+      setIsMatching(false)
+    }
+  }
+
   if (hasMatched) {
     return (
       <Button 
         variant="secondary" 
         className="w-full h-12 rounded-xl text-base font-bold bg-green-500/10 text-green-700 hover:bg-green-500/20"
-        onClick={() => router.push('/chat')}
+        onClick={handleGoToChat}
+        disabled={isMatching}
       >
-        <Sparkles className="h-4 w-4 mr-2" />
+        {isMatching ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
         Ir al Chat
       </Button>
     )

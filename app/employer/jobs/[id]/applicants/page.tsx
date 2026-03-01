@@ -12,7 +12,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    redirect('/auth/login')
+    redirect('/login')
   }
 
   const { id } = await params
@@ -139,6 +139,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                 <ApplicantModal profile={app.profiles} applicationDate={app.created_at} />
                 <MatchButton  
                   applicationId={app.id} 
+                  applicantId={app.applicant_id}
                   jobId={id} 
                   applicantName={app.profiles?.full_name} 
                   initialStatus={app.status} 

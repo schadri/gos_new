@@ -1,7 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import { Briefcase } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export function Footer() {
+  const pathname = usePathname()
+  if (pathname?.startsWith('/chat')) return null
+
   return (
     <footer className="border-t bg-muted/20 pb-16 md:pb-0 transition-all">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 py-8 md:h-24 md:flex-row md:py-0 px-4 md:px-6">

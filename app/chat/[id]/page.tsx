@@ -62,10 +62,10 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
     .order('created_at', { ascending: true })
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-background">
-      <div className="border-b bg-card px-4 py-3 flex items-center gap-4 shrink-0 shadow-sm z-10">
+    <div className="flex flex-col h-[calc(100dvh-4rem)] overflow-hidden bg-background">
+      <div className="border-b bg-card px-4 py-3 flex items-center gap-4 shrink-0 shadow-sm z-20">
         <Link 
-          href={isEmployer ? '/employer/dashboard' : '/dashboard'} 
+          href={isEmployer ? '/employer/dashboard' : '/profile'} 
           className="p-2 hover:bg-muted rounded-full transition-colors flex shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -90,6 +90,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
           chatId={id} 
           currentUserId={user.id} 
           initialMessages={initialMessages || []} 
+          isEmployer={isEmployer}
         />
       </div>
     </div>

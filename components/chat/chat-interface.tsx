@@ -19,9 +19,10 @@ interface ChatUIProps {
   chatId: string
   currentUserId: string
   initialMessages: any[]
+  isEmployer: boolean
 }
 
-export function ChatUI({ chatId, currentUserId, initialMessages }: ChatUIProps) {
+export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer }: ChatUIProps) {
   const [messages, setMessages] = React.useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = React.useState('')
   const [isSending, setIsSending] = React.useState(false)
@@ -100,7 +101,11 @@ export function ChatUI({ chatId, currentUserId, initialMessages }: ChatUIProps) 
             </div>
             <div>
               <p className="font-medium text-lg text-foreground">Aún no hay mensajes</p>
-              <p className="text-sm">Envía el primer mensaje para iniciar la conversación.</p>
+              <p className="text-sm">
+                {isEmployer 
+                  ? 'Envía el primer mensaje para iniciar la conversación.'
+                  : 'Espera a que la empresa inicie la conversación para responder.'}
+              </p>
             </div>
           </div>
         ) : (
@@ -135,16 +140,16 @@ export function ChatUI({ chatId, currentUserId, initialMessages }: ChatUIProps) 
           <Input 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe un mensaje..." 
-            className="h-14 bg-card rounded-2xl pr-14 pl-5 shadow-sm border-border/50 text-[15px] resize-none focus-visible:ring-1"
-            disabled={isSending}
+            placeholder={!isEmployer && messages.length === 0 ? "Espera el primer mensaje..." : "Escribe un mensaje..."} 
+            className="h-14 bg-card rounded-2xl pr-14 pl-5 shadow-sm border-border/50 text-[15px] resize-none focus-visible:ring-1 disabled:opacity-60"
+            disabled={isSending || (!isEmployer && messages.length === 0)}
             autoComplete="off"
           />
           <Button 
             type="submit" 
             size="icon"
-            disabled={!newMessage.trim() || isSending}
-            className="absolute right-2 bottom-2 h-10 w-10 shrink-0 rounded-xl bg-primary hover:bg-primary/90 shadow-sm"
+            disabled={!newMessage.trim() || isSending || (!isEmployer && messages.length === 0)}
+            className="absolute right-2 bottom-2 h-10 w-10 shrink-0 rounded-xl bg-primary hover:bg-primary/90 shadow-sm disabled:opacity-50"
           >
             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 ml-0.5" />}
           </Button>

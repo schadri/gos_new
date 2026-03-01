@@ -43,7 +43,8 @@ export function BottomNav() {
   const isPublicRoute = pathname === '/' || pathname === '/login' || pathname?.includes('/register')
 
   // Hide the bottom app navigation heavily on public routes since there is no target app pages to go to.
-  if (isPublicRoute) return null;
+  // Also hide on chat pages to maximize screen estate and prevent body scrolling.
+  if (isPublicRoute || pathname?.startsWith('/chat')) return null;
 
   return (
     <div className="fixed bottom-0 z-50 w-full border-t bg-background pb-safe md:hidden">

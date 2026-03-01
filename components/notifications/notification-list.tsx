@@ -120,54 +120,54 @@ export function NotificationList({ initialNotifications }: { initialNotification
 
                 {/* Foreground Card */}
                 <motion.div 
-                  className={`relative z-10 p-8 rounded-[2rem] border flex flex-col sm:flex-row gap-6 cursor-pointer hover:-translate-y-1 w-full ${isUnread ? 'bg-background shadow-lg border-primary/30 ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}
+                  className={`relative z-10 p-6 sm:p-8 rounded-[2rem] border flex flex-col sm:flex-row gap-5 sm:gap-6 cursor-pointer hover:-translate-y-1 w-full ${isUnread ? 'bg-background shadow-lg border-primary/30 ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}
                   whileDrag={{ scale: 0.98, cursor: 'grabbing' }}
                   dragSnapToOrigin={true}
                 >
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-destructive hover:bg-destructive/10 hidden sm:flex h-8 w-8"
-                    onClick={() => handleDelete(notif.id)}
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex h-8 w-8 rounded-full z-20"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(notif.id)
+                    }}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </Button>
 
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 ${bg} ${color} border ${border} shadow-sm`}>
-                    <Icon className="h-8 w-8" />
+                  <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center flex-shrink-0 mt-1 ${bg} ${color} border ${border} shadow-sm`}>
+                    <Icon className="h-7 w-7 sm:h-8 sm:w-8" />
                   </div>
-                  <div className="flex-1 pr-8">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
-                      <h3 className={`text-2xl font-extrabold ${isUnread ? 'text-foreground' : 'text-foreground/80'}`}>
+                  <div className="flex-1 pr-10 sm:pr-12">
+                    <div className="flex flex-row justify-between items-start mb-3 gap-2">
+                      <h3 className={`text-lg sm:text-2xl font-extrabold flex items-center gap-2 ${isUnread ? 'text-foreground' : 'text-foreground/80'} leading-tight`}>
                         {notif.title}
+                        {isUnread && (
+                          <div className="w-3 h-3 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.6)] animate-pulse shrink-0"></div>
+                        )}
                       </h3>
-                      <span className="text-sm font-bold text-muted-foreground whitespace-nowrap bg-muted px-3 py-1 rounded-lg w-fit">{dateStr}</span>
+                      <span className="text-xs sm:text-sm font-bold text-muted-foreground whitespace-nowrap bg-muted px-2 py-1 rounded-md sm:rounded-lg shrink-0 mt-1">{dateStr}</span>
                     </div>
-                    <p className={`text-lg font-medium leading-relaxed ${isUnread ? 'text-foreground/90' : 'text-muted-foreground'}`}>
+                    <p className={`text-base sm:text-lg font-medium leading-relaxed ${isUnread ? 'text-foreground/90' : 'text-muted-foreground'}`}>
                       {notif.description}
                     </p>
                     
                     {notif.link_url && (
-                      <div className="mt-6 flex gap-4">
+                      <div className="mt-5 sm:mt-6 flex flex-wrap gap-3 sm:gap-4">
                         {notif.type === 'match' && (
-                          <Button asChild className="h-12 px-8 rounded-xl font-bold text-base shadow-md hover:shadow-lg transition-all" onClick={(e) => e.stopPropagation()}>
+                          <Button asChild className="h-10 sm:h-12 px-6 sm:px-8 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all" onClick={(e) => e.stopPropagation()}>
                             <Link href={notif.link_url}>Ir a Mis Postulaciones</Link>
                           </Button>
                         )}
                         {notif.type === 'message' && (
-                          <Button asChild variant="outline" className="h-12 px-8 rounded-xl font-bold text-base bg-background shadow-sm border-border/60 hover:bg-muted" onClick={(e) => e.stopPropagation()}>
+                          <Button asChild variant="outline" className="h-10 sm:h-12 px-6 sm:px-8 rounded-xl font-bold text-sm sm:text-base bg-background shadow-sm border-border/60 hover:bg-muted" onClick={(e) => e.stopPropagation()}>
                             <Link href={notif.link_url}>Ir al Chat</Link>
                           </Button>
                         )}
                       </div>
                     )}
                   </div>
-                  
-                  {isUnread && (
-                    <div className="absolute top-8 right-16 sm:right-14">
-                      <div className="w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.6)] animate-pulse"></div>
-                    </div>
-                  )}
                 </motion.div>
               </motion.div>
             )

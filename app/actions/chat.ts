@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createMessageNotification } from '@/app/actions/notifications'
 
 export async function getOrCreateChat(jobId: string, applicantId: string) {
     const supabase = await createClient()
@@ -57,7 +58,7 @@ export async function getOrCreateChat(jobId: string, applicantId: string) {
     return newChat.id
 }
 
-export async function sendMessage(chatId: string, content: string) {
+export async function sendMessage(chatId: string, content: string, messageId: string) {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -66,6 +67,7 @@ export async function sendMessage(chatId: string, content: string) {
     const { error } = await supabase
         .from('messages')
         .insert({
+            id: messageId,
             chat_id: chatId,
             sender_id: user.id,
             content,
@@ -83,8 +85,22 @@ export async function sendMessage(chatId: string, content: string) {
         .update({ updated_at: new Date().toISOString() })
         .eq('id', chatId)
 
-    revalidatePath(`/chat/${chatId}`)
-    revalidatePath('/chat')
+    // Send push notification to the recipient
+    try {
+        const { data: chat } = await supabase.from('chats').select('employer_id, applicant_id').eq('id', chatId).single()
+        if (chat) {
+            const recipientId = user.id === chat.employer_id ? chat.applicant_id : chat.employer_id
+            const { data: profile } = await supabase.from('profiles').select('full_name, company_name, user_type').eq('id', user.id).single()
+
+            const senderName = profile?.user_type === 'BUSINESS'
+                ? (profile.company_name || profile.full_name || 'Empresa')
+                : (profile?.full_name || 'Candidato')
+
+            await createMessageNotification(recipientId, chatId, senderName)
+        }
+    } catch (notifErr) {
+        console.error('Failed to dispatch message notification', notifErr)
+    }
 
     return { success: true }
 }

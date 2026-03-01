@@ -26,7 +26,7 @@ export function ChatUI({ chatId, currentUserId, initialMessages }: ChatUIProps) 
   const [newMessage, setNewMessage] = React.useState('')
   const [isSending, setIsSending] = React.useState(false)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
-  const supabase = createClient()
+  const [supabase] = React.useState(() => createClient())
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -80,7 +80,7 @@ export function ChatUI({ chatId, currentUserId, initialMessages }: ChatUIProps) 
     setIsSending(true)
 
     try {
-      await sendMessage(chatId, content)
+      await sendMessage(chatId, content, tempId)
     } catch (error) {
       toast.error('Error al enviar el mensaje')
       // Revert optimistic update on failure

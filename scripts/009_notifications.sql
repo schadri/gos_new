@@ -23,10 +23,10 @@ create policy "Los usuarios solo ven sus notificaciones" on public.notifications
 create policy "Los usuarios pueden actualizar sus notificaciones" on public.notifications
   for update using (auth.uid() = user_id);
 
--- Para que el servidor (Service Role) pueda insertar (bypass RLS local) o si se hace por RPC.
--- Permite inserts locales temporalmente si auth es dueño (aunque idealmente lo hace un Service Role)
-create policy "Insert notifications" on public.notifications
-  for insert with check (auth.uid() = user_id or true);
+-- Permitimos que cualquier usuario autenticado pueda insertar notificaciones
+-- (Esencial para que un empleador le inserte una notif a un candidato, o viceversa)
+create policy "Cualquiera puede insertar notificaciones" on public.notifications
+  for insert with check (auth.role() = 'authenticated');
 
 -- Indexar para optimizar cargas rápidas y ordenación
 create index idx_notifications_user_id on public.notifications(user_id);

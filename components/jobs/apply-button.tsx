@@ -5,15 +5,19 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { createApplicationNotification } from '@/app/actions/notifications'
 
 interface ApplyButtonProps {
   jobId: string
   userId?: string
   isEmployer: boolean
   hasApplied: boolean
+  employerId?: string
+  jobTitle?: string
+  applicantName?: string
 }
 
-export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialApplied }: ApplyButtonProps) {
+export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialApplied, employerId, jobTitle, applicantName }: ApplyButtonProps) {
   const [isApplying, setIsApplying] = React.useState(false)
   const [hasApplied, setHasApplied] = React.useState(initialApplied)
 
@@ -57,6 +61,15 @@ export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialAppl
 
       if (rpcError) {
         console.error('Error incrementing application count:', rpcError)
+      }
+
+      // Dispatch real push notification to the employer
+      if (employerId && jobTitle && applicantName) {
+        try {
+          await createApplicationNotification(employerId, jobId, applicantName, jobTitle)
+        } catch (notifErr) {
+          console.error('Error sending application notification:', notifErr)
+        }
       }
 
       setHasApplied(true)

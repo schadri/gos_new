@@ -6,6 +6,8 @@ import { Providers } from '@/components/providers'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { BottomNav } from '@/components/layout/bottom-nav'
+import { RealtimeNotifications } from '@/components/layout/realtime-notifications'
+import { createClient } from '@/lib/supabase/server'
 
 const font = Inter({ subsets: ["latin"] });
 
@@ -15,14 +17,18 @@ export const metadata: Metadata = {
   generator: 'v0.app',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background`}>
+        {user && <RealtimeNotifications userId={user.id} />}
         <Providers>
           <Navbar />
           <main className="flex-1 w-full mx-auto">

@@ -7,6 +7,7 @@ import { User, MapPin, Briefcase, Sparkles, Settings, FileText, Bookmark, CheckC
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createClient } from '@/lib/supabase/server'
 import { EditProfileModal } from '@/components/profile/edit-profile-modal'
+import { EditEmployerProfileModal } from '@/components/profile/edit-employer-profile-modal'
 
 export default async function TalentProfile() {
   const supabase = await createClient()
@@ -44,6 +45,56 @@ export default async function TalentProfile() {
     .eq('applicant_id', user.id)
     .order('created_at', { ascending: false })
 
+  const isEmployer = profile?.user_type === 'BUSINESS' || user.user_metadata?.role === 'employer'
+
+  // If employer, render company profile
+  if (isEmployer) {
+    const companyName = profile?.company_name || 'Nombre de la Empresa'
+    const companyDesc = profile?.company_description || 'Sin descripción'
+    const companyLocation = profile?.location || 'Ubicación no especificada'
+    const companyLogo = profile?.company_logo
+
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm relative overflow-hidden">
+          <EditEmployerProfileModal 
+            initialName={companyName}
+            initialPhoto={companyLogo}
+            initialDescription={companyDesc}
+            initialLocation={companyLocation}
+          />
+          <div className="absolute top-0 w-full h-32 bg-primary/10 left-0"></div>
+          
+          <div className="relative pt-12 flex flex-col md:flex-row gap-8 items-start">
+            <div className="w-32 h-32 bg-muted rounded-2xl border-4 border-background shadow-lg overflow-hidden shrink-0 flex items-center justify-center">
+              {companyLogo ? (
+                <img src={companyLogo} alt={companyName} className="w-full h-full object-cover" />
+              ) : (
+                <Briefcase className="h-12 w-12 text-muted-foreground/50" />
+              )}
+            </div>
+            
+            <div className="flex-1 space-y-4">
+              <div>
+                <h1 className="text-3xl font-extrabold tracking-tight">{companyName}</h1>
+                <p className="text-muted-foreground font-medium mt-1 flex items-center">
+                  <MapPin className="h-4 w-4 mr-1 text-primary" /> {companyLocation}
+                </p>
+              </div>
+              
+              <div className="pt-4 border-t border-border/50">
+                <h3 className="font-bold text-lg mb-2">Sobre nosotros</h3>
+                <p className="text-foreground/80 leading-relaxed max-w-2xl whitespace-pre-line">
+                  {companyDesc}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Determine completion percentage roughly
   let completion = 25 // base registration
   if (profile?.full_name) completion += 25
@@ -51,6 +102,7 @@ export default async function TalentProfile() {
   if (positions.length > 0) completion += 10
   if (skills.length > 0) completion += 10
   if (profile?.cv_url) completion += 20
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

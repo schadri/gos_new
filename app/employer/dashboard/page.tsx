@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { JobActionsMenu } from '@/components/employer/job-actions-menu'
 
@@ -121,18 +122,20 @@ export default async function EmployerDashboard() {
                     </p>
                   </div>
                   
-                  <div className="flex items-center gap-6 sm:gap-10">
-                    <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
-                      <span className="text-sm font-semibold text-muted-foreground flex items-center"><Eye className="h-4 w-4 mr-1.5" /> {job.views_count || 0} vistas</span>
-                      <span className="text-sm font-semibold text-muted-foreground flex items-center"><Users className="h-4 w-4 mr-1.5" /> {job.applications_count || 0} aplic.</span>
+                    <div className="flex items-center gap-6 sm:gap-10">
+                      <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                        <span className="text-sm font-semibold text-muted-foreground flex items-center"><Eye className="h-4 w-4 mr-1.5" /> {job.views_count || 0} vistas</span>
+                        <Link href={`/employer/jobs/${job.id}/applicants`} className="text-sm font-semibold text-primary/80 hover:text-primary transition-colors flex items-center hover:underline cursor-pointer"><Users className="h-4 w-4 mr-1.5" /> {job.applications_count || 0} aplic.</Link>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Link href={`/employer/jobs/${job.id}/applicants`}>
+                          <Badge variant="outline" className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer border-primary/20 font-bold shadow-sm transition-colors">
+                            <Sparkles className="h-3 w-3 mr-1" /> {job.contacted_count || 0} Matches
+                          </Badge>
+                        </Link>
+                        <JobActionsMenu jobId={job.id} />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline" className="px-3 py-1.5 bg-primary/10 text-primary border-primary/20 font-bold shadow-sm">
-                        <Sparkles className="h-3 w-3 mr-1" /> {job.contacted_count || 0} Matches
-                      </Badge>
-                      <JobActionsMenu jobId={job.id} />
-                    </div>
-                  </div>
                 </div>
               ))
             )}

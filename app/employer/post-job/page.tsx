@@ -65,7 +65,7 @@ function PostJobForm() {
           setDescription(data.description || '')
           setCategory(data.category || '')
           setContractType(data.contract_type || '')
-          setExperience(data.experience_required || '')
+          setExperience(data.experience_required ? (data.experience_required.includes('años') ? data.experience_required : `${data.experience_required} años`) : '')
           setLocation(data.location || '')
           setKeywords(data.keywords || [])
         }
@@ -113,7 +113,7 @@ function PostJobForm() {
         company: companyName,
         description: description || null,
         category: category || null,
-        contract_type: contractType ? contractType.toLowerCase().replace('time', '-time') : null,
+        contract_type: contractType || null,
         experience_required: experience ? experience.replace(' años', '') : null,
         location: location || null,
         keywords: keywords,
@@ -158,7 +158,7 @@ function PostJobForm() {
         company: companyName,
         description: description || null,
         category: category || null,
-        contract_type: contractType ? contractType.toLowerCase().replace('time', '-time') : null,
+        contract_type: contractType || null,
         experience_required: experience ? experience.replace(' años', '') : null,
         location: location || null,
         keywords: keywords,
@@ -216,7 +216,7 @@ function PostJobForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="grid gap-3">
                 <Label htmlFor="category" className="text-base font-bold">Sector / Categoría</Label>
-                <Select onValueChange={(val) => { setCategory(val); setTitle(''); }}>
+                <Select onValueChange={(val) => { setCategory(val); setTitle(''); }} value={category}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar sector..." />
                   </SelectTrigger>
@@ -247,7 +247,7 @@ function PostJobForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="grid gap-3">
                 <Label htmlFor="type" className="text-base font-bold">Tipo de Contrato</Label>
-                <Select onValueChange={setContractType}>
+                <Select onValueChange={setContractType} value={contractType}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar contrato..." />
                   </SelectTrigger>
@@ -262,7 +262,7 @@ function PostJobForm() {
 
               <div className="grid gap-3">
                 <Label htmlFor="exp" className="text-base font-bold">Experiencia Mínima Requerida</Label>
-                <Select onValueChange={setExperience}>
+                <Select onValueChange={setExperience} value={experience}>
                   <SelectTrigger className="h-14 bg-muted/30 text-lg rounded-2xl focus:ring-primary/50">
                     <SelectValue placeholder="Seleccionar..." />
                   </SelectTrigger>

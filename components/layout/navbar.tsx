@@ -15,15 +15,33 @@ import { createClient } from '@/lib/supabase/client'
 export function Navbar() {
   const pathname = usePathname()
   const [user, setUser] = React.useState<any>(null)
+  const [role, setRole] = React.useState<string | null>(null)
   
   React.useEffect(() => {
     const supabase = createClient()
+    
+    const fetchUserAndRole = async (sessionUser: any) => {
+      setUser(sessionUser)
+      if (sessionUser) {
+        // First check metadata
+        let currentRole = sessionUser.user_metadata?.role
+        // Then verify with the database
+        const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', sessionUser.id).single()
+        if (profile?.user_type === 'BUSINESS') {
+          currentRole = 'employer'
+        }
+        setRole(currentRole)
+      } else {
+        setRole(null)
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null)
+      fetchUserAndRole(session?.user || null)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
+      fetchUserAndRole(session?.user || null)
     })
 
     return () => subscription.unsubscribe()
@@ -48,10 +66,19 @@ export function Navbar() {
         <div className="hidden md:flex flex-1 items-center justify-between space-x-2 md:justify-end">
           {user || !isPublicRoute ? (
             <nav className="flex items-center space-x-6 text-sm font-medium">
-              <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
-              <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Panel Emprendedor</Link>
-              <Link href="/profile" className="transition-colors hover:text-foreground/80 text-foreground/60">Mi Perfil</Link>
-              <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+              {role === 'employer' ? (
+                <>
+                  <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
+                  <Link href="/profile" className="transition-colors hover:text-foreground/80 text-foreground/60">Mi Perfil</Link>
+                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
+                  <Link href="/profile" className="transition-colors hover:text-foreground/80 text-foreground/60">Mi Perfil</Link>
+                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                </>
+              )}
             </nav>
           ) : (
             <div className="flex-1"></div>
@@ -82,10 +109,19 @@ export function Navbar() {
               <div className="flex flex-col space-y-4 mt-6">
                 {(user || !isPublicRoute) && (
                   <>
-                    <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
-                    <Link href="/employer/dashboard" className="text-lg font-medium">Panel Emprendedor</Link>
-                    <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
-                    <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                    {role === 'employer' ? (
+                      <>
+                        <Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link>
+                        <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
+                        <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
+                        <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
+                        <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                      </>
+                    )}
                     <div className="h-px bg-border my-2" />
                   </>
                 )}

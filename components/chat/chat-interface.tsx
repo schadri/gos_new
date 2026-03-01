@@ -135,7 +135,7 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer }: C
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-3 pb-8 sm:pb-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-3 pb-safe-bottom sm:pb-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 mt-auto">
         <form onSubmit={handleSend} className="max-w-4xl mx-auto flex gap-2 sm:gap-3 items-end relative">
           <Input 
             value={newMessage}

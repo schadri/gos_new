@@ -8,6 +8,7 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -106,20 +107,20 @@ export function Navbar() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <div className="flex flex-col space-y-4 mt-6">
+              <div className="flex flex-col space-y-5 mt-14">
                 {(user || !isPublicRoute) && (
                   <>
                     {role === 'employer' ? (
                       <>
-                        <Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link>
-                        <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
-                        <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                        <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link></SheetClose>
+                        <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
+                        <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
                       </>
                     ) : (
                       <>
-                        <Link href="/jobs" className="text-lg font-medium">Trabajos</Link>
-                        <Link href="/profile" className="text-lg font-medium">Mi Perfil</Link>
-                        <Link href="/notifications" className="text-lg font-medium">Notificaciones</Link>
+                        <SheetClose asChild><Link href="/jobs" className="text-lg font-medium">Trabajos</Link></SheetClose>
+                        <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
+                        <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
                       </>
                     )}
                     <div className="h-px bg-border my-2" />
@@ -127,12 +128,12 @@ export function Navbar() {
                 )}
                 {!user ? (
                   <>
-                    <Link href="/login" className="text-lg font-medium">Ingresar</Link>
-                    <Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link>
+                    <SheetClose asChild><Link href="/login" className="text-lg font-medium">Ingresar</Link></SheetClose>
+                    <SheetClose asChild><Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link></SheetClose>
                   </>
                 ) : (
                   <>
-                    <button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">Cerrar Sesión</button>
+                    <SheetClose asChild><button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">Cerrar Sesión</button></SheetClose>
                   </>
                 )}
               </div>

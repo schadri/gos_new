@@ -62,8 +62,8 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
     .order('created_at', { ascending: true })
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-4rem)] overflow-hidden bg-background">
-      <div className="border-b bg-card px-4 py-3 flex items-center gap-4 shrink-0 shadow-sm z-20">
+    <div className="flex flex-col h-[calc(100dvh-4rem)] bg-background">
+      <div className="sticky top-16 border-b bg-card px-4 py-3 flex items-center gap-4 shrink-0 shadow-sm z-40">
         <Link 
           href={isEmployer ? '/employer/dashboard' : '/profile'} 
           className="p-2 hover:bg-muted rounded-full transition-colors flex shrink-0"

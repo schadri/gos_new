@@ -2,8 +2,21 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, MapPin, ChefHat, Coffee, BedDouble, UtensilsCrossed, ArrowRight, User, Briefcase } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', user.id).single()
+    if (profile?.user_type === 'BUSINESS') {
+      redirect('/employer/dashboard')
+    } else {
+      redirect('/jobs')
+    }
+  }
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}

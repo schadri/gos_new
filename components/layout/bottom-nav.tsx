@@ -51,30 +51,26 @@ export function BottomNav() {
       <div className="flex justify-around items-center h-16 px-2">
         {role === 'employer' ? (
           <>
-            <Link href="/employer/dashboard" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
+            <Link href="/employer/dashboard" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname === '/employer/dashboard' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
               <Home className="h-5 w-5 mb-1" />
               <span className="text-[10px] font-medium">Portal</span>
             </Link>
-            <Link href="/employer/post-job" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
-              <div className="bg-primary text-primary-foreground p-3 rounded-full -mt-6 shadow-lg transform hover:scale-105 transition-transform">
+            <Link href="/employer/post-job" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname === '/employer/post-job' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+              <div className={`p-3 rounded-full -mt-6 shadow-lg transform transition-transform ${pathname === '/employer/post-job' ? 'bg-primary text-primary-foreground scale-110' : 'bg-primary/90 text-primary-foreground hover:scale-105'}`}>
                 <Briefcase className="h-5 w-5" />
               </div>
-              <span className="text-[10px] font-medium text-primary mt-1">Publicar</span>
+              <span className={`text-[10px] font-medium mt-1 ${pathname === '/employer/post-job' ? 'text-primary' : 'text-primary/80'}`}>Publicar</span>
             </Link>
           </>
         ) : (
           <>
-            <Link href="/" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
-              <Home className="h-5 w-5 mb-1" />
-              <span className="text-[10px] font-medium">Inicio</span>
-            </Link>
-            <Link href="/jobs" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
+            <Link href="/jobs" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname?.startsWith('/jobs') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
               <Search className="h-5 w-5 mb-1" />
               <span className="text-[10px] font-medium">Buscar</span>
             </Link>
           </>
         )}
-        <Link href="/notifications" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors relative">
+        <Link href="/notifications" className={`flex flex-col items-center justify-center w-full h-full transition-colors relative ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
           <Bell className="h-5 w-5 mb-1" />
           <span className="absolute top-2 right-4 flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
@@ -82,7 +78,7 @@ export function BottomNav() {
           </span>
           <span className="text-[10px] font-medium">Notifs</span>
         </Link>
-        <Link href="/profile" className="flex flex-col items-center justify-center w-full h-full text-muted-foreground hover:text-primary transition-colors">
+        <Link href="/profile" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname?.startsWith('/profile') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
           <User className="h-5 w-5 mb-1" />
           <span className="text-[10px] font-medium">Perfil</span>
         </Link>

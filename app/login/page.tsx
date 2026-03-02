@@ -25,6 +25,8 @@ function LoginContent() {
     const supabase = createClient()
 
     let nextRoute = '/profile'
+    const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
+
     if (flow === 'talent') nextRoute = '/talent/register'
     if (flow === 'employer') nextRoute = '/employer/register'
 
@@ -32,7 +34,9 @@ function LoginContent() {
 
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: redirectUrl },
+      options: { 
+        redirectTo: redirectUrl,
+      },
     })
   }
 
@@ -48,10 +52,17 @@ function LoginContent() {
           return
         }
 
+        const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { role: flow } },
+          options: { 
+            data: { 
+              role: flow,
+              user_type: typeValue
+            } 
+          },
         })
 
         if (error) {

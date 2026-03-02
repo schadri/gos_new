@@ -55,17 +55,33 @@ language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  is_employer boolean;
+  final_user_type text;
 begin
+  -- Check multiple possible metadata fields and values
+  is_employer := (
+    coalesce(new.raw_user_meta_data ->> 'user_type', '') IN ('BUSINESS', 'employer') OR
+    coalesce(new.raw_user_meta_data ->> 'role', '') IN ('BUSINESS', 'employer')
+  );
+
+  final_user_type := case when is_employer then 'BUSINESS' else 'TALENT' end;
+
   insert into public.profiles (id, user_type, full_name, profile_photo, company_logo)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT'),
+    final_user_type,
     coalesce(new.raw_user_meta_data ->> 'full_name', null),
-    case when coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT') = 'TALENT' then new.raw_user_meta_data ->> 'avatar_url' else null end,
-    case when coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT') = 'BUSINESS' then new.raw_user_meta_data ->> 'avatar_url' else null end
+    case when not is_employer then new.raw_user_meta_data ->> 'avatar_url' else null end,
+    case when is_employer then new.raw_user_meta_data ->> 'avatar_url' else null end
   )
   on conflict (id) do update set
-    full_name = coalesce(excluded.full_name, profiles.full_name),
+    user_type = case 
+      when profiles.user_type is null or profiles.user_type = 'TALENT' 
+      then excluded.user_type 
+      else profiles.user_type 
+    end,
+    full_name = coalesce(profiles.full_name, excluded.full_name),
     profile_photo = case when profiles.profile_photo is null then excluded.profile_photo else profiles.profile_photo end,
     company_logo = case when profiles.company_logo is null then excluded.company_logo else profiles.company_logo end;
   return new;

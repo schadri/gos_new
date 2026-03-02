@@ -6,8 +6,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Briefcase, Sparkles, AlertCircle, Loader2, MapPin } from 'lucide-react'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog'
+import { Briefcase, Sparkles, AlertCircle, Loader2, MapPin, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
@@ -49,6 +65,8 @@ function PostJobForm() {
   const [location, setLocation] = React.useState('')
   const [keywords, setKeywords] = React.useState<string[]>([])
   
+  const [initialData, setInitialData] = React.useState<any>(null)
+  const [showExitDialog, setShowExitDialog] = React.useState(false)
   const [profileLocation, setProfileLocation] = React.useState<string | null>(null)
   const [companyName, setCompanyName] = React.useState<string>('Empresa Confidencial')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -61,18 +79,63 @@ function PostJobForm() {
         const supabase = createClient()
         const { data, error } = await supabase.from('jobs').select('*').eq('id', editId).single()
         if (data && !error) {
-          setTitle(data.title || '')
-          setDescription(data.description || '')
-          setCategory(data.category || '')
-          setContractType(data.contract_type || '')
-          setExperience(data.experience_required ? (data.experience_required.includes('años') ? data.experience_required : `${data.experience_required} años`) : '')
-          setLocation(data.location || '')
-          setKeywords(data.keywords || [])
+          const expValue = data.experience_required ? (data.experience_required.includes('años') ? data.experience_required : `${data.experience_required} años`) : ''
+          
+          const loadedData = {
+            title: data.title || '',
+            description: data.description || '',
+            category: data.category || '',
+            contractType: data.contract_type || '',
+            experience: expValue,
+            location: data.location || '',
+            keywords: data.keywords || []
+          }
+          
+          setTitle(loadedData.title)
+          setDescription(loadedData.description)
+          setCategory(loadedData.category)
+          setContractType(loadedData.contractType)
+          setExperience(loadedData.experience)
+          setLocation(loadedData.location)
+          setKeywords(loadedData.keywords)
+          setInitialData(loadedData)
         }
       }
       fetchJob()
+    } else {
+      // For new jobs, initial data is empty
+      setInitialData({
+        title: '',
+        description: '',
+        category: '',
+        contractType: '',
+        experience: '',
+        location: '',
+        keywords: []
+      })
     }
   }, [editId])
+
+  const isDirty = React.useMemo(() => {
+    if (!initialData) return false
+    return (
+      title !== initialData.title ||
+      description !== initialData.description ||
+      category !== initialData.category ||
+      contractType !== initialData.contractType ||
+      experience !== initialData.experience ||
+      location !== initialData.location ||
+      JSON.stringify(keywords) !== JSON.stringify(initialData.keywords)
+    )
+  }, [title, description, category, contractType, experience, location, keywords, initialData])
+
+  const handleBack = () => {
+    if (isDirty) {
+      setShowExitDialog(true)
+    } else {
+      router.push('/employer/dashboard')
+    }
+  }
 
   React.useEffect(() => {
     // Fetch profile location and company name
@@ -132,6 +195,7 @@ function PostJobForm() {
       if (error) throw error
 
       toast.success('¡Oferta publicada exitosamente!')
+      setInitialData(null) // Reset dirty check
       router.push('/employer/dashboard')
       
     } catch (error: any) {
@@ -173,13 +237,21 @@ function PostJobForm() {
         const res = await supabase.from('jobs').insert(jobData).select('id').single()
         error = res.error
         if (!error && res.data) {
-          // Instead of redirecting to dashboard, update URL so they keep editing the new draft natively
           router.replace(`/employer/post-job?id=${res.data.id}`)
         }
       }
 
       if (error) throw error
       toast.success('Borrador guardado.')
+      setInitialData({
+        title,
+        description,
+        category,
+        contractType,
+        experience,
+        location,
+        keywords: [...keywords]
+      })
       
     } catch (error: any) {
       toast.error('Error al guardar el borrador.')
@@ -189,19 +261,29 @@ function PostJobForm() {
   }
 
   const suggestKeywords = () => {
-    // Mocking AI keyword suggestion
     const newKeywords = Array.from(new Set([...keywords, 'Liderazgo', 'Control de stock', 'Trabajo en equipo', 'Limpieza']))
     setKeywords(newKeywords)
   }
 
   return (
     <div className="container mx-auto max-w-4xl py-12 md:py-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="mb-12 text-center md:text-left">
-        <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-2xl mb-6 shadow-sm">
-          <Briefcase className="h-8 w-8 text-primary" />
+      <div className="mb-12 flex flex-col items-center md:items-start">
+        <div className="flex items-center gap-4 mb-8">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleBack}
+            className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors h-12 w-12"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </Button>
+          <div className="p-3 bg-primary/10 rounded-2xl shadow-sm">
+            <Briefcase className="h-6 w-6 text-primary" />
+          </div>
         </div>
-        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground">Publicar oferta de Empleo</h1>
-        <p className="text-muted-foreground mt-4 text-xl font-medium max-w-2xl">
+        
+        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground text-center md:text-left">Publicar oferta de Empleo</h1>
+        <p className="text-muted-foreground mt-4 text-xl font-medium max-w-2xl text-center md:text-left">
           Encuentra el perfil exacto que necesitas. Nuestro sistema inteligente de matching buscará a los candidatos más compatibles al instante.
         </p>
       </div>
@@ -369,6 +451,43 @@ function PostJobForm() {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent className="max-w-[500px] rounded-[32px] border-border bg-card p-8 md:p-10 shadow-2xl">
+          <AlertDialogHeader className="text-center sm:text-left">
+            <AlertDialogTitle className="text-2xl md:text-3xl font-extrabold tracking-tight">
+              ¿Tienes cambios sin guardar?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-lg text-muted-foreground font-medium pt-2">
+              Si sales ahora se perderán las modificaciones que hayas hecho en esta publicación. ¿Qué deseas hacer?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-3 pt-8">
+            <AlertDialogCancel className="h-14 rounded-2xl font-bold text-base bg-muted/50 border-none hover:bg-muted transition-colors sm:flex-1 order-3 sm:order-1">
+              Seguir editando
+            </AlertDialogCancel>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowExitDialog(false)
+                router.push('/employer/dashboard')
+              }}
+              className="h-14 rounded-2xl font-bold text-base border-destructive/20 text-destructive hover:bg-destructive/10 sm:flex-1 order-2"
+            >
+              Descartar
+            </Button>
+            <AlertDialogAction 
+              onClick={async () => {
+                await handleSaveDraft()
+                router.push('/employer/dashboard')
+              }}
+              className="h-14 rounded-2xl font-bold text-base shadow-lg shadow-primary/25 sm:flex-1 bg-primary text-primary-foreground order-1 sm:order-3"
+            >
+              Guardar y Salir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

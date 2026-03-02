@@ -27,12 +27,20 @@ export default async function Home() {
       console.log('Home Page: Redirecting to jobs page')
       redirect('/jobs')
     }
+
+    // If session exists but profile is still being created/processed,
+    // show only the loading state and let RoleRedirector handle it client-side
+    return (
+      <div className="flex flex-col min-h-screen bg-background">
+        <RedirectLoading />
+        <RoleRedirector />
+      </div>
+    )
   } else {
     console.log('Home Page: No active session.')
   }
   return (
     <div className="flex flex-col min-h-screen">
-      {session && <RedirectLoading />}
       <RoleRedirector />
       {/* Hero Section */}
       <section className="w-full py-20 md:py-24 lg:py-32 xl:py-48 bg-muted/20 relative overflow-hidden flex items-center min-h-[90vh] md:min-h-0">
@@ -75,12 +83,7 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className="md:hidden mt-4">
-              <p className="text-sm text-muted-foreground mb-4 font-medium">¿Ya tienes una cuenta?</p>
-              <Button asChild variant="outline" size="lg" className="rounded-2xl px-10 font-bold border-primary text-primary hover:bg-primary/5">
-                <Link href="/login">Inicia Sesión aquí</Link>
-              </Button>
-            </div>
+            
           </div>
         </div>
       </section>

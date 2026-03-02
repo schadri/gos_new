@@ -183,7 +183,35 @@ function LoginContent() {
           </Button>
         </form>
       </div>
+
+      <div className="text-center mt-12 w-full max-w-[400px]">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6">
+          ¿Todavía no tenés una cuenta?
+        </h2>
+        <div className={`grid ${!flow ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+          {(flow === 'employer' || !flow) && (
+            <Button variant="outline" asChild className="h-14 rounded-2xl border-primary/20 hover:border-primary/50 hover:bg-primary/5 shadow-sm bg-card">
+              <Link href="/login?flow=talent" className="text-sm font-bold">Soy Postulante</Link>
+            </Button>
+          )}
+          {(flow === 'talent' || !flow) && (
+            <Button variant="outline" asChild className="h-14 rounded-2xl border-primary/20 hover:border-primary/50 hover:bg-primary/5 shadow-sm bg-card">
+              <Link href="/login?flow=employer" className="text-sm font-bold">Soy Emprendedor</Link>
+            </Button>
+          )}
+          
+        </div>
+        
+        {flow && (
+          <div className="mt-6">
+            <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/login">Volver al ingreso normal</Link>
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
+
   )
 }
 

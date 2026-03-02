@@ -74,6 +74,13 @@ export default async function Home() {
                 <p className="text-muted-foreground font-medium text-center text-sm sm:text-base">Busco talento para mi negocio o emprendimiento</p>
               </Link>
             </div>
+
+            <div className="md:hidden mt-4">
+              <p className="text-sm text-muted-foreground mb-4 font-medium">¿Ya tienes una cuenta?</p>
+              <Button asChild variant="outline" size="lg" className="rounded-2xl px-10 font-bold border-primary text-primary hover:bg-primary/5">
+                <Link href="/login">Inicia Sesión aquí</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

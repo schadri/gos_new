@@ -162,55 +162,59 @@ export function Navbar() {
             ) : null}
           </div>
         <div className="flex flex-1 items-center justify-end md:hidden">
-          {user && (
-            <Link href="/profile" className="mr-4">
-               <Avatar className="h-8 w-8 border border-border">
-                <AvatarImage src={profile?.avatar} alt={profile?.name || 'User'} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                  {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          )}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Menú</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex flex-col space-y-5 mt-14">
-                {(user || !isPublicRoute) && (
-                  <>
-                    {role === 'employer' ? (
-                      <>
-                        <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link></SheetClose>
-                        <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
-                        <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
-                      </>
-                    ) : (
-                      <>
-                        <SheetClose asChild><Link href="/jobs" className="text-lg font-medium">Trabajos</Link></SheetClose>
-                        <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
-                        <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
-                      </>
-                    )}
+          {!user ? (
+            <div className="flex items-center">
+              {!pathname?.includes('/login') && !pathname?.includes('/register') && (
+                <Button asChild variant="ghost" size="sm" className="font-bold text-primary">
+                  <Link href="/login">Ingresar</Link>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href="/profile" className="mr-4">
+                 <Avatar className="h-8 w-8 border border-border transition-transform active:scale-95">
+                  <AvatarImage src={profile?.avatar} alt={profile?.name || 'User'} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                    {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Menú</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                  <div className="flex flex-col space-y-5 mt-14">
+                    <nav className="flex flex-col space-y-4">
+                      {role === 'employer' ? (
+                        <>
+                          <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
+                        </>
+                      ) : (
+                        <>
+                          <SheetClose asChild><Link href="/jobs" className="text-lg font-medium">Trabajos</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
+                        </>
+                      )}
+                    </nav>
                     <div className="h-px bg-border my-2" />
-                  </>
-                )}
-                {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
-                  <>
-                    <SheetClose asChild><Link href="/login" className="text-lg font-medium">Ingresar</Link></SheetClose>
-                  </>
-                ) : user ? (
-                  <>
-                    <SheetClose asChild><button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">Cerrar Sesión</button></SheetClose>
-                  </>
-                ) : null}
-              </div>
-            </SheetContent>
-          </Sheet>
+                    <SheetClose asChild>
+                      <button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">
+                        Cerrar Sesión
+                      </button>
+                    </SheetClose>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </>
+          )}
         </div>
       </div>
     </header>

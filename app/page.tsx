@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Briefcase, Users, Star, ArrowRight, Zap, Target, Search, Clock, MapPin, Globe, Shield, Sparkles, ChefHat, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { RoleRedirector } from '@/components/shared/role-redirector'
+import { RedirectLoading } from '@/components/shared/redirect-loading'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -31,6 +32,7 @@ export default async function Home() {
   }
   return (
     <div className="flex flex-col min-h-screen">
+      {session && <RedirectLoading />}
       <RoleRedirector />
       {/* Hero Section */}
       <section className="w-full py-20 md:py-24 lg:py-32 xl:py-48 bg-muted/20 relative overflow-hidden flex items-center min-h-[90vh] md:min-h-0">

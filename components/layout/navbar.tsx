@@ -202,7 +202,6 @@ export function Navbar() {
                 {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
                   <>
                     <SheetClose asChild><Link href="/login" className="text-lg font-medium">Ingresar</Link></SheetClose>
-                    <SheetClose asChild><Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link></SheetClose>
                   </>
                 ) : user ? (
                   <>

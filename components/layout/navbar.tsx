@@ -110,13 +110,13 @@ export function Navbar() {
           ) : (
             <div className="flex-1"></div>
           )}
-            {!user ? (
+            {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
               <div className="flex items-center space-x-2 border-l pl-6 ml-6">
                 <Button asChild>
                   <Link href="/login">Ingresar</Link>
                 </Button>
               </div>
-            ) : (
+            ) : user ? (
               <div className="flex items-center space-x-2 border-l pl-6 ml-6">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -159,7 +159,7 @@ export function Navbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            )}
+            ) : null}
           </div>
         <div className="flex flex-1 items-center justify-end md:hidden">
           {user && (
@@ -199,16 +199,16 @@ export function Navbar() {
                     <div className="h-px bg-border my-2" />
                   </>
                 )}
-                {!user ? (
+                {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
                   <>
                     <SheetClose asChild><Link href="/login" className="text-lg font-medium">Ingresar</Link></SheetClose>
                     <SheetClose asChild><Link href="/talent/register" className="text-lg font-medium text-primary">Postularme</Link></SheetClose>
                   </>
-                ) : (
+                ) : user ? (
                   <>
                     <SheetClose asChild><button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">Cerrar Sesión</button></SheetClose>
                   </>
-                )}
+                ) : null}
               </div>
             </SheetContent>
           </Sheet>

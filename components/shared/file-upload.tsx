@@ -27,9 +27,23 @@ export function FileUpload({
     
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
       
-      if (!user) throw new Error('Debes estar autenticado para subir archivos')
+      console.log('File Upload: Checking session...')
+      const { data: { session } } = await supabase.auth.getSession()
+      let user = session?.user || null
+      
+      if (!user) {
+        console.log('File Upload: getSession returned null, trying getUser...')
+        const { data: { user: verifiedUser } } = await supabase.auth.getUser()
+        user = verifiedUser
+      }
+      
+      if (!user) {
+        console.error('File Upload: No authenticated user found after multiple checks')
+        throw new Error('No se pudo verificar tu sesión. Por favor, asegúrate de estar logueado y recarga la página.')
+      }
+      
+      console.log('File Upload: User verified:', user.id)
 
       const isImage = accept.includes('image')
       const bucket = isImage ? 'avatars' : 'documents'

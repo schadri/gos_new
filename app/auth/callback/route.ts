@@ -26,8 +26,20 @@ export async function GET(request: Request) {
                 },
             }
         )
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
+        const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error && user) {
+            // Early assignment of user_type if registering
+            if (next.includes('/employer/register')) {
+                await supabase.from('profiles').upsert({
+                    id: user.id,
+                    user_type: 'BUSINESS'
+                }).select()
+            } else if (next.includes('/talent/register')) {
+                await supabase.from('profiles').upsert({
+                    id: user.id,
+                    user_type: 'TALENT'
+                }).select()
+            }
             return NextResponse.redirect(`${origin}${next}`)
         }
     }

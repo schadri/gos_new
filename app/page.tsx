@@ -63,35 +63,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className="w-full py-24 bg-card">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-16">
-            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">Explora por Categoría</h2>
-            <p className="max-w-[800px] text-muted-foreground md:text-xl font-medium">
-              Descubre oportunidades en las áreas más demandadas de la industria
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
-            {[
-              { title: "Cocina", icon: ChefHat, count: "124 empleos", bg: "bg-orange-100 dark:bg-orange-950/40", color: "text-orange-600 dark:text-orange-400" },
-              { title: "Salón y Barras", icon: Coffee, count: "86 empleos", bg: "bg-blue-100 dark:bg-blue-950/40", color: "text-blue-600 dark:text-blue-400" },
-              { title: "Hotelería", icon: BedDouble, count: "52 empleos", bg: "bg-purple-100 dark:bg-purple-950/40", color: "text-purple-600 dark:text-purple-400" },
-              { title: "Gerencia", icon: UtensilsCrossed, count: "39 empleos", bg: "bg-emerald-100 dark:bg-emerald-950/40", color: "text-emerald-600 dark:text-emerald-400" },
-            ].map((cat, i) => (
-              <Link key={i} href="/jobs" className="group flex flex-col items-center p-8 bg-background rounded-3xl shadow-sm border border-border/40 hover:shadow-xl hover:-translate-y-2 hover:border-primary/30 transition-all duration-300">
-                <div className={`p-4 rounded-full ${cat.bg} mb-6 group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  <cat.icon className={`h-8 w-8 ${cat.color}`} />
-                </div>
-                <h3 className="font-bold text-xl">{cat.title}</h3>
-                <p className="text-sm text-muted-foreground mt-2 font-medium">{cat.count}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* How it Works / Value Prop */}
       <section className="w-full py-28 bg-primary text-primary-foreground relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff1a_1px,transparent_1px)] bg-[size:14px_24px] opacity-20"></div>
@@ -116,10 +87,10 @@ export default async function Home() {
               </ul>
               <div className="pt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Button size="lg" variant="secondary" className="font-bold text-lg h-14 px-8 rounded-xl shadow-lg w-full sm:w-auto" asChild>
-                  <Link href="/employer/register">Publicar Oferta</Link>
+                  <Link href="/login?flow=employer">Publicar Oferta</Link>
                 </Button>
                 <Button size="lg" className="bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground border-transparent border font-bold text-lg h-14 px-8 rounded-xl backdrop-blur-sm w-full sm:w-auto" asChild>
-                  <Link href="/talent/register">Crear Perfil</Link>
+                  <Link href="/login?flow=talent">Crear Perfil</Link>
                 </Button>
               </div>
             </div>

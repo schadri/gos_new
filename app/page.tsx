@@ -10,12 +10,18 @@ export default async function Home() {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (session?.user) {
-    const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', session.user.id).single()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', session.user.id)
+      .single()
+    
     if (profile?.user_type === 'BUSINESS') {
       redirect('/employer/dashboard')
-    } else {
+    } else if (profile?.user_type === 'TALENT') {
       redirect('/jobs')
     }
+    // If profile is not found yet, don't redirect to allow registration/loading
   }
   return (
     <div className="flex flex-col min-h-screen">

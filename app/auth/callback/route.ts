@@ -28,6 +28,19 @@ export async function GET(request: Request) {
         )
         const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error && user) {
+            // Early assignment based on the registration URL flow
+            if (next.includes('/employer/register')) {
+                await supabase.from('profiles').upsert({
+                    id: user.id,
+                    user_type: 'BUSINESS'
+                })
+            } else if (next.includes('/talent/register')) {
+                await supabase.from('profiles').upsert({
+                    id: user.id,
+                    user_type: 'TALENT'
+                })
+            }
+
             let finalRedirect = next
             if (next === '/') {
                 const { data: profile } = await supabase
@@ -38,7 +51,7 @@ export async function GET(request: Request) {
 
                 if (profile?.user_type === 'BUSINESS') {
                     finalRedirect = '/employer/dashboard'
-                } else {
+                } else if (profile?.user_type === 'TALENT') {
                     finalRedirect = '/jobs'
                 }
             }

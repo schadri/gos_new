@@ -16,7 +16,7 @@ export default async function Home() {
       .from('profiles')
       .select('user_type')
       .eq('id', session.user.id)
-      .single()
+      .maybeSingle()
     
     console.log(`Home Page: User ${session.user.email} session active. User type: ${profile?.user_type || 'NOT FOUND'}`)
 

@@ -45,7 +45,7 @@ export function Navbar() {
           .from('profiles')
           .select('user_type, full_name, profile_photo, company_logo')
           .eq('id', sessionUser.id)
-          .single()
+          .maybeSingle()
           
         if (profileData) {
           if (profileData.user_type === 'BUSINESS') {

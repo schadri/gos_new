@@ -20,7 +20,7 @@ export function RoleRedirector() {
           .from('profiles')
           .select('user_type')
           .eq('id', session.user.id)
-          .single()
+          .maybeSingle()
 
         const intent = localStorage.getItem('role_intent')
         console.log(`RoleRedirector: Profile type: ${profile?.user_type}, Intent: ${intent}`)

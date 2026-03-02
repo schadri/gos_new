@@ -32,7 +32,7 @@ export default async function TalentProfile() {
   const photoUrl = profile?.profile_photo
 
   // Fetch real applications
-  const { data: applications } = await supabase
+  const { data: rawApplications } = await supabase
     .from('job_applications')
     .select(`
       id,
@@ -41,11 +41,32 @@ export default async function TalentProfile() {
       jobs!inner (
         id,
         title,
-        company
+        company,
+        created_by
       )
     `)
     .eq('applicant_id', user.id)
     .order('created_at', { ascending: false })
+
+  let applications = rawApplications as any[] || []
+
+  if (applications.length > 0) {
+    const employerIds = Array.from(new Set(applications.map(app => app.jobs?.created_by)))
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, company_logo')
+      .in('id', employerIds)
+
+    if (profilesData) {
+      applications = applications.map(app => ({
+        ...app,
+        jobs: {
+          ...app.jobs,
+          profiles: profilesData.find(p => p.id === app.jobs?.created_by) || null
+        }
+      }))
+    }
+  }
 
   const isEmployer = profile?.user_type === 'BUSINESS' || user.user_metadata?.role === 'employer'
 
@@ -210,13 +231,16 @@ export default async function TalentProfile() {
                   const date = new Date(app.created_at).toLocaleDateString()
 
                   return (
-                    <div key={app.id} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/30 transition-colors cursor-pointer group">
+                    <div key={app.id} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/30 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-muted border flex items-center justify-center font-bold text-lg group-hover:scale-110 transition-transform shadow-sm shrink-0">
-                          {app.jobs?.company?.charAt(0) || 'E'}
-                        </div>
+                        <Avatar className="h-12 w-12 rounded-xl border bg-background group-hover:scale-110 transition-transform shadow-sm flex-shrink-0">
+                          <AvatarImage src={app.jobs?.profiles?.company_logo} alt={app.jobs?.company} className="object-cover" />
+                          <AvatarFallback className="font-bold text-lg bg-primary/5 text-primary">
+                            {app.jobs?.company?.charAt(0) || 'E'}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
-                          <h4 className="font-bold text-foreground text-lg truncate">{app.jobs?.title}</h4>
+                          <h4 className="font-bold text-foreground text-lg truncate group-hover:text-primary transition-colors">{app.jobs?.title}</h4>
                           <p className="text-sm font-medium text-muted-foreground truncate">{app.jobs?.company} • {date}</p>
                         </div>
                       </div>

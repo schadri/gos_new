@@ -7,6 +7,12 @@ import { ShareButton } from '@/components/jobs/share-button'
 import { MapPin, Briefcase, Clock, Calendar, CheckCircle2, Building, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
+
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   
@@ -24,6 +30,18 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
     notFound()
   }
 
+  // Fetch employer profile for company logo
+  const { data: employerProfile } = await supabase
+    .from('profiles')
+    .select('company_logo')
+    .eq('id', job.created_by)
+    .single()
+
+  // Augment job with profile data for the UI
+  if (job) {
+    (job as any).profiles = employerProfile || null
+  }
+
   // Get current session
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -33,7 +51,7 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
   let hasApplied = false
 
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('user_type, full_name').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('user_type, full_name').eq('id', user.id).maybeSingle()
     isEmployer = profile?.user_type === 'BUSINESS' || user.user_metadata?.role === 'employer'
     if (profile?.full_name) applicantName = profile.full_name
 
@@ -43,7 +61,7 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
         .select('id')
         .eq('job_id', job.id)
         .eq('applicant_id', user.id)
-        .single()
+        .maybeSingle()
       
       hasApplied = !!appData
     }
@@ -91,9 +109,12 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-2xl -z-10"></div>
             
             <div className="flex items-start justify-between gap-4">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border flex items-center justify-center flex-shrink-0 text-foreground font-extrabold text-3xl sm:text-4xl shadow-sm">
-                {companyName.charAt(0)}
-              </div>
+              <Avatar className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl border bg-background group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">
+                <AvatarImage src={job.profiles?.company_logo} alt={companyName} className="object-cover" />
+                <AvatarFallback className="text-3xl sm:text-4xl font-extrabold bg-primary/5 text-primary rounded-3xl">
+                  {companyName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
               <ShareButton title={job.title} />
             </div>
 

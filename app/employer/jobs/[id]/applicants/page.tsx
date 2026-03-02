@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MatchButton } from '@/components/employer/match-button'
 import { ApplicantModal } from '@/components/employer/applicant-modal'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
 export default async function ApplicantsPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -97,9 +102,17 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
             <div key={app.id} className="bg-card p-6 sm:p-8 rounded-3xl border border-border/50 shadow-sm flex flex-col md:flex-row gap-8 items-start hover:shadow-md transition-shadow">
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-4 mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold mb-1">{app.profiles?.full_name || 'Usuario Anónimo'}</h3>
-                    <p className="text-lg text-muted-foreground font-medium">{app.profiles?.position?.[0] || 'Profesional'}</p>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16 border-2 border-primary/10">
+                      <AvatarImage src={app.profiles?.profile_photo} alt={app.profiles?.full_name || 'Postulante'} />
+                      <AvatarFallback className="text-xl font-bold bg-primary/5 text-primary">
+                        {(app.profiles?.full_name || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="text-2xl font-bold mb-1">{app.profiles?.full_name || 'Usuario Anónimo'}</h3>
+                      <p className="text-lg text-muted-foreground font-medium">{app.profiles?.position?.[0] || 'Profesional'}</p>
+                    </div>
                   </div>
                   {app.status === 'interview' && (
                     <Badge variant="default" className="bg-green-500 hover:bg-green-600 font-bold px-3 py-1">

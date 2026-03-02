@@ -22,6 +22,11 @@ import {
 } from '@/components/ui/command'
 import { PROVINCES } from '@/lib/constants/locations'
 import { cn } from '@/lib/utils'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar"
 
 export default function JobBoard() {
   const [jobs, setJobs] = React.useState<any[]>([])
@@ -34,20 +39,51 @@ export default function JobBoard() {
   const [selectedContracts, setSelectedContracts] = React.useState<string[]>([])
   const [selectedExperience, setSelectedExperience] = React.useState<string[]>([])
   const [sortBy, setSortBy] = React.useState('Mejor match')
-
+ 
   // Fetch Jobs
   React.useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true)
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-      
-      if (data) setJobs(data)
-      setLoading(false)
+      try {
+        const supabase = createClient()
+        // 1. Fetch active jobs
+        const { data: jobsData, error: jobsError } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+        
+        if (jobsError) throw jobsError
+        if (!jobsData) {
+          setJobs([])
+          return
+        }
+
+        // 2. Fetch employer profiles for these jobs
+        const employerIds = Array.from(new Set(jobsData.map(j => j.created_by)))
+        if (employerIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, company_logo')
+            .in('id', employerIds)
+          
+          if (!profilesError && profilesData) {
+            const jobsWithProfiles = jobsData.map(job => ({
+              ...job,
+              profiles: profilesData.find(p => p.id === job.created_by) || null
+            }))
+            setJobs(jobsWithProfiles)
+          } else {
+            setJobs(jobsData)
+          }
+        } else {
+          setJobs(jobsData)
+        }
+      } catch (err) {
+        console.error('Error fetching jobs:', err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     fetchJobs()
@@ -323,17 +359,20 @@ export default function JobBoard() {
                     </div>
                     
                     <div className="flex flex-col sm:flex-row sm:items-start gap-6 pr-10">
-                      <div className="w-16 h-16 rounded-2xl bg-background border flex items-center justify-center flex-shrink-0 text-foreground font-extrabold text-2xl group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">
-                        {job.company?.charAt(0) || <Briefcase className="h-8 w-8 text-muted-foreground" />}
-                      </div>
+                      <Avatar className="h-20 w-20 rounded-2xl border bg-background flex-shrink-0 group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">
+                        <AvatarImage src={job.profiles?.company_logo} alt={job.company} className="object-cover" />
+                        <AvatarFallback className="text-2xl font-extrabold bg-primary/5 text-primary rounded-2xl">
+                          {job.company?.charAt(0) || <Briefcase className="h-8 w-8 text-muted-foreground" />}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex-1">
                         <h2 className="text-2xl font-bold group-hover:text-primary transition-colors">{job.title}</h2>
                         <div className="flex flex-wrap items-center text-muted-foreground mt-2 text-sm font-medium gap-y-2">
-                          <span className="text-foreground font-semibold flex items-center gap-1.5">
+                          <span className="text-foreground font-bold flex items-center gap-1.5">
                             {job.company || 'Empresa Confidencial'}
                           </span>
                           <span className="mx-3 text-border hidden sm:inline">•</span>
-                          <span className="flex items-center bg-muted/50 px-2 py-0.5 rounded-md"><MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" /> {job.location || 'Ubicación no especificada'}</span>
+                          <span className="flex items-center bg-muted/50 px-3 py-1 rounded-full"><MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" /> {job.location || 'Ubicación no especificada'}</span>
                         </div>
                         
                         <div className="flex flex-wrap items-center gap-3 mt-5 text-sm">

@@ -107,35 +107,44 @@ export default async function EmployerDashboard() {
               </div>
             ) : (
               activeJobs.map(job => (
-                <div key={job.id} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:border-primary/30 transition-colors">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-foreground">{job.title}</h3>
-                      {job.status === 'active' ? (
-                        <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border-transparent">Activa</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-muted text-muted-foreground">Borrador</Badge>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Publicado: {new Date(job.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
+                <div key={job.id} className="group relative bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer overflow-hidden">
+                  {/* Stretched Link for the entire card */}
+                  <Link 
+                    href={`/employer/jobs/${job.id}/applicants`} 
+                    className="absolute inset-0 z-0"
+                    aria-label={`Ver postulantes para ${job.title}`}
+                  />
                   
-                    <div className="flex items-center gap-6 sm:gap-10">
+                  <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 pointer-events-none">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{job.title}</h3>
+                        {job.status === 'active' ? (
+                          <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border-transparent">Activa</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="bg-muted text-muted-foreground">Borrador</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Publicado: {new Date(job.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-6 sm:gap-10 pointer-events-auto">
                       <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
                         <span className="text-sm font-semibold text-muted-foreground flex items-center"><Eye className="h-4 w-4 mr-1.5" /> {job.views_count || 0} vistas</span>
-                        <Link href={`/employer/jobs/${job.id}/applicants`} className="text-sm font-semibold text-primary/80 hover:text-primary transition-colors flex items-center hover:underline cursor-pointer"><Users className="h-4 w-4 mr-1.5" /> {job.applications_count || 0} aplic.</Link>
+                        <span className="text-sm font-semibold text-primary/80 flex items-center group-hover:underline"><Users className="h-4 w-4 mr-1.5" /> {job.applications_count || 0} aplic.</span>
                       </div>
                       <div className="flex items-center gap-4">
-                        <Link href={`/employer/jobs/${job.id}/applicants`}>
-                          <Badge variant="outline" className="px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer border-primary/20 font-bold shadow-sm transition-colors">
-                            <Sparkles className="h-3 w-3 mr-1" /> {job.contacted_count || 0} Matches
-                          </Badge>
-                        </Link>
-                        <JobActionsMenu jobId={job.id} />
+                        <Badge variant="outline" className="px-3 py-1.5 bg-primary/10 text-primary border-primary/20 font-bold shadow-sm transition-colors group-hover:bg-primary/20">
+                          <Sparkles className="h-3 w-3 mr-1" /> {job.contacted_count || 0} Matches
+                        </Badge>
+                        <div className="relative z-20">
+                          <JobActionsMenu jobId={job.id} />
+                        </div>
                       </div>
                     </div>
+                  </div>
                 </div>
               ))
             )}

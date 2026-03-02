@@ -5,8 +5,23 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Bookmark, Loader2 } from 'lucide-react'
+import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Bookmark, Loader2, Check, ChevronsUpDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { PROVINCES } from '@/lib/constants/locations'
+import { cn } from '@/lib/utils'
 
 export default function JobBoard() {
   const [jobs, setJobs] = React.useState<any[]>([])
@@ -118,13 +133,58 @@ export default function JobBoard() {
             />
           </div>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <MapPin className="absolute left-4 h-5 w-5 text-muted-foreground" />
-            <Input 
-              placeholder="Ciudad, provincia..." 
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value)}
-              className="pl-12 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 shadow-none rounded-2xl bg-transparent font-medium text-base"
-            />
+            <MapPin className="absolute left-4 h-5 w-5 text-muted-foreground z-10" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  role="combobox"
+                  className="w-full h-14 justify-between pl-12 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
+                >
+                  {locationQuery || "Provincia..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar provincia..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontró la provincia.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => setLocationQuery('')}
+                        className="font-bold text-primary"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            locationQuery === '' ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Todas las provincias
+                      </CommandItem>
+                      {PROVINCES.map((province) => (
+                        <CommandItem
+                          key={province}
+                          value={province}
+                          onSelect={(currentValue) => {
+                            setLocationQuery(currentValue === locationQuery ? "" : currentValue)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              locationQuery === province ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {province}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
             <SlidersHorizontal className="h-4 w-4" /> Filtros
@@ -283,7 +343,7 @@ export default function JobBoard() {
             )}
           </div>
           
-          {!loading && filteredJobs.length > 0 && (
+          {!loading && filteredJobs.length >= 5 && (
             <div className="pt-10 flex justify-center">
               <Button variant="outline" size="lg" className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted">
                 Cargar más resultados

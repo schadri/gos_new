@@ -1,10 +1,11 @@
-  import Link from 'next/link'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MapPin, Briefcase, Clock, Calendar, CheckCircle2, Building, ArrowLeft, Share2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
 import { ApplyButton } from '@/components/jobs/apply-button'
+import { ShareButton } from '@/components/jobs/share-button'
+import { MapPin, Briefcase, Clock, Calendar, CheckCircle2, Building, ArrowLeft } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -93,9 +94,7 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-background border flex items-center justify-center flex-shrink-0 text-foreground font-extrabold text-3xl sm:text-4xl shadow-sm">
                 {companyName.charAt(0)}
               </div>
-              <Button variant="outline" size="icon" className="rounded-full shadow-sm hover:text-primary hover:border-primary/50 transition-colors border-border/50 bg-background">
-                <Share2 className="h-4 w-4" />
-              </Button>
+              <ShareButton title={job.title} />
             </div>
 
             <div className="mt-8">

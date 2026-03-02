@@ -56,13 +56,18 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, user_type, full_name)
+  insert into public.profiles (id, user_type, full_name, profile_photo, company_logo)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT'),
-    coalesce(new.raw_user_meta_data ->> 'full_name', null)
+    coalesce(new.raw_user_meta_data ->> 'full_name', null),
+    case when coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT') = 'TALENT' then new.raw_user_meta_data ->> 'avatar_url' else null end,
+    case when coalesce(new.raw_user_meta_data ->> 'user_type', 'TALENT') = 'BUSINESS' then new.raw_user_meta_data ->> 'avatar_url' else null end
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update set
+    full_name = coalesce(excluded.full_name, profiles.full_name),
+    profile_photo = case when profiles.profile_photo is null then excluded.profile_photo else profiles.profile_photo end,
+    company_logo = case when profiles.company_logo is null then excluded.company_logo else profiles.company_logo end;
   return new;
 end;
 $$;

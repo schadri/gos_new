@@ -28,19 +28,21 @@ export async function GET(request: Request) {
         )
         const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error && user) {
-            // Early assignment of user_type if registering
-            if (next.includes('/employer/register')) {
-                await supabase.from('profiles').upsert({
-                    id: user.id,
-                    user_type: 'BUSINESS'
-                }).select()
-            } else if (next.includes('/talent/register')) {
-                await supabase.from('profiles').upsert({
-                    id: user.id,
-                    user_type: 'TALENT'
-                }).select()
+            let finalRedirect = next
+            if (next === '/') {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('user_type')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile?.user_type === 'BUSINESS') {
+                    finalRedirect = '/employer/dashboard'
+                } else {
+                    finalRedirect = '/jobs'
+                }
             }
-            return NextResponse.redirect(`${origin}${next}`)
+            return NextResponse.redirect(`${origin}${finalRedirect}`)
         }
     }
 

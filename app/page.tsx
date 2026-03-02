@@ -1,16 +1,16 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Search, MapPin, ChefHat, Coffee, BedDouble, UtensilsCrossed, ArrowRight, User, Briefcase } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Briefcase, Users, Star, ArrowRight, Zap, Target, Search, Clock, MapPin, Globe, Shield, Sparkles, ChefHat, User } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (user) {
-    const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', user.id).single()
+  if (session?.user) {
+    const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', session.user.id).single()
     if (profile?.user_type === 'BUSINESS') {
       redirect('/employer/dashboard')
     } else {

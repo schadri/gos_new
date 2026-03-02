@@ -24,7 +24,7 @@ function LoginContent() {
   const handleGoogleLogin = async () => {
     const supabase = createClient()
 
-    let nextRoute = '/profile'
+    let nextRoute = '/'
     const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
 
     if (flow === 'talent') nextRoute = '/talent/register'
@@ -90,7 +90,7 @@ function LoginContent() {
         toast.success('¡Bienvenido!')
         const role = data.user.user_metadata?.role
         if (role === 'employer') router.push('/employer/dashboard')
-        else router.push('/profile')
+        else router.push('/jobs')
       }
     } finally {
       setLoading(false)

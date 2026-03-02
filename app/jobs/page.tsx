@@ -133,16 +133,18 @@ export default function JobBoard() {
             />
           </div>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <MapPin className="absolute left-4 h-5 w-5 text-muted-foreground z-10" />
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   role="combobox"
-                  className="w-full h-14 justify-between pl-12 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
+                  className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
                 >
-                  {locationQuery || "Provincia..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {locationQuery || "Provincia..."}
+                  </span>
+                  <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
@@ -215,16 +217,32 @@ export default function JobBoard() {
           <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm sticky top-24">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-lg flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filtros</h3>
-              <button className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors">Limpiar</button>
+              <button 
+                onClick={clearFilters}
+                className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors"
+              >
+                Limpiar
+              </button>
             </div>
             
             <div className="space-y-8">
               <div className="space-y-4">
                 <h4 className="font-bold text-sm text-foreground">Tipo de Contrato</h4>
-                {['Tiempo Completo', 'Medio Tiempo', 'Fines de semana', 'Eventual'].map(type => (
-                  <div key={type} className="flex items-center gap-3 group">
-                    <input type="checkbox" id={type} className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" />
-                    <label htmlFor={type} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{type}</label>
+                {[
+                  { label: 'Tiempo Completo', value: 'full-time' },
+                  { label: 'Medio Tiempo', value: 'part-time' },
+                  { label: 'Eventual / Temporada', value: 'temporary' },
+                  { label: 'Freelance', value: 'freelance' }
+                ].map(item => (
+                  <div key={item.value} className="flex items-center gap-3 group">
+                    <input 
+                      type="checkbox" 
+                      id={item.value} 
+                      checked={selectedContracts.includes(item.value)}
+                      onChange={() => handleContractChange(item.value)}
+                      className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                    />
+                    <label htmlFor={item.value} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item.label}</label>
                   </div>
                 ))}
               </div>
@@ -233,10 +251,21 @@ export default function JobBoard() {
 
               <div className="space-y-4">
                 <h4 className="font-bold text-sm text-foreground">Experiencia Requerida</h4>
-                {['Sin experiencia', '1 año', '2-3 años', '+5 años'].map(type => (
-                  <div key={type} className="flex items-center gap-3 group">
-                    <input type="checkbox" id={`exp-${type}`} className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" />
-                    <label htmlFor={`exp-${type}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{type}</label>
+                {[
+                  { label: 'Sin experiencia', value: '0-1' },
+                  { label: '1 a 3 años', value: '1-3' },
+                  { label: '3 a 5 años', value: '3-5' },
+                  { label: '+5 años', value: '+5' }
+                ].map(item => (
+                  <div key={item.value} className="flex items-center gap-3 group">
+                    <input 
+                      type="checkbox" 
+                      id={`exp-${item.value}`} 
+                      checked={selectedExperience.includes(item.value)}
+                      onChange={() => handleExperienceChange(item.value)}
+                      className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                    />
+                    <label htmlFor={`exp-${item.value}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item.label}</label>
                   </div>
                 ))}
               </div>

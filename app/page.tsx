@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Briefcase, Users, Star, ArrowRight, Zap, Target, Search, Clock, MapPin, Globe, Shield, Sparkles, ChefHat, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { RoleRedirector } from '@/components/shared/role-redirector'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -16,15 +17,21 @@ export default async function Home() {
       .eq('id', session.user.id)
       .single()
     
+    console.log(`Home Page: User ${session.user.email} session active. User type: ${profile?.user_type || 'NOT FOUND'}`)
+
     if (profile?.user_type === 'BUSINESS') {
+      console.log('Home Page: Redirecting to employer dashboard')
       redirect('/employer/dashboard')
     } else if (profile?.user_type === 'TALENT') {
+      console.log('Home Page: Redirecting to jobs page')
       redirect('/jobs')
     }
-    // If profile is not found yet, don't redirect to allow registration/loading
+  } else {
+    console.log('Home Page: No active session.')
   }
   return (
     <div className="flex flex-col min-h-screen">
+      <RoleRedirector />
       {/* Hero Section */}
       <section className="w-full py-20 md:py-24 lg:py-32 xl:py-48 bg-muted/20 relative overflow-hidden flex items-center min-h-[90vh] md:min-h-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20"></div>

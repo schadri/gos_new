@@ -26,12 +26,19 @@ function LoginContent() {
 
     let nextRoute = '/'
     const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
+    
+    // Safety for mobile: Save intent to localStorage
+    if (flow) {
+      console.log(`Login: Saving role intent ${flow} to localStorage`)
+      localStorage.setItem('role_intent', flow)
+    }
 
     if (flow === 'talent') nextRoute = '/talent/register'
     if (flow === 'employer') nextRoute = '/employer/register'
 
     const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
+    console.log(`Login: Starting Google OAuth with next=${nextRoute}`)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 

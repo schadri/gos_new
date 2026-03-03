@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Briefcase, User, Menu, LogOut, Bell } from 'lucide-react'
+import { User, Menu, LogOut, Bell } from 'lucide-react'
+import Image from 'next/image'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -89,12 +91,12 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Briefcase className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl tracking-tight">GOS</span>
+          <Image src="/logo.png" alt="GOS Logo" width={60} height={60} className="object-contain" />
         </Link>
         <div className="hidden md:flex flex-1 items-center justify-between space-x-2 md:justify-end">
           {user || !isPublicRoute ? (
             <nav className="flex items-center space-x-6 text-sm font-medium">
+              <ThemeToggle />
               {role === 'employer' ? (
                 <>
                   <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
@@ -108,7 +110,9 @@ export function Navbar() {
               )}
             </nav>
           ) : (
-            <div className="flex-1"></div>
+            <div className="flex-1 flex items-center justify-end pr-4">
+              <ThemeToggle />
+            </div>
           )}
             {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
               <div className="flex items-center space-x-2 border-l pl-6 ml-6">
@@ -189,6 +193,10 @@ export function Navbar() {
                 </SheetTrigger>
                 <SheetContent side="right">
                   <div className="flex flex-col space-y-5 mt-14">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Tema</span>
+                      <ThemeToggle />
+                    </div>
                     <nav className="flex flex-col space-y-4">
                       {role === 'employer' ? (
                         <>

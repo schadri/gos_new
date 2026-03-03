@@ -43,7 +43,7 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen">
       <RoleRedirector />
       {/* Hero Section */}
-      <section className="w-full py-20 md:py-24 lg:py-32 xl:py-48 bg-muted/20 relative overflow-hidden flex items-center min-h-[90vh] md:min-h-0">
+      <section className="w-full flex-1 bg-muted/20 relative overflow-hidden flex items-center py-12">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] opacity-20"></div>
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse duration-[10000ms]" />
         <div className="absolute top-1/2 -left-24 w-72 h-72 bg-orange-500/20 rounded-full blur-[100px] animate-pulse duration-[8000ms]" />
@@ -88,59 +88,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* How it Works / Value Prop */}
-      <section className="w-full py-28 bg-primary text-primary-foreground relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff1a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff1a_1px,transparent_1px)] bg-[size:14px_24px] opacity-20"></div>
-        <div className="container mx-auto px-4 md:px-6 relative z-10">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8">
-              <h2 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl max-w-xl">El Match Perfecto para tu Negocio</h2>
-              <p className="text-primary-foreground/90 md:text-xl leading-relaxed max-w-lg font-medium">
-                Nuestra tecnología de matching inteligente conecta automáticamente los perfiles de talento con las ofertas de los emprendimientos gastronómicos.
-              </p>
-              <ul className="space-y-6 pt-4">
-                {[
-                  "Regístrate y completa tu perfil en minutos",
-                  "Nuestro algoritmo busca las mejores coincidencias",
-                  "Conecta a través de nuestro chat integrado",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center text-lg font-medium">
-                    <div className="mr-4 h-10 w-10 shrink-0 rounded-full bg-white text-primary flex items-center justify-center font-bold text-xl shadow-lg">{i+1}</div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="pt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <Button size="lg" variant="secondary" className="font-bold text-lg h-14 px-8 rounded-xl shadow-lg w-full sm:w-auto" asChild>
-                  <Link href="/login?flow=employer">Publicar Oferta</Link>
-                </Button>
-                <Button size="lg" className="bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground border-transparent border font-bold text-lg h-14 px-8 rounded-xl backdrop-blur-sm w-full sm:w-auto" asChild>
-                  <Link href="/login?flow=talent">Crear Perfil</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 to-transparent rounded-3xl blur-2xl"></div>
-              <div className="rounded-3xl bg-white/5 border border-white/10 p-2 shadow-2xl backdrop-blur-sm transform -rotate-2 hover:rotate-0 transition-all duration-500 hover:scale-105 relative z-10">
-                <img 
-                  src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2674&auto=format&fit=crop" 
-                  alt="Chef trabajando en cocina profesional" 
-                  className="w-full h-auto rounded-2xl object-cover opacity-95"
-                />
-              </div>
-              <div className="absolute -bottom-6 -left-6 bg-card text-card-foreground p-6 rounded-2xl shadow-xl flex items-center gap-4 border border-border/50 animate-bounce delay-1000 duration-[3000ms] z-20">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                  <ChefHat className="text-green-600 h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-bold text-sm">¡Nuevo Match!</p>
-                  <p className="text-xs text-muted-foreground font-medium">Chef Ejecutivo • La Mar</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     
     </div>
   )
 }

@@ -19,8 +19,9 @@ export function KeywordInput({
   const [inputValue, setInputValue] = React.useState('')
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.keyCode === 13) {
       e.preventDefault()
+      e.stopPropagation()
       addKeyword(inputValue)
     }
   }
@@ -54,9 +55,14 @@ export function KeywordInput({
         ))}
       </div>
       <Input
+        type="text"
+        enterKeyHint="enter"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        }}
         placeholder={placeholder}
         className="bg-muted/40 border-muted focus-visible:ring-primary/50 transition-colors"
       />

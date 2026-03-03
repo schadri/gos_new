@@ -165,6 +165,11 @@ export function NotificationList({ initialNotifications }: { initialNotification
                             <Link href={notif.link_url}>Ir al Chat</Link>
                           </Button>
                         )}
+                        {notif.type === 'application_update' && (
+                          <Button asChild className="h-10 sm:h-12 px-6 sm:px-8 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all" onClick={(e) => e.stopPropagation()}>
+                            <Link href={notif.link_url}>Ver Postulantes</Link>
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>

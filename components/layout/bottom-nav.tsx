@@ -10,6 +10,7 @@ export function BottomNav() {
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [hasUnread, setHasUnread] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -23,8 +24,20 @@ export function BottomNav() {
           currentRole = 'employer'
         }
         setRole(currentRole)
+
+        // Verificaciones de notificaciones no leí­das
+        const { data: unreadNotifs } = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', sessionUser.id)
+          .eq('read', false)
+          .limit(1)
+        
+        setHasUnread(unreadNotifs !== null && unreadNotifs.length > 0)
+
       } else {
         setRole(null)
+        setHasUnread(false)
       }
     }
 
@@ -36,7 +49,33 @@ export function BottomNav() {
       fetchUserAndRole(session?.user || null)
     })
 
-    return () => subscription.unsubscribe()
+    // Escuchar cambios en la tabla de notificaciones
+    const channel = supabase
+      .channel('public:notifications')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'notifications' 
+      }, (payload) => {
+        // En un cambio, refrescamos el estado basico
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            supabase
+              .from('notifications')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .eq('read', false)
+              .limit(1)
+              .then(({ data }) => setHasUnread(data !== null && data.length > 0))
+          }
+        })
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+      supabase.removeChannel(channel)
+    }
   }, [])
   
   // Simple check for unauthenticated/public routes
@@ -72,10 +111,12 @@ export function BottomNav() {
         )}
         <Link href="/notifications" className={`flex flex-col items-center justify-center w-full h-full transition-colors relative ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
           <Bell className="h-5 w-5 mb-1" />
-          <span className="absolute top-2 right-4 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
-          </span>
+          {hasUnread && (
+            <span className="absolute top-2 right-4 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+            </span>
+          )}
           <span className="text-[10px] font-medium">Notifs</span>
         </Link>
         <Link href="/profile" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname?.startsWith('/profile') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>

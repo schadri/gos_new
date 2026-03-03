@@ -27,7 +27,6 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Menu, LogOut, Bell } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { LogoFull } from '@/components/logo-full'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -92,7 +91,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4 md:px-6">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <LogoFull className="h-12 w-12 md:h-14 md:w-14 object-contain transition-transform hover:scale-105" />
+          <Image src="/logo.png" alt="GOS Logo" width={60} height={60} className="object-contain" />
         </Link>
         <div className="hidden md:flex flex-1 items-center justify-between space-x-2 md:justify-end">
           {user || !isPublicRoute ? (
@@ -192,33 +191,33 @@ export function Navbar() {
                     <span className="sr-only">Menú</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right">
-                  <div className="flex flex-col space-y-5 mt-14">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Tema</span>
+                <SheetContent side="right" className="bg-background/100 backdrop-blur-md">
+                  <div className="flex flex-col h-full mt-14 pb-8">
+                    <div className="flex w-full justify-center pb-6">
                       <ThemeToggle />
                     </div>
-                    <nav className="flex flex-col space-y-4">
+                    <nav className="flex flex-col flex-1 items-center space-y-6">
                       {role === 'employer' ? (
                         <>
-                          <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium">Portal Emprendedor</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium text-center">Portal Emprendedor</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
                         </>
                       ) : (
                         <>
-                          <SheetClose asChild><Link href="/jobs" className="text-lg font-medium">Trabajos</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild><Link href="/jobs" className="text-lg font-medium text-center">Trabajos</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
                         </>
                       )}
                     </nav>
-                    <div className="h-px bg-border my-2" />
-                    <SheetClose asChild>
-                      <button onClick={handleLogout} className="text-lg font-medium text-left text-destructive flex w-full">
-                        Cerrar Sesión
-                      </button>
-                    </SheetClose>
+                    <div className="mt-auto pt-4 border-t">
+                      <SheetClose asChild>
+                        <button onClick={handleLogout} className="text-lg font-medium justify-center text-red-700 flex w-full">
+                          Cerrar Sesión
+                        </button>
+                      </SheetClose>
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>

@@ -89,7 +89,7 @@ export function LocationPicker({
     <div className="space-y-4 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Provincia</Label>
+          
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -136,11 +136,11 @@ export function LocationPicker({
         </div>
 
         <div className="space-y-2">
-          <Label>Localidad / Barrio / Calle</Label>
+          
           <div className="relative">
             <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Ej: Palermo, San Miguel..." 
+              placeholder="Localidad / Barrio / Calle" 
               className="pl-9 h-12 bg-muted/40 border-muted text-md"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}

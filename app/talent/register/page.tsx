@@ -138,6 +138,7 @@ export default function TalentRegistration() {
             <div className="space-y-3">
               <Label className="text-base font-semibold">Currículum Vitae</Label>
               <FileUpload value={cvUrl} onChange={setCvUrl} accept=".pdf,.doc,.docx" label="Subir CV" />
+              <span className="text-sm text-muted-foreground italic">Recomendaciones: Formato PDF de 1 sola página.</span>
             </div>
           </div>
 

@@ -34,17 +34,25 @@ export function LocationPicker({
   
   // Parse existing value into province and detail if possible
   const [selectedProvince, setSelectedProvince] = React.useState(() => {
+    if (!value) return ""
     return PROVINCES.find(p => value.includes(p)) || ""
   })
   const [detail, setDetail] = React.useState(() => {
+    if (!value) return ""
     if (!selectedProvince) return value
     return value.replace(selectedProvince, "").replace(/^,?\s*/, "").trim()
   })
 
-  const [delayedMapQuery, setDelayedMapQuery] = React.useState(value)
+  const [delayedMapQuery, setDelayedMapQuery] = React.useState(value || "")
 
   // Sync internal state with prop if updated from outside
   React.useEffect(() => {
+    if (!value) {
+      setSelectedProvince("")
+      setDetail("")
+      return
+    }
+    
     const combined = selectedProvince && detail 
       ? `${selectedProvince}, ${detail}` 
       : selectedProvince || detail

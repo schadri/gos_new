@@ -19,17 +19,23 @@ import {
 } from '@/components/ui/dialog'
 import { FileUpload } from '@/components/shared/file-upload'
 import { KeywordInput } from '@/components/shared/keyword-input'
+import { PositionSelect } from '@/components/shared/position-select'
+import { LocationPicker } from '@/components/shared/location-picker'
 
 export function EditProfileModal({
   initialName,
   initialPhoto,
   initialCv,
-  initialKeywords
+  initialKeywords,
+  initialPositions,
+  initialLocation
 }: {
   initialName: string
   initialPhoto: string | null
   initialCv: string | null
   initialKeywords: string[]
+  initialPositions: string[]
+  initialLocation: string
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -38,6 +44,8 @@ export function EditProfileModal({
   const [photoUrl, setPhotoUrl] = React.useState<string | null>(initialPhoto)
   const [cvUrl, setCvUrl] = React.useState<string | null>(initialCv)
   const [keywords, setKeywords] = React.useState<string[]>(initialKeywords)
+  const [positions, setPositions] = React.useState<string[]>(initialPositions)
+  const [location, setLocation] = React.useState(initialLocation)
   
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [viewingCv, setViewingCv] = React.useState(false)
@@ -60,6 +68,8 @@ export function EditProfileModal({
         profile_photo: photoUrl,
         cv_url: cvUrl,
         keywords: keywords,
+        position: positions,
+        location: location,
       }).eq('id', user.id)
 
       if (error) throw error
@@ -132,7 +142,7 @@ export function EditProfileModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 custom-scrollbar">
               <div className="grid gap-2">
                 <Label htmlFor="fullName" className="font-semibold">Nombre Completo</Label>
                 <Input 
@@ -140,6 +150,15 @@ export function EditProfileModal({
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Ej: Juan Pérez" 
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="font-semibold">Puestos Deseados (Máx. 2)</Label>
+                <PositionSelect 
+                  selected={positions} 
+                  onChange={setPositions} 
+                  max={2} 
                 />
               </div>
 
@@ -160,12 +179,20 @@ export function EditProfileModal({
                 <FileUpload value={cvUrl} onChange={setCvUrl} accept=".pdf,.doc,.docx" label="Actualizar CV" />
               </div>
 
-              <div className="grid gap-2">
+              <div className="grid gap-2 pb-2">
                 <Label className="font-semibold">Habilidades / Keywords</Label>
                 <KeywordInput 
                   keywords={keywords}
                   onChange={setKeywords}
                   placeholder="Ej: Cocina peruana, Inventarios..."
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="font-semibold">Ubicación</Label>
+                <LocationPicker 
+                  value={location} 
+                  onChange={setLocation} 
                 />
               </div>
             </div>

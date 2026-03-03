@@ -137,6 +137,8 @@ export default async function TalentProfile() {
               initialPhoto={photoUrl}
               initialCv={profile?.cv_url}
               initialKeywords={skills}
+              initialPositions={positions}
+              initialLocation={profile?.location || ""}
             />
             
             <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">

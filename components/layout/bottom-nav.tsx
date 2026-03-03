@@ -11,32 +11,42 @@ export function BottomNav() {
   const [user, setUser] = useState<any>(null)
   const [role, setRole] = useState<string | null>(null)
   const [hasUnread, setHasUnread] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Auto-clear the dot when the user visits /notifications
+  useEffect(() => {
+    if (pathname?.startsWith('/notifications')) {
+      setHasUnread(false)
+    }
+  }, [pathname])
 
   useEffect(() => {
     const supabase = createClient()
 
+    const checkUnread = async (uid: string) => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', uid)
+        .eq('is_read', false)
+        .limit(1)
+      setHasUnread(data !== null && data.length > 0)
+    }
+
     const fetchUserAndRole = async (sessionUser: any) => {
       setUser(sessionUser)
       if (sessionUser) {
+        setUserId(sessionUser.id)
         let currentRole = sessionUser.user_metadata?.role
         const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', sessionUser.id).single()
         if (profile?.user_type === 'BUSINESS') {
           currentRole = 'employer'
         }
         setRole(currentRole)
-
-        // Verificaciones de notificaciones no leí­das
-        const { data: unreadNotifs } = await supabase
-          .from('notifications')
-          .select('id')
-          .eq('user_id', sessionUser.id)
-          .eq('read', false)
-          .limit(1)
-        
-        setHasUnread(unreadNotifs !== null && unreadNotifs.length > 0)
-
+        await checkUnread(sessionUser.id)
       } else {
         setRole(null)
+        setUserId(null)
         setHasUnread(false)
       }
     }
@@ -49,26 +59,29 @@ export function BottomNav() {
       fetchUserAndRole(session?.user || null)
     })
 
-    // Escuchar cambios en la tabla de notificaciones
+    // Escuchar nuevas notificaciones en tiempo real
     const channel = supabase
-      .channel('public:notifications')
+      .channel('bottom-nav-notifs')
       .on('postgres_changes', { 
-        event: '*', 
+        event: 'INSERT', 
         schema: 'public', 
         table: 'notifications' 
-      }, (payload) => {
-        // En un cambio, refrescamos el estado basico
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) {
-            supabase
-              .from('notifications')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .eq('read', false)
-              .limit(1)
-              .then(({ data }) => setHasUnread(data !== null && data.length > 0))
-          }
-        })
+      }, async () => {
+        // Re-check unread count on any new notification
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          checkUnread(session.user.id)
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications'
+      }, async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          checkUnread(session.user.id)
+        }
       })
       .subscribe()
 

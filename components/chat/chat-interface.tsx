@@ -65,7 +65,9 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer }: C
     e.preventDefault()
     if (!newMessage.trim() || isSending) return
 
-    const tempId = crypto.randomUUID()
+    const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
     const content = newMessage.trim()
     
     // Optimistic UI update

@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings, Loader2, Eye, ArrowLeft, ExternalLink } from 'lucide-react'
+import { Settings, Loader2, Eye, ArrowLeft, ExternalLink, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 
@@ -85,29 +85,31 @@ export function EditProfileModal({
       <DialogContent className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col" : "sm:max-w-[500px]"}>
         {viewingCv ? (
           <>
-            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 pb-4 border-b">
-              <Button variant="ghost" size="icon" onClick={() => setViewingCv(false)} className="rounded-full">
+            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-6 border-b">
+              <Button variant="ghost" size="icon" onClick={() => setViewingCv(false)} className="rounded-full hover:bg-primary/10 transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex-1">
-                <DialogTitle className="text-xl font-bold">Visualizando CV</DialogTitle>
+                <DialogTitle className="text-xl font-bold flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Visualizando CV
+                </DialogTitle>
               </div>
             </DialogHeader>
-            <div className="flex-1 min-h-0 bg-muted/30 rounded-2xl overflow-hidden mt-4 relative flex flex-col">
+            <div className="flex-1 min-h-0 bg-muted/20 p-4 md:p-6 overflow-hidden flex flex-col">
               {cvUrl ? (
                 <>
-                  <div className="flex-1 bg-white">
+                  <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative mb-4">
                     <iframe 
                       src={`https://docs.google.com/viewer?url=${encodeURIComponent(cvUrl)}&embedded=true`} 
                       className="w-full h-full border-0"
                       title="Curriculum Vitae"
                     />
                   </div>
-                  <div className="p-4 bg-background border-t flex justify-center">
+                  <div className="flex justify-center flex-shrink-0">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="rounded-xl font-bold"
+                      className="rounded-xl font-bold border-border/60 hover:bg-primary/5 hover:text-primary transition-all px-8 bg-card"
                       onClick={() => window.open(cvUrl, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar

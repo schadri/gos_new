@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar, ExternalLink } from "lucide-react"
+import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar, ExternalLink, FileText } from "lucide-react"
 
 interface ApplicantModalProps {
   profile: any
@@ -105,22 +105,26 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
                     Ver CV
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[90vw] md:max-w-[800px] h-[90vh] p-0 rounded-2xl overflow-hidden bg-white border-none flex flex-col">
-                  <DialogHeader className="p-4 bg-muted/20 border-b flex-shrink-0">
-                    <DialogTitle className="text-lg font-bold">Currículum: {profile.full_name}</DialogTitle>
+                <DialogContent className="sm:max-w-[90vw] md:max-w-[800px] h-[80vh] p-0 rounded-3xl overflow-hidden bg-card border-border/50 flex flex-col my-4">
+                  <DialogHeader className="p-6 border-b flex-shrink-0">
+                    <DialogTitle className="text-xl font-bold flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Currículum: {profile.full_name}
+                    </DialogTitle>
                   </DialogHeader>
-                  <div className="flex-1 w-full relative">
-                    <iframe 
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.cv_url)}&embedded=true`} 
-                      className="w-full h-full border-none"
-                      title="CV Viewer"
-                    />
+                  <div className="flex-1 p-4 md:p-6 bg-muted/20 min-h-0">
+                    <div className="w-full h-full bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative">
+                      <iframe 
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.cv_url)}&embedded=true`} 
+                        className="w-full h-full border-none"
+                        title="CV Viewer"
+                      />
+                    </div>
                   </div>
-                  <div className="p-4 bg-background border-t flex justify-center flex-shrink-0">
+                  <div className="p-4 md:p-6 bg-card border-t flex justify-center flex-shrink-0">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="rounded-xl font-bold"
+                      className="rounded-xl font-bold border-border/60 hover:bg-primary/5 hover:text-primary transition-all px-8"
                       onClick={() => window.open(profile.cv_url, '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar

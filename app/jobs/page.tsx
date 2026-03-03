@@ -311,16 +311,6 @@ export default function JobBoard() {
 
         {/* Job Listings */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
-            <span className="text-sm font-medium text-muted-foreground">Mostrando <span className="text-foreground font-extrabold">{filteredJobs.length}</span> resultados relevantes</span>
-            <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 py-1.5 shadow-sm">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ordenar por:</span>
-              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border-0 bg-transparent text-sm font-bold text-primary cursor-pointer focus:ring-0 outline-none">
-                <option>Mejor match</option>
-                <option>Más recientes</option>
-              </select>
-            </div>
-          </div>
 
           <div className="space-y-5">
             {loading ? (

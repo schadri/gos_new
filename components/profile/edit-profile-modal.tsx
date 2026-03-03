@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings, Loader2, Eye, ArrowLeft } from 'lucide-react'
+import { Settings, Loader2, Eye, ArrowLeft, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 
@@ -93,13 +93,27 @@ export function EditProfileModal({
                 <DialogTitle className="text-xl font-bold">Visualizando CV</DialogTitle>
               </div>
             </DialogHeader>
-            <div className="flex-1 min-h-0 bg-muted/30 rounded-lg overflow-hidden mt-4">
+            <div className="flex-1 min-h-0 bg-muted/30 rounded-2xl overflow-hidden mt-4 relative flex flex-col">
               {cvUrl ? (
-                <iframe 
-                  src={cvUrl} 
-                  className="w-full h-full border-0"
-                  title="Curriculum Vitae"
-                />
+                <>
+                  <div className="flex-1 bg-white">
+                    <iframe 
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(cvUrl)}&embedded=true`} 
+                      className="w-full h-full border-0"
+                      title="Curriculum Vitae"
+                    />
+                  </div>
+                  <div className="p-4 bg-background border-t flex justify-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-xl font-bold"
+                      onClick={() => window.open(cvUrl, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   No hay CV disponible

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar } from "lucide-react"
+import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar, ExternalLink } from "lucide-react"
 
 interface ApplicantModalProps {
   profile: any
@@ -75,12 +75,14 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
             </div>
           </div>
 
-          <div>
-            <h4 className="text-lg font-bold mb-3">Sobre el candidato</h4>
-            <p className="text-muted-foreground leading-relaxed">
-              {profile.match_message || 'Este candidato no ha proporcionado una descripción detallada o mensaje de presentación.'}
-            </p>
-          </div>
+          {profile.match_message && (
+            <div>
+              <h4 className="text-lg font-bold mb-3">Sobre el candidato</h4>
+              <p className="text-muted-foreground leading-relaxed">
+                {profile.match_message}
+              </p>
+            </div>
+          )}
 
           {profile.keywords && profile.keywords.length > 0 && (
             <div>
@@ -97,9 +99,35 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
 
           {profile.cv_url && (
             <div className="pt-4 border-t border-border/40">
-              <Button variant="default" className="w-full bg-primary font-bold shadow-md rounded-xl" onClick={() => window.open(profile.cv_url, '_blank')}>
-                Ver CV
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="w-full bg-primary font-bold shadow-md rounded-xl">
+                    Ver CV
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[90vw] md:max-w-[800px] h-[90vh] p-0 rounded-2xl overflow-hidden bg-white border-none flex flex-col">
+                  <DialogHeader className="p-4 bg-muted/20 border-b flex-shrink-0">
+                    <DialogTitle className="text-lg font-bold">Currículum: {profile.full_name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex-1 w-full relative">
+                    <iframe 
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.cv_url)}&embedded=true`} 
+                      className="w-full h-full border-none"
+                      title="CV Viewer"
+                    />
+                  </div>
+                  <div className="p-4 bg-background border-t flex justify-center flex-shrink-0">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-xl font-bold"
+                      onClick={() => window.open(profile.cv_url, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
         </div>

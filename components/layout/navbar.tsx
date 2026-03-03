@@ -167,7 +167,8 @@ export function Navbar() {
           </div>
         <div className="flex flex-1 items-center justify-end md:hidden">
           {!user ? (
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
               {!pathname?.includes('/login') && !pathname?.includes('/register') && (
                 <Button asChild variant="ghost" size="sm" className="font-bold text-primary">
                   <Link href="/login">Ingresar</Link>

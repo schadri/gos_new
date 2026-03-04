@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Menu, LogOut, Bell } from 'lucide-react'
+import { User, Menu, LogOut, Bell, LifeBuoy } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 
@@ -101,17 +101,20 @@ export function Navbar() {
                 <>
                   <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
                   <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
                 </>
               ) : (
                 <>
                   <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
                   <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
                 </>
               )}
             </nav>
           ) : (
-            <div className="flex-1 flex items-center justify-end pr-4">
+            <div className="flex-1 flex items-center justify-end gap-4 pr-4">
               <ThemeToggle />
+              <Link href="/support" className="text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
             </div>
           )}
             {!user && !pathname?.includes('/login') && !pathname?.includes('/register') ? (
@@ -170,9 +173,14 @@ export function Navbar() {
             <div className="flex items-center gap-1">
               <ThemeToggle />
               {!pathname?.includes('/login') && !pathname?.includes('/register') && (
-                <Button asChild variant="ghost" size="sm" className="font-bold text-primary">
-                  <Link href="/login">Ingresar</Link>
-                </Button>
+                <>
+                  <Button asChild variant="ghost" size="sm" className="font-medium text-muted-foreground">
+                    <Link href="/support">Soporte</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm" className="font-bold text-primary">
+                    <Link href="/login">Ingresar</Link>
+                  </Button>
+                </>
               )}
             </div>
           ) : (
@@ -203,12 +211,14 @@ export function Navbar() {
                           <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium text-center">Portal Emprendedor</Link></SheetClose>
                           <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
                           <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
                         </>
                       ) : (
                         <>
                           <SheetClose asChild><Link href="/jobs" className="text-lg font-medium text-center">Trabajos</Link></SheetClose>
                           <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
                           <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
                         </>
                       )}
                     </nav>

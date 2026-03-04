@@ -24,41 +24,67 @@ export function NotificationList({ initialNotifications }: { initialNotification
   }
 
   const handleDelete = async (id: string) => {
+    const previousNotifications = [...notifications]
     // Optimistic UI update
     setNotifications(prev => prev.filter(n => n.id !== id))
     
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id)
-      
-    if (error) {
-      console.error('Error deleting notification:', error)
-      toast.error('Error al eliminar la notificación')
-      // Revert if error
-      setNotifications(initialNotifications)
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id)
+        .select()
+        
+      if (error) {
+        console.error('Error deleting notification:', error)
+        toast.error(`Error: ${error.message}`)
+        setNotifications(previousNotifications)
+      } else if (!data || data.length === 0) {
+        console.warn('No notification was deleted from DB (check RLS)')
+        toast.error('No se pudo eliminar de la base de datos (Posible error de permisos)')
+        setNotifications(previousNotifications)
+      }
+    } catch (err) {
+      console.error('Delete failed:', err)
+      setNotifications(previousNotifications)
     }
   }
 
   const handleClearAll = async () => {
     const currentNotifications = [...notifications]
+    if (currentNotifications.length === 0) return
+
     setNotifications([])
     
-    // We get the user ID from the first notification assuming they are all from the same user
-    if (currentNotifications.length > 0) {
-      const userId = currentNotifications[0].user_id
-      const { error } = await supabase
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('No se pudo verificar tu sesión')
+        setNotifications(currentNotifications)
+        return
+      }
+
+      const { data, error } = await supabase
         .from('notifications')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
+        .select()
         
       if (error) {
         console.error('Error clearing notifications:', error)
-        toast.error('Error al limpiar las notificaciones')
+        toast.error(`Error: ${error.message}`)
+        setNotifications(currentNotifications)
+      } else if (!data || data.length === 0) {
+        console.warn('No notifications were deleted from DB (check RLS)')
+        toast.error('No se eliminaron registros. Revisa tus permisos de borrado.')
         setNotifications(currentNotifications)
       } else {
-        toast.success('Todas las notificaciones eliminadas')
+        toast.success(`${data.length} notificaciones eliminadas permanentemente`)
       }
+    } catch (err) {
+      console.error('Clear all failed:', err)
+      toast.error('Error inesperado al limpiar notificaciones')
+      setNotifications(currentNotifications)
     }
   }
 

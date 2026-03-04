@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Settings, Loader2, Eye, ArrowLeft, ExternalLink, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { getAvatarUrl } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

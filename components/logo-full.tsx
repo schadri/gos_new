@@ -9,7 +9,7 @@ export function LogoFull({ className }: { className?: string }) {
       viewBox="0 0 800 800"
       className={className}
       style={{
-        shapeRendering: 'geometricPrecision',
+        shapeRendering: 'geometricPrecision'
       }}
     >
       <rect fill="#235850" width="800" height="800" />

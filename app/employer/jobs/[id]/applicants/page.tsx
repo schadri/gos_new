@@ -11,6 +11,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { getAvatarUrl } from '@/lib/utils'
 
 export default async function ApplicantsPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -104,7 +105,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16 border-2 border-primary/10">
-                      <AvatarImage src={app.profiles?.profile_photo} alt={app.profiles?.full_name || 'Postulante'} />
+                      <AvatarImage src={getAvatarUrl(app.profiles?.profile_photo) || ''} alt={app.profiles?.full_name || 'Postulante'} />
                       <AvatarFallback className="text-xl font-bold bg-primary/5 text-primary">
                         {(app.profiles?.full_name || 'U').charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -140,7 +141,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                 {app.profiles?.keywords && app.profiles.keywords.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
                     {app.profiles.keywords.map((skill: string, i: number) => (
-                      <Badge key={i} variant="outline" className="px-3 py-1 bg-muted/50 rounded-lg font-medium border-border/60">
+                      <Badge key={i} variant="outline" className="px-3 py-1 bg-primary/5 text-foreground border-primary/20 rounded-lg font-medium">
                         {skill}
                       </Badge>
                     ))}

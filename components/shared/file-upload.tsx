@@ -79,21 +79,22 @@ export function FileUpload({
       const isImage = accept.includes('image')
       const bucket = isImage ? 'avatars' : 'documents'
       
-      const fileExt = file.name.split('.').pop()
-      const safeName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`
+      const fileExt = file.name.split('.').pop() || 'tmp'
+      
+      // Force constant filename (avatar or cv) to prevent storage bloat and ensure replacement
+      const safeName = isImage ? `avatar.${fileExt}` : `cv.${fileExt}`
       const filePath = `${user.id}/${safeName}`
 
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(filePath, file, { upsert: true })
+        .upload(filePath, file, { upsert: true, contentType: file.type })
 
       if (error) throw error
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path)
+      // Return path to store in DB instead of the full URL
+      const storagePath = `${bucket}/${data.path}`
 
-      onChange(publicUrl)
+      onChange(storagePath)
       toast.success('Archivo subido correctamente')
     } catch (error: any) {
       toast.error(error.message || 'Error al subir el archivo. Revisa si el bucket existe.')
@@ -116,7 +117,7 @@ export function FileUpload({
         <div className="flex items-center gap-4 p-4 border rounded-xl bg-muted/10">
           <div className="w-16 h-16 rounded-md overflow-hidden relative bg-muted/30 flex items-center justify-center flex-shrink-0 shadow-sm border">
             {isImageAccept ? (
-              <img src={value} alt="Preview" className="object-cover w-full h-full" />
+              <img src={value.startsWith('http') ? value : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${value}?t=${Date.now()}`} alt="Preview" className="object-cover w-full h-full" />
             ) : (
               <span className="text-xs font-semibold text-muted-foreground">DOC</span>
             )}

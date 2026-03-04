@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/server'
 import { EditProfileModal } from '@/components/profile/edit-profile-modal'
 import { EditEmployerProfileModal } from '@/components/profile/edit-employer-profile-modal'
 import { ApplicantChatButton } from '@/components/profile/applicant-chat-button'
+import { getAvatarUrl } from '@/lib/utils'
 
 export default async function TalentProfile() {
   const supabase = await createClient()
@@ -91,7 +92,7 @@ export default async function TalentProfile() {
           <div className="relative pt-12 flex flex-col md:flex-row gap-8 items-start">
             <div className="w-32 h-32 bg-muted rounded-2xl border-4 border-background shadow-lg overflow-hidden shrink-0 flex items-center justify-center">
               {companyLogo ? (
-                <img src={companyLogo} alt={companyName} className="w-full h-full object-cover" />
+                <img src={getAvatarUrl(companyLogo)} alt={companyName} className="w-full h-full object-cover" />
               ) : (
                 <Briefcase className="h-12 w-12 text-muted-foreground/50" />
               )}
@@ -143,7 +144,7 @@ export default async function TalentProfile() {
             
             <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">
               <Avatar className="w-full h-full">
-                <AvatarImage src={photoUrl || ''} alt="Profile" className="object-cover" />
+                <AvatarImage src={getAvatarUrl(photoUrl) || ''} alt="Profile" className="object-cover" />
                 <AvatarFallback className="bg-muted">
                   <User className="h-12 w-12 text-muted-foreground/50" />
                 </AvatarFallback>
@@ -182,7 +183,7 @@ export default async function TalentProfile() {
             <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> Habilidades</h3>
             <div className="flex flex-wrap gap-2">
               {skills.length > 0 ? skills.map((skill: string, idx: number) => (
-                <Badge key={idx} variant="secondary" className="bg-muted">{skill}</Badge>
+                <Badge key={idx} variant="outline" className="bg-primary/5 text-foreground border-primary/20">{skill}</Badge>
               )) : (
                 <span className="text-sm text-muted-foreground">Ninguna cargada</span>
               )}

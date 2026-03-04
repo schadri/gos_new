@@ -17,6 +17,8 @@ interface ApplicantModalProps {
   experienceYears?: number | null
 }
 
+import { getAvatarUrl } from '@/lib/utils'
+
 export function ApplicantModal({ profile, applicationDate, experienceYears }: ApplicantModalProps) {
   if (!profile) return null
 
@@ -34,7 +36,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
           <div className="flex items-start gap-5 relative z-10">
             <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
               {profile.profile_photo ? (
-                <img src={profile.profile_photo} alt={profile.full_name} className="w-full h-full object-cover" />
+                <img src={getAvatarUrl(profile.profile_photo)} alt={profile.full_name || 'Candidato'} className="w-full h-full object-cover" />
               ) : (
                 <UserCircle2 className="w-10 h-10 text-primary/60" />
               )}
@@ -89,7 +91,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
               <h4 className="text-lg font-bold mb-3">Habilidades / Palabras Clave</h4>
               <div className="flex flex-wrap gap-2">
                 {profile.keywords.map((skill: string, i: number) => (
-                  <Badge key={i} variant="secondary" className="px-3 py-1.5 rounded-xl font-medium bg-primary/10 text-primary border-primary/20">
+                  <Badge key={i} variant="outline" className="px-3 py-1.5 rounded-xl font-medium bg-primary/5 text-foreground border-primary/20">
                     {skill}
                   </Badge>
                 ))}

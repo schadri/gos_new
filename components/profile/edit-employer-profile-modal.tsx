@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Settings, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
+import { getAvatarUrl } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,6 +96,14 @@ export function EditEmployerProfileModal({
         </DialogHeader>
 
         <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+          <div className="w-32 h-32 bg-muted rounded-2xl border border-border shadow-sm mb-4 mx-auto flex items-center justify-center overflow-hidden">
+            {companyLogo ? (
+              <img src={getAvatarUrl(companyLogo)} alt="Logo Preview" className="w-full h-full object-cover" />
+            ) : (
+              <Settings className="h-16 w-16 text-muted-foreground" />
+            )}
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="companyName" className="font-semibold">Nombre del Emprendimiento</Label>
             <Input 

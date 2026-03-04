@@ -27,6 +27,7 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Menu, LogOut, Bell, LifeBuoy } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { getAvatarUrl } from '@/lib/utils'
 
 export function Navbar() {
   const pathname = usePathname()
@@ -129,7 +130,7 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden">
                       <Avatar className="h-full w-full border border-border shadow-sm transition-transform hover:scale-105">
-                        <AvatarImage src={profile?.avatar} alt={profile?.name || 'User'} />
+                        <AvatarImage src={getAvatarUrl(profile?.avatar) || ''} alt={profile?.name || 'User'} />
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
                           {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -187,7 +188,7 @@ export function Navbar() {
             <>
               <Link href="/profile" className="mr-4">
                  <Avatar className="h-8 w-8 border border-border transition-transform active:scale-95">
-                  <AvatarImage src={profile?.avatar} alt={profile?.name || 'User'} />
+                  <AvatarImage src={getAvatarUrl(profile?.avatar) || ''} alt={profile?.name || 'User'} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                     {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
                   </AvatarFallback>

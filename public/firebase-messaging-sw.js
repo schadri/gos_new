@@ -20,7 +20,7 @@ const initializeMessaging = (config) => {
         messaging = firebase.messaging();
         
         messaging.onBackgroundMessage((payload) => {
-            console.log('[firebase-messaging-sw.js] Message received:', payload);
+            console.log('[firebase-messaging-sw.js] Background message:', payload);
             
             const title = payload.notification?.title || payload.data?.title;
             const body = payload.notification?.body || payload.data?.body;
@@ -31,7 +31,7 @@ const initializeMessaging = (config) => {
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     data: payload.data,
-                    tag: 'push-notification',
+                    tag: 'gos-notification', // Consistent tag
                     renotify: true
                 };
                 self.registration.showNotification(title, notificationOptions);
@@ -58,7 +58,7 @@ self.addEventListener('message', (event) => {
                 icon: '/apple-icon.png',
                 badge: '/apple-icon.png',
                 data: options.data,
-                tag: 'push-notification',
+                tag: 'gos-notification', // Consistent tag
                 renotify: true
             })
         );

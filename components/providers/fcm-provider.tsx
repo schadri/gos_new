@@ -88,6 +88,13 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
 
     setupFCM()
     
+    // 3. Listen for auth changes to save token when user logs in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
+        setupFCM()
+      }
+    })
+    
     // Foreground message listener
     onMessageListener((msg: any) => {
       if (msg) {
@@ -125,6 +132,10 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         }
       }
     })
+
+    return () => {
+        subscription.unsubscribe()
+    }
 
   }, [supabase])
 

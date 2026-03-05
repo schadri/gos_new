@@ -11,7 +11,17 @@ const firebaseConfig = {
 };
 
 const isConfigValid = (config: any) => {
-    return !!(config.apiKey && config.projectId && config.appId && config.messagingSenderId);
+    const missing = [];
+    if (!config.apiKey) missing.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+    if (!config.projectId) missing.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+    if (!config.appId) missing.push("NEXT_PUBLIC_FIREBASE_APP_ID");
+    if (!config.messagingSenderId) missing.push("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID");
+
+    if (missing.length > 0) {
+        console.warn("Missing Firebase Env Vars:", missing.join(", "));
+        return false;
+    }
+    return true;
 };
 
 // Initialize Firebase lazily on the first call to a messaging function

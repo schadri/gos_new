@@ -20,11 +20,16 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       }
 
-      const isConfigValid = config.apiKey && config.projectId && config.appId;
+      const missing: string[] = [];
+      if (!config.apiKey) missing.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+      if (!config.projectId) missing.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+      if (!config.appId) missing.push("NEXT_PUBLIC_FIREBASE_APP_ID");
+
+      const isConfigValid = missing.length === 0;
 
       const sendConfig = (worker: ServiceWorker) => {
         if (!isConfigValid) {
-          console.warn('FCMProvider: Skipping SW config injection because required environment variables are missing.');
+          console.warn('FCMProvider: Missing environment variables for SW:', missing.join(", "));
           return;
         }
         worker.postMessage({

@@ -26,6 +26,11 @@ export function NotificationPermissionPrompt() {
         return () => clearTimeout(timer)
       } else if (Notification.permission === 'granted') {
           setIsGranted(true)
+          // Show it anyway so they can see the test button
+          const timer = setTimeout(() => {
+              setShow(true)
+          }, 2000)
+          return () => clearTimeout(timer)
       }
     }
   }, [])
@@ -79,14 +84,14 @@ export function NotificationPermissionPrompt() {
         exit={{ y: 50, opacity: 0 }}
         className="fixed bottom-24 md:bottom-10 left-4 right-4 md:left-auto md:right-10 md:max-w-sm z-[100]"
       >
-        <div className="bg-primary dark:bg-primary/90 text-primary-foreground rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group border border-white/10 backdrop-blur-md">
+        <div className="bg-[#1b6164] text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group border border-white/10 backdrop-blur-md">
           {/* Decorative background element */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
           
           <div className="absolute top-0 right-0 p-3">
             <button 
               onClick={() => setShow(false)} 
-              className="p-1 hover:bg-white/10 rounded-full transition-colors"
+              className="p-1 hover:bg-white/10 rounded-full transition-colors text-white/80"
             >
               <X className="h-4 w-4" />
             </button>
@@ -110,7 +115,7 @@ export function NotificationPermissionPrompt() {
                 <Button 
                   onClick={handleRequest}
                   disabled={loading}
-                  className="mt-5 w-full bg-white text-primary hover:bg-white/90 font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all h-12 text-base active:scale-95"
+                  className="mt-5 w-full bg-white text-[#1b6164] hover:bg-white/90 font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition-all h-12 text-base active:scale-95"
                 >
                   {loading ? 'Habilitando...' : 'Habilitar Notificaciones'}
                 </Button>
@@ -118,7 +123,7 @@ export function NotificationPermissionPrompt() {
                 <Button 
                     onClick={handleTest}
                     disabled={loading}
-                    className="mt-5 w-full bg-white/20 text-white hover:bg-white/30 border border-white/30 font-bold rounded-2xl shadow-lg transition-all h-12 text-base active:scale-95"
+                    className="mt-5 w-full bg-[#da5c29] text-white hover:bg-[#da5c29]/90 border-none font-extrabold rounded-2xl shadow-lg transition-all h-12 text-base active:scale-95"
                 >
                     {loading ? 'Enviando...' : 'Enviar Prueba'}
                 </Button>

@@ -60,7 +60,11 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
 
     const setupFCM = async () => {
       try {
-        const token = await fetchToken()
+        if (!('serviceWorker' in navigator)) return;
+        
+        const registration = await navigator.serviceWorker.ready;
+        const token = await fetchToken(registration)
+        
         if (token) {
           console.log('FCM Token:', token)
           

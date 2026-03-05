@@ -34,32 +34,38 @@ export async function sendPushNotification({
 
         const message: any = {
             token: profile.fcm_token,
+            notification: {
+                title,
+                body,
+            },
             data: {
                 ...data,
                 title,
                 body,
                 click_action: link,
-                force_system: forceSystem ? 'true' : 'false'
+            },
+            android: {
+                priority: 'high',
+                notification: {
+                    channelId: 'default',
+                    priority: 'high',
+                },
             },
             webpush: {
-                notification: forceSystem ? undefined : {
+                headers: {
+                    Urgency: 'high',
+                },
+                notification: {
                     title,
                     body,
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
+                    requireInteraction: true,
                 },
                 fcm_options: {
                     link,
                 },
             },
-        }
-
-        // If not forcing system (background style), we include the notification block
-        if (!forceSystem) {
-            message.notification = {
-                title,
-                body,
-            }
         }
 
         const response = await adminMessaging.send(message)

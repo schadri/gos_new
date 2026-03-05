@@ -63,7 +63,7 @@ export const messaging = async () => {
     }
 };
 
-export const fetchToken = async () => {
+export const fetchToken = async (registration?: ServiceWorkerRegistration) => {
     try {
         const msg = await messaging();
         if (!msg) return null;
@@ -81,6 +81,7 @@ export const fetchToken = async () => {
 
         const currentToken = await getToken(msg, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+            serviceWorkerRegistration: registration
         });
 
         return currentToken;

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fetchToken, saveTokenToSupabase } from '@/lib/firebase'
 import { createClient } from '@/lib/supabase/client'
-import { sendTestNotification } from '@/app/actions/test-notification'
 import { toast } from 'sonner'
 
 export function NotificationPermissionPrompt() {
@@ -27,7 +26,6 @@ export function NotificationPermissionPrompt() {
         return () => clearTimeout(timer)
       } else if (Notification.permission === 'granted') {
           setIsGranted(true)
-          // Hide it once it's granted and working
           setShow(false)
       }
     }
@@ -44,6 +42,8 @@ export function NotificationPermissionPrompt() {
            await saveTokenToSupabase(token, supabase)
            setIsGranted(true)
            toast.success('¡Notificaciones habilitadas!')
+           // Hide after success
+           setTimeout(() => setShow(false), 2000)
         }
       } else {
           setShow(false)
@@ -53,24 +53,6 @@ export function NotificationPermissionPrompt() {
     } finally {
         setLoading(false)
     }
-  }
-
-  const handleTest = async () => {
-      setLoading(true)
-      try {
-          const res = await sendTestNotification()
-          if (res.success) {
-              toast.success(res.message)
-              // Hide after successful test
-              setTimeout(() => setShow(false), 2000)
-          } else {
-              toast.error(res.error)
-          }
-      } catch (err) {
-          toast.error('Error al enviar la prueba')
-      } finally {
-          setLoading(false)
-      }
   }
 
   if (!mounted || !show) return null
@@ -110,7 +92,7 @@ export function NotificationPermissionPrompt() {
                   : <>Te avisaremos sobre <span className="font-bold">mensajes nuevos</span> y <span className="font-bold">matches</span> al instante.</>}
               </p>
               
-              {!isGranted ? (
+              {!isGranted && (
                 <Button 
                   onClick={handleRequest}
                   disabled={loading}
@@ -118,7 +100,6 @@ export function NotificationPermissionPrompt() {
                 >
                   {loading ? 'Habilitando...' : 'Habilitar Notificaciones'}
                 </Button>
-              ) : (
               )}
             </div>
           </div>

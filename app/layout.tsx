@@ -14,13 +14,13 @@ const font = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'GOS - Empleos en Gastronomía y Hotelería',
   description: 'Conecta talento con las mejores oportunidades del sector gastronómico.',
-  generator: 'v0.app',
+  generator: 'GOS.app',
   manifest: '/manifest.json',
   icons: {
-    icon: '/apple-icon.png',
+    icon: '/favicon.ico',
     shortcut: '/apple-icon.png',
     apple: '/apple-icon.png',
-  }
+  },
 }
 
 export default async function RootLayout({

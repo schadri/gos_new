@@ -9,8 +9,10 @@ export function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     // Check if app is already installed
     if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
       setIsInstalled(true)
@@ -57,7 +59,7 @@ export function InstallPWA() {
     setShowPrompt(false)
   }
 
-  if (isInstalled || !showPrompt) return null
+  if (!mounted || isInstalled || !showPrompt) return null
 
   return (
     <AnimatePresence>

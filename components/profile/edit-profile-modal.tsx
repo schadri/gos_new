@@ -66,8 +66,8 @@ export function EditProfileModal({
 
       const { error } = await supabase.from('profiles').update({
         full_name: fullName,
-        profile_photo: photoUrl,
-        cv_url: cvUrl,
+        profile_photo: photoUrl?.split('?')[0],
+        cv_url: cvUrl?.split('?')[0],
         keywords: keywords,
         position: positions,
         location: location,
@@ -112,7 +112,7 @@ export function EditProfileModal({
                 <>
                   <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative mb-4">
                     <iframe 
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(cvUrl)}&embedded=true`} 
+                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(cvUrl) || '')}&embedded=true`} 
                       className="w-full h-full border-0"
                       title="Curriculum Vitae"
                     />
@@ -121,7 +121,7 @@ export function EditProfileModal({
                     <Button 
                       variant="outline" 
                       className="rounded-xl font-bold border-border/60 hover:bg-primary/5 hover:text-primary transition-all px-8 bg-card"
-                      onClick={() => window.open(cvUrl, '_blank')}
+                      onClick={() => window.open(getAvatarUrl(cvUrl) || '', '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar
                     </Button>

@@ -4,6 +4,9 @@ import * as React from 'react'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { Toaster } from "@/components/ui/sonner"
 
+import { FCMProvider } from "@/components/providers/fcm-provider"
+import { InstallPWA } from "@/components/shared/install-pwa"
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
@@ -12,8 +15,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      {children}
-      <Toaster position="top-center" />
+      <FCMProvider>
+        {children}
+        <InstallPWA />
+        <Toaster position="top-center" />
+      </FCMProvider>
     </NextThemesProvider>
   )
 }

@@ -30,7 +30,8 @@ export default async function TalentProfile() {
   const location = profile?.location || 'Ubicación no especificada'
   const positions = profile?.position || []
   const skills = profile?.keywords || []
-  const photoUrl = profile?.profile_photo
+  const photoPath = profile?.profile_photo
+  const photoUrl = getAvatarUrl(photoPath)
 
   // Fetch real applications
   const { data: rawApplications } = await supabase
@@ -76,14 +77,15 @@ export default async function TalentProfile() {
     const companyName = profile?.company_name || 'Nombre de la Empresa'
     const companyDesc = profile?.company_description || 'Sin descripción'
     const companyLocation = profile?.location || 'Ubicación no especificada'
-    const companyLogo = profile?.company_logo
+    const companyLogoPath = profile?.company_logo
+    const companyLogoUrl = getAvatarUrl(companyLogoPath)
 
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm relative overflow-hidden">
           <EditEmployerProfileModal 
             initialName={companyName}
-            initialPhoto={companyLogo}
+            initialPhoto={companyLogoPath}
             initialDescription={companyDesc}
             initialLocation={companyLocation}
           />
@@ -91,8 +93,8 @@ export default async function TalentProfile() {
           
           <div className="relative pt-12 flex flex-col md:flex-row gap-8 items-start">
             <div className="w-32 h-32 bg-muted rounded-2xl border-4 border-background shadow-lg overflow-hidden shrink-0 flex items-center justify-center">
-              {companyLogo ? (
-                <img src={getAvatarUrl(companyLogo)} alt={companyName} className="w-full h-full object-cover" />
+              {companyLogoUrl ? (
+                <img src={companyLogoUrl} alt={companyName} className="w-full h-full object-cover" />
               ) : (
                 <Briefcase className="h-12 w-12 text-muted-foreground/50" />
               )}
@@ -135,7 +137,7 @@ export default async function TalentProfile() {
           <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm text-center relative">
             <EditProfileModal 
               initialName={fullName}
-              initialPhoto={photoUrl}
+              initialPhoto={photoPath}
               initialCv={profile?.cv_url}
               initialKeywords={skills}
               initialPositions={positions}
@@ -144,7 +146,7 @@ export default async function TalentProfile() {
             
             <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">
               <Avatar className="w-full h-full">
-                <AvatarImage src={getAvatarUrl(photoUrl) || ''} alt="Profile" className="object-cover" />
+                <AvatarImage src={photoUrl || ''} alt="Profile" className="object-cover" />
                 <AvatarFallback className="bg-muted">
                   <User className="h-12 w-12 text-muted-foreground/50" />
                 </AvatarFallback>
@@ -183,7 +185,7 @@ export default async function TalentProfile() {
             <h3 className="font-bold text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" /> Habilidades</h3>
             <div className="flex flex-wrap gap-2">
               {skills.length > 0 ? skills.map((skill: string, idx: number) => (
-                <Badge key={idx} variant="outline" className="bg-primary/5 text-foreground border-primary/20">{skill}</Badge>
+                <Badge key={idx} variant="secondary" className="bg-primary/10 text-primary border-transparent hover:bg-primary/20 transition-colors px-3 py-1 rounded-xl font-medium">{skill}</Badge>
               )) : (
                 <span className="text-sm text-muted-foreground">Ninguna cargada</span>
               )}
@@ -237,7 +239,7 @@ export default async function TalentProfile() {
                     <div key={app.id} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/30 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 rounded-xl border bg-background group-hover:scale-110 transition-transform shadow-sm flex-shrink-0">
-                          <AvatarImage src={app.jobs?.profiles?.company_logo} alt={app.jobs?.company} className="object-cover" />
+                          <AvatarImage src={getAvatarUrl(app.jobs?.profiles?.company_logo) || ''} alt={app.jobs?.company} className="object-cover" />
                           <AvatarFallback className="font-bold text-lg bg-primary/5 text-primary">
                             {app.jobs?.company?.charAt(0) || 'E'}
                           </AvatarFallback>

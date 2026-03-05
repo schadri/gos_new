@@ -62,7 +62,7 @@ export function EditEmployerProfileModal({
 
       const { error } = await supabase.from('profiles').update({
         company_name: companyName,
-        company_logo: companyLogo,
+        company_logo: companyLogo?.split('?')[0],
         company_description: companyDescription,
         location: location,
       }).eq('id', user.id)

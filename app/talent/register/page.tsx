@@ -67,8 +67,8 @@ export default function TalentRegistration() {
         location: location,
         position: position,
         keywords: keywords,
-        profile_photo: photoUrl,
-        cv_url: cvUrl,
+        profile_photo: photoUrl?.split('?')[0],
+        cv_url: cvUrl?.split('?')[0],
       })
 
       if (error) {

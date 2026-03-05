@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: 'GOS - Empleos en Gastronomía y Hotelería',
   description: 'Conecta talento con las mejores oportunidades del sector gastronómico.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
 }
 
 export default async function RootLayout({

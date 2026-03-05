@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { ImageEditor } from '@/components/shared/image-editor'
+import { getAvatarUrl } from '@/lib/utils'
 
 export function FileUpload({
   value,
@@ -79,11 +80,11 @@ export function FileUpload({
       const isImage = accept.includes('image')
       const bucket = isImage ? 'avatars' : 'documents'
       
-      const fileExt = file.name.split('.').pop() || 'tmp'
-      
-      // Force constant filename (avatar or cv) to prevent storage bloat and ensure replacement
-      const safeName = isImage ? `avatar.${fileExt}` : `cv.${fileExt}`
-      const filePath = `${user.id}/${safeName}`
+      // Fixed path per user — this ensures old file is replaced (upsert)
+      const fileExt = isImage ? 'jpg' : (file.name.split('.').pop() || 'pdf')
+      const filePath = isImage
+        ? `${user.id}/avatar.${fileExt}`
+        : `${user.id}/cv.${fileExt}`
 
       const { data, error } = await supabase.storage
         .from(bucket)
@@ -91,10 +92,9 @@ export function FileUpload({
 
       if (error) throw error
 
-      // Return path to store in DB instead of the full URL
-      const storagePath = `${bucket}/${data.path}`
-
-      onChange(storagePath)
+      // Store the full path including the bucket name, e.g. "avatars/userId/avatar.jpg"
+      // Append a unique "u" (upload) timestamp to force a state change and UI refresh in parent components
+      onChange(`${bucket}/${data.path}?u=${Date.now()}`)
       toast.success('Archivo subido correctamente')
     } catch (error: any) {
       toast.error(error.message || 'Error al subir el archivo. Revisa si el bucket existe.')
@@ -117,7 +117,7 @@ export function FileUpload({
         <div className="flex items-center gap-4 p-4 border rounded-xl bg-muted/10">
           <div className="w-16 h-16 rounded-md overflow-hidden relative bg-muted/30 flex items-center justify-center flex-shrink-0 shadow-sm border">
             {isImageAccept ? (
-              <img src={value.startsWith('http') ? value : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${value}?t=${Date.now()}`} alt="Preview" className="object-cover w-full h-full" />
+              <img src={getAvatarUrl(value) || value || ''} alt="Preview" className="object-cover w-full h-full" />
             ) : (
               <span className="text-xs font-semibold text-muted-foreground">DOC</span>
             )}

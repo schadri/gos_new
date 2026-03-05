@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar, ExternalLink, FileText } from "lucide-react"
+import { getAvatarUrl } from "@/lib/utils"
 
 interface ApplicantModalProps {
   profile: any
@@ -17,7 +18,7 @@ interface ApplicantModalProps {
   experienceYears?: number | null
 }
 
-import { getAvatarUrl } from '@/lib/utils'
+
 
 export function ApplicantModal({ profile, applicationDate, experienceYears }: ApplicantModalProps) {
   if (!profile) return null
@@ -36,7 +37,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
           <div className="flex items-start gap-5 relative z-10">
             <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
               {profile.profile_photo ? (
-                <img src={getAvatarUrl(profile.profile_photo)} alt={profile.full_name || 'Candidato'} className="w-full h-full object-cover" />
+                <img src={getAvatarUrl(profile.profile_photo) || ''} alt={profile.full_name} className="w-full h-full object-cover" />
               ) : (
                 <UserCircle2 className="w-10 h-10 text-primary/60" />
               )}
@@ -117,7 +118,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
                   <div className="flex-1 p-4 md:p-6 bg-muted/20 min-h-0">
                     <div className="w-full h-full bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative">
                       <iframe 
-                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(profile.cv_url)}&embedded=true`} 
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(profile.cv_url) || '')}&embedded=true`} 
                         className="w-full h-full border-none"
                         title="CV Viewer"
                       />
@@ -127,7 +128,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
                     <Button 
                       variant="outline" 
                       className="rounded-xl font-bold border-border/60 hover:bg-primary/5 hover:text-primary transition-all px-8"
-                      onClick={() => window.open(profile.cv_url, '_blank')}
+                      onClick={() => window.open(getAvatarUrl(profile.cv_url) || '', '_blank')}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" /> Abrir original / Descargar
                     </Button>

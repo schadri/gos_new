@@ -3,9 +3,9 @@ import { redirect, notFound } from 'next/navigation'
 import { ChatUI } from '@/components/chat/chat-interface'
 import { ArrowLeft, Info, MoreVertical, Phone, Video, Send, Loader2, Image as ImageIcon, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import { createClient as createClientClient } from '@/lib/supabase/client'
 import { getAvatarUrl } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -53,9 +53,11 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
     ? (profile?.full_name || 'Candidato')
     : (profile?.company_name || profile?.full_name || 'Empresa')
 
-  const displayAvatar = isEmployer
-    ? profile?.profile_photo
-    : (profile?.company_logo || profile?.profile_photo)
+  const displayAvatar = getAvatarUrl(
+    isEmployer
+      ? profile?.profile_photo
+      : (profile?.company_logo || profile?.profile_photo)
+  )
 
   // Fetch Initial messages
   const { data: initialMessages } = await supabase
@@ -75,7 +77,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
         </Link>
         <div className="flex items-center gap-3 min-w-0">
           <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={getAvatarUrl(displayAvatar) || ''} />
+            <AvatarImage src={displayAvatar || ''} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">{displayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">

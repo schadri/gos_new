@@ -57,7 +57,9 @@ export function Navbar() {
           setRole(currentRole)
           setProfile({
             name: profileData.full_name,
-            avatar: profileData.user_type === 'BUSINESS' ? profileData.company_logo : profileData.profile_photo
+            avatar: getAvatarUrl(
+              profileData.user_type === 'BUSINESS' ? profileData.company_logo : profileData.profile_photo
+            ) || undefined
           })
         } else {
           setRole(currentRole)

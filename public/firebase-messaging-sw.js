@@ -29,8 +29,8 @@ const initializeMessaging = (config) => {
             const notificationTitle = payload.notification?.title || payload.data?.title || 'Nueva Notificación';
             const notificationOptions = {
                 body: payload.notification?.body || payload.data?.body,
-                icon: '/icon-192x192.png',
-                badge: '/icon-192x192.png',
+                icon: '/apple-icon.png',
+                badge: '/apple-icon.png',
                 data: payload.data,
             };
 

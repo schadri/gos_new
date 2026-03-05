@@ -47,6 +47,15 @@ self.addEventListener('message', (event) => {
         console.log('[firebase-messaging-sw.js] Received config from client');
         initializeMessaging(firebaseConfig);
     }
+    
+    if (event.data && event.data.type === 'SHOW_SYSTEM_NOTIFICATION') {
+        const { title, options } = event.data;
+        self.registration.showNotification(title, {
+            ...options,
+            icon: options.icon || '/apple-icon.png',
+            badge: options.badge || '/apple-icon.png',
+        });
+    }
 });
 
 self.addEventListener('notificationclick', (event) => {

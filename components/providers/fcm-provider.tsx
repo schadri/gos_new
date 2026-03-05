@@ -87,9 +87,22 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
     // Foreground message listener
     onMessageListener((msg: any) => {
       if (msg) {
+        // 1. Show UI Toast (current behavior)
         toast(msg.notification?.title || 'Nueva Notificación', {
           description: msg.notification?.body,
         })
+
+        // 2. Force System Notification via Service Worker
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SHOW_SYSTEM_NOTIFICATION',
+                title: msg.notification?.title || msg.data?.title || 'Nueva Notificación',
+                options: {
+                    body: msg.notification?.body || msg.data?.body,
+                    data: msg.data
+                }
+            });
+        }
       }
     })
 

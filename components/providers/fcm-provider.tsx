@@ -93,15 +93,31 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         })
 
         // 2. Force System Notification via Service Worker
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                type: 'SHOW_SYSTEM_NOTIFICATION',
-                title: msg.notification?.title || msg.data?.title || 'Nueva Notificación',
-                options: {
-                    body: msg.notification?.body || msg.data?.body,
-                    data: msg.data
-                }
-            });
+        if ('serviceWorker' in navigator) {
+            console.log('FCMProvider: Attempting to force system notification...');
+            
+            const triggerSW = (worker: ServiceWorker) => {
+                console.log('FCMProvider: Sending SHOW_SYSTEM_NOTIFICATION to SW');
+                worker.postMessage({
+                    type: 'SHOW_SYSTEM_NOTIFICATION',
+                    title: msg.notification?.title || msg.data?.title || 'Nueva Notificación',
+                    options: {
+                        body: msg.notification?.body || msg.data?.body,
+                        data: msg.data
+                    }
+                });
+            }
+
+            if (navigator.serviceWorker.controller) {
+                triggerSW(navigator.serviceWorker.controller);
+            } else {
+                // Aggressive fallback to find any worker
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    const worker = reg?.active || reg?.waiting || reg?.installing;
+                    if (worker) triggerSW(worker);
+                    else console.warn('FCMProvider: No Service Worker found at all');
+                });
+            }
         }
       }
     })

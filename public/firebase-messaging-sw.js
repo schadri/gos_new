@@ -8,11 +8,13 @@ importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-comp
 // For now, we will add placeholders that the user must fill, or we can use a clever URL parameter trick.
 
 self.addEventListener('install', function (event) {
-    console.log('FCM Service Worker installed');
+    console.log('FCM Service Worker installing...');
+    self.skipWaiting();
 });
 
 self.addEventListener('activate', function (event) {
     console.log('FCM Service Worker activated');
+    event.waitUntil(clients.claim());
 });
 
 // Initialized via message from client
@@ -42,6 +44,8 @@ const initializeMessaging = (config) => {
 // Redundant initialization removed - now handled via message event
 
 self.addEventListener('message', (event) => {
+    console.log('[firebase-messaging-sw.js] Message received:', event.data?.type);
+    
     if (event.data && event.data.type === 'FIREBASE_CONFIG') {
         firebaseConfig = event.data.config;
         console.log('[firebase-messaging-sw.js] Received config from client');
@@ -49,12 +53,17 @@ self.addEventListener('message', (event) => {
     }
     
     if (event.data && event.data.type === 'SHOW_SYSTEM_NOTIFICATION') {
+        console.log('[firebase-messaging-sw.js] Forcing system notification:', event.data.title);
         const { title, options } = event.data;
-        self.registration.showNotification(title, {
-            ...options,
-            icon: options.icon || '/apple-icon.png',
-            badge: options.badge || '/apple-icon.png',
-        });
+        event.waitUntil(
+            self.registration.showNotification(title, {
+                ...options,
+                icon: options.icon || '/apple-icon.png',
+                badge: options.badge || '/apple-icon.png',
+                // Add tag to prevent duplicates
+                tag: 'manual-notification-' + Date.now(),
+            })
+        );
     }
 });
 

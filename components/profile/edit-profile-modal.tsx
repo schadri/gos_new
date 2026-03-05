@@ -88,8 +88,13 @@ export function EditProfileModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="absolute top-4 right-4 hover:bg-muted" title="Editar Perfil">
-          <Settings className="h-5 w-5 text-muted-foreground" />
+        <Button 
+          variant="outline" 
+          className="absolute top-4 right-4 hover:bg-muted font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
+          title="Editar Perfil"
+        >
+          <Settings className="h-4 w-4" />
+          Editar
         </Button>
       </DialogTrigger>
       

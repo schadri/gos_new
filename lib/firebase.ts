@@ -64,7 +64,10 @@ export const fetchToken = async () => {
             permission = await Notification.requestPermission();
         }
 
-        if (permission !== 'granted') return null;
+        if (permission !== 'granted') {
+            console.log("Notification permission not granted:", permission);
+            return null;
+        }
 
         const currentToken = await getToken(msg, {
             vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
@@ -77,13 +80,33 @@ export const fetchToken = async () => {
     }
 };
 
-export const onMessageListener = () =>
-    new Promise((resolve) => {
-        messaging().then(msg => {
-            if (msg) {
-                onMessage(msg, (payload) => {
-                    resolve(payload);
-                });
-            }
-        });
+export const saveTokenToSupabase = async (token: string, supabase: any) => {
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            console.log("No user found, skipping token save.");
+            return;
+        }
+
+        console.log(`Saving FCM token for user ${user.id}...`);
+        const { error } = await supabase
+            .from('profiles')
+            .update({ fcm_token: token })
+            .eq('id', user.id);
+
+        if (error) throw error;
+        console.log("FCM token saved successfully.");
+    } catch (err) {
+        console.error("Error saving FCM token to Supabase:", err);
+    }
+};
+
+export const onMessageListener = (callback: (payload: any) => void) => {
+    messaging().then(msg => {
+        if (msg) {
+            onMessage(msg, (payload) => {
+                callback(payload);
+            });
+        }
     });
+};

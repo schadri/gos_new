@@ -20,14 +20,14 @@ export async function sendPushNotification({
         const supabase = await createClient()
 
         // Fetch the user's FCM token
-        const { data: profile, error } = await supabase
+        const { data: profile, error } = await (supabase
             .from('profiles')
             .select('fcm_token')
             .eq('id', userId)
-            .single()
+            .maybeSingle() as any)
 
         if (error || !profile?.fcm_token) {
-            console.log(`Push notification skipped for user ${userId}: No FCM token found.`)
+            console.log(`Push notification skipped for user ${userId}: No valid FCM token found in Supabase.`)
             return null
         }
 
@@ -55,8 +55,12 @@ export async function sendPushNotification({
         const response = await adminMessaging.send(message)
         console.log(`Successfully sent push notification to user ${userId}:`, response)
         return response
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error sending push notification to user ${userId}:`, error)
+        if (error.code === 'messaging/registration-token-not-registered') {
+            console.log('The registration token is not valid anymore. Cleaning up...');
+            // Optional: remove invalid token from DB
+        }
         return null
     }
 }

@@ -3,37 +3,70 @@
 import React, { useState, useEffect } from 'react'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { fetchToken } from '@/lib/firebase'
 import { motion, AnimatePresence } from 'framer-motion'
+import { fetchToken, saveTokenToSupabase } from '@/lib/firebase'
+import { createClient } from '@/lib/supabase/client'
+import { sendTestNotification } from '@/app/actions/test-notification'
+import { toast } from 'sonner'
 
 export function NotificationPermissionPrompt() {
   const [show, setShow] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isGranted, setIsGranted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const supabase = createClient()
 
   useEffect(() => {
     setMounted(true)
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'default') {
-        // Show after 5 seconds to not overwhelm
         const timer = setTimeout(() => {
             setShow(true)
         }, 5000)
         return () => clearTimeout(timer)
+      } else if (Notification.permission === 'granted') {
+          setIsGranted(true)
       }
     }
   }, [])
 
   const handleRequest = async () => {
+    setLoading(true)
     try {
       const permission = await Notification.requestPermission()
       if (permission === 'granted') {
-        await fetchToken()
+        const token = await fetchToken()
+        if (token) {
+           await saveTokenToSupabase(token, supabase)
+           setIsGranted(true)
+           toast.success('¡Notificaciones habilitadas!')
+        }
+      } else {
+          setShow(false)
       }
-      setShow(false)
     } catch (error) {
       console.error('Error requesting notification permission:', error)
-      setShow(false)
+    } finally {
+        setLoading(false)
     }
+  }
+
+  const handleTest = async () => {
+      setLoading(true)
+      try {
+          const res = await sendTestNotification()
+          if (res.success) {
+              toast.success(res.message)
+          } else {
+              toast.error(res.error)
+          }
+      } catch (err) {
+          toast.error('Error al enviar la prueba')
+      } finally {
+          setLoading(false)
+          // Hide after test
+          setTimeout(() => setShow(false), 3000)
+      }
   }
 
   if (!mounted || !show) return null
@@ -44,27 +77,52 @@ export function NotificationPermissionPrompt() {
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 50, opacity: 0 }}
-        className="fixed bottom-24 md:bottom-10 left-4 right-4 md:left-auto md:right-10 md:max-w-xs z-[100]"
+        className="fixed bottom-24 md:bottom-10 left-4 right-4 md:left-auto md:right-10 md:max-w-sm z-[100]"
       >
-        <div className="bg-primary text-primary-foreground rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-2">
-            <button onClick={() => setShow(false)} className="opacity-70 hover:opacity-100 transition-opacity">
+        <div className="bg-primary dark:bg-primary/90 text-primary-foreground rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group border border-white/10 backdrop-blur-md">
+          {/* Decorative background element */}
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+          
+          <div className="absolute top-0 right-0 p-3">
+            <button 
+              onClick={() => setShow(false)} 
+              className="p-1 hover:bg-white/10 rounded-full transition-colors"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex gap-4 items-start">
-            <div className="bg-white/20 p-3 rounded-2xl">
-              <Bell className="h-6 w-6 animate-tada" />
+          
+          <div className="flex gap-5 items-start relative z-10">
+            <div className="bg-white/20 p-4 rounded-2xl shadow-inner backdrop-blur-sm">
+              <Bell className="h-7 w-7 animate-tada" />
             </div>
-            <div>
-              <h4 className="font-bold text-lg leading-tight">¿Deseas recibir avisos?</h4>
-              <p className="text-sm opacity-90 mt-1 leading-relaxed">Te avisaremos sobre mensajes nuevos y matches al instante.</p>
-              <Button 
-                onClick={handleRequest}
-                className="mt-4 w-full bg-white text-primary hover:bg-white/90 font-bold rounded-xl shadow-md"
-              >
-                Habilitar Notificaciones
-              </Button>
+            <div className="flex-1">
+              <h4 className="font-bold text-xl leading-tight">
+                {isGranted ? '¡Todo listo! 🎉' : '¿Deseas recibir avisos?'}
+              </h4>
+              <p className="text-sm opacity-90 mt-2 leading-relaxed font-medium">
+                {isGranted 
+                  ? 'Ya puedes recibir notificaciones de mensajes y matches.' 
+                  : <>Te avisaremos sobre <span className="font-bold">mensajes nuevos</span> y <span className="font-bold">matches</span> al instante.</>}
+              </p>
+              
+              {!isGranted ? (
+                <Button 
+                  onClick={handleRequest}
+                  disabled={loading}
+                  className="mt-5 w-full bg-white text-primary hover:bg-white/90 font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all h-12 text-base active:scale-95"
+                >
+                  {loading ? 'Habilitando...' : 'Habilitar Notificaciones'}
+                </Button>
+              ) : (
+                <Button 
+                    onClick={handleTest}
+                    disabled={loading}
+                    className="mt-5 w-full bg-white/20 text-white hover:bg-white/30 border border-white/30 font-bold rounded-2xl shadow-lg transition-all h-12 text-base active:scale-95"
+                >
+                    {loading ? 'Enviando...' : 'Enviar Prueba'}
+                </Button>
+              )}
             </div>
           </div>
           <style jsx>{`

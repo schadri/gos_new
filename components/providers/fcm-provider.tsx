@@ -80,13 +80,13 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
     setupFCM()
     
     // Foreground message listener
-    const unsubscribe = onMessageListener().then((msg: any) => {
+    onMessageListener((msg: any) => {
       if (msg) {
         toast(msg.notification?.title || 'Nueva Notificación', {
           description: msg.notification?.body,
         })
       }
-    }).catch(err => console.error('Foreground message listener error:', err))
+    })
 
   }, [supabase])
 

@@ -56,12 +56,14 @@ export default function JobBoard() {
       setLoading(true)
       try {
         const supabase = createClient()
+        if (!supabase) return
+
         // 1. Fetch active jobs
-        const { data: jobsData, error: jobsError } = await supabase
+        const { data: jobsData, error: jobsError } = await (supabase
           .from('jobs')
           .select('*')
           .eq('status', 'active')
-          .order('created_at', { ascending: false })
+          .order('created_at', { ascending: false }) as any)
         
         if (jobsError) throw jobsError
         if (!jobsData) {
@@ -70,17 +72,17 @@ export default function JobBoard() {
         }
 
         // 2. Fetch employer profiles for these jobs
-        const employerIds = Array.from(new Set(jobsData.map(j => j.created_by)))
+        const employerIds = Array.from(new Set(jobsData.map((j: any) => j.created_by)))
         if (employerIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await supabase
+          const { data: profilesData, error: profilesError } = await (supabase
             .from('profiles')
             .select('id, company_logo')
-            .in('id', employerIds)
+            .in('id', employerIds) as any)
           
           if (!profilesError && profilesData) {
-            const jobsWithProfiles = jobsData.map(job => ({
+            const jobsWithProfiles = jobsData.map((job: any) => ({
               ...job,
-              profiles: profilesData.find(p => p.id === job.created_by) || null
+              profiles: profilesData.find((p: any) => p.id === job.created_by) || null
             })) as JobWithProfile[]
             setJobs(jobsWithProfiles)
           } else {
@@ -369,7 +371,7 @@ export default function JobBoard() {
                     
                     <div className="flex flex-col sm:flex-row sm:items-start gap-6 pr-10">
                       <Avatar className="h-20 w-20 rounded-2xl border bg-background flex-shrink-0 group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">
-                        <AvatarImage src={getAvatarUrl(job.profiles?.company_logo) || ''} alt={job.company} className="object-cover" />
+                        <AvatarImage src={getAvatarUrl(job.profiles?.company_logo) || ''} alt={job.company ?? undefined} className="object-cover" />
                         <AvatarFallback className="text-2xl font-extrabold bg-primary/5 text-primary rounded-2xl">
                           {job.company?.charAt(0) || <Briefcase className="h-8 w-8 text-muted-foreground" />}
                         </AvatarFallback>

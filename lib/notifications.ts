@@ -14,8 +14,9 @@ export async function sendPushNotification({
     title,
     body,
     link = '/',
-    data = {}
-}: PushNotificationParams) {
+    data = {},
+    forceSystem = false // New parameter
+}: PushNotificationParams & { forceSystem?: boolean }) {
     try {
         const supabase = await createClient()
 
@@ -31,18 +32,19 @@ export async function sendPushNotification({
             return null
         }
 
-        const message = {
+        const message: any = {
             token: profile.fcm_token,
-            notification: {
-                title,
-                body,
-            },
             data: {
                 ...data,
+                title,
+                body,
                 click_action: link,
+                force_system: forceSystem ? 'true' : 'false'
             },
             webpush: {
-                notification: {
+                notification: forceSystem ? undefined : {
+                    title,
+                    body,
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                 },
@@ -50,6 +52,14 @@ export async function sendPushNotification({
                     link,
                 },
             },
+        }
+
+        // If not forcing system (background style), we include the notification block
+        if (!forceSystem) {
+            message.notification = {
+                title,
+                body,
+            }
         }
 
         const response = await adminMessaging.send(message)

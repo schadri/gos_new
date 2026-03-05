@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { sendPushNotification } from '@/lib/notifications'
-import { revalidatePath } from 'next/cache'
 
 export async function sendTestNotification() {
     try {
@@ -15,20 +14,22 @@ export async function sendTestNotification() {
 
         console.log(`Sending test notification to user ${user.id}...`)
 
+        // Using forceSystem: true to ensure it bypasses foreground suppression
         const result = await sendPushNotification({
             userId: user.id,
-            title: '¡Prueba Exitosa! 🎉',
-            body: 'Si ves esto, las notificaciones "tipo WhatsApp" están funcionando correctamente.',
-            link: '/employer/dashboard', // or wherever makes sense
+            title: '¡Prueba de Sistema! 🔔',
+            body: 'Esta debería aparecer en la barra de notificaciones del celular.',
+            link: '/employer/dashboard',
             data: {
                 type: 'test'
-            }
+            },
+            forceSystem: true
         })
 
         if (result) {
             return { success: true, message: 'Notificación enviada con éxito' }
         } else {
-            return { success: false, error: 'No se pudo enviar la notificación. Verifica si el token existe en tu perfil.' }
+            return { success: false, error: 'No se pudo enviar. ¿Tienes un token en Supabase?' }
         }
     } catch (error: any) {
         console.error('Error in sendTestNotification:', error)

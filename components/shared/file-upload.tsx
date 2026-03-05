@@ -117,7 +117,7 @@ export function FileUpload({
         <div className="flex items-center gap-4 p-4 border rounded-xl bg-muted/10">
           <div className="w-16 h-16 rounded-md overflow-hidden relative bg-muted/30 flex items-center justify-center flex-shrink-0 shadow-sm border">
             {isImageAccept ? (
-              <img src={getAvatarUrl(value) || value || ''} alt="Preview" className="object-cover w-full h-full" />
+              <img src={getAvatarUrl(value) || ''} alt="Preview" className="object-cover w-full h-full" />
             ) : (
               <span className="text-xs font-semibold text-muted-foreground">DOC</span>
             )}

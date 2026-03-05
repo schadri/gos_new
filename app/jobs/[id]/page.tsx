@@ -12,6 +12,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
+import { getAvatarUrl, cn } from '@/lib/utils'
 
 export default async function JobDetail({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -110,7 +111,7 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
             
             <div className="flex items-start justify-between gap-4">
               <Avatar className="w-20 h-20 sm:w-28 sm:h-28 rounded-3xl border bg-background group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">
-                <AvatarImage src={job.profiles?.company_logo} alt={companyName} className="object-cover" />
+                <AvatarImage src={getAvatarUrl(job.profiles?.company_logo) || ''} alt={companyName} className="object-cover" />
                 <AvatarFallback className="text-3xl sm:text-4xl font-extrabold bg-primary/5 text-primary rounded-3xl">
                   {companyName.charAt(0)}
                 </AvatarFallback>

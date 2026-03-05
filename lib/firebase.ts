@@ -16,27 +16,32 @@ const isConfigValid = (config: any) => {
 
 // Initialize Firebase only if it hasn't been initialized already and config is valid
 export const app = (() => {
+    if (typeof window === 'undefined') return null;
     if (getApps().length > 0) return getApps()[0];
 
     if (!isConfigValid(firebaseConfig)) {
-        console.error("Firebase configuration is missing required values. Check your environment variables.", {
-            hasApiKey: !!firebaseConfig.apiKey,
-            hasProjectId: !!firebaseConfig.projectId,
-            hasAppId: !!firebaseConfig.appId,
-            hasMessagingSenderId: !!firebaseConfig.messagingSenderId
-        });
-        // We still return initializeApp but with what we have to satisfy the type, 
-        // or we could throw, but returning null might break other things.
-        // Actually, let's just let it try or throw a clearer error.
+        console.warn("Firebase configuration is missing required values. Messaging features will be disabled until environment variables are set.");
+        return null;
     }
 
-    return initializeApp(firebaseConfig);
+    try {
+        return initializeApp(firebaseConfig);
+    } catch (err) {
+        console.error("Firebase initialization failed:", err);
+        return null;
+    }
 })();
 
 export const messaging = async () => {
-    const supported = await isSupported();
-    if (!supported) return null;
-    return getMessaging(app);
+    if (!app) return null;
+    try {
+        const supported = await isSupported();
+        if (!supported) return null;
+        return getMessaging(app);
+    } catch (err) {
+        console.error("Firebase Messaging not supported or failed to initialize:", err);
+        return null;
+    }
 };
 
 export const fetchToken = async () => {

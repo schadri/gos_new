@@ -20,7 +20,13 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       }
 
+      const isConfigValid = config.apiKey && config.projectId && config.appId;
+
       const sendConfig = (worker: ServiceWorker) => {
+        if (!isConfigValid) {
+          console.warn('FCMProvider: Skipping SW config injection because required environment variables are missing.');
+          return;
+        }
         worker.postMessage({
           type: 'FIREBASE_CONFIG',
           config

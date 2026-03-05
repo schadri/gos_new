@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description: 'Conecta talento con las mejores oportunidades del sector gastronómico.',
   generator: 'v0.app',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/apple-icon.png',
+    apple: '/apple-icon.png',
+  }
 }
 
 export default async function RootLayout({

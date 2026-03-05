@@ -10,8 +10,28 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase only if it hasn't been initialized already
-export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const isConfigValid = (config: any) => {
+    return !!(config.apiKey && config.projectId && config.appId && config.messagingSenderId);
+};
+
+// Initialize Firebase only if it hasn't been initialized already and config is valid
+export const app = (() => {
+    if (getApps().length > 0) return getApps()[0];
+
+    if (!isConfigValid(firebaseConfig)) {
+        console.error("Firebase configuration is missing required values. Check your environment variables.", {
+            hasApiKey: !!firebaseConfig.apiKey,
+            hasProjectId: !!firebaseConfig.projectId,
+            hasAppId: !!firebaseConfig.appId,
+            hasMessagingSenderId: !!firebaseConfig.messagingSenderId
+        });
+        // We still return initializeApp but with what we have to satisfy the type, 
+        // or we could throw, but returning null might break other things.
+        // Actually, let's just let it try or throw a clearer error.
+    }
+
+    return initializeApp(firebaseConfig);
+})();
 
 export const messaging = async () => {
     const supported = await isSupported();

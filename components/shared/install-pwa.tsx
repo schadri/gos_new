@@ -17,6 +17,7 @@ export function InstallPWA() {
       return
     }
 
+    let timer: NodeJS.Timeout;
     const handler = (e: any) => {
       // Prevent Chrome 67 and earlier from automatically showing the prompt
       e.preventDefault()
@@ -24,11 +25,9 @@ export function InstallPWA() {
       setDeferredPrompt(e)
       
       // Delay showing our custom prompt slightly for better UX
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setShowPrompt(true)
       }, 3000)
-      
-      return () => clearTimeout(timer)
     }
 
     window.addEventListener('beforeinstallprompt', handler)

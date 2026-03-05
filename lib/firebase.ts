@@ -14,10 +14,17 @@ const isConfigValid = (config: any) => {
     return !!(config.apiKey && config.projectId && config.appId && config.messagingSenderId);
 };
 
-// Initialize Firebase only if it hasn't been initialized already and config is valid
-export const app = (() => {
+// Initialize Firebase lazily on the first call to a messaging function
+let initializedApp: any = null;
+
+export const getAppInstance = () => {
     if (typeof window === 'undefined') return null;
-    if (getApps().length > 0) return getApps()[0];
+    if (initializedApp) return initializedApp;
+
+    if (getApps().length > 0) {
+        initializedApp = getApps()[0];
+        return initializedApp;
+    }
 
     if (!isConfigValid(firebaseConfig)) {
         console.warn("Firebase configuration is missing required values. Messaging features will be disabled until environment variables are set.");
@@ -25,14 +32,16 @@ export const app = (() => {
     }
 
     try {
-        return initializeApp(firebaseConfig);
+        initializedApp = initializeApp(firebaseConfig);
+        return initializedApp;
     } catch (err) {
         console.error("Firebase initialization failed:", err);
         return null;
     }
-})();
+};
 
 export const messaging = async () => {
+    const app = getAppInstance();
     if (!app) return null;
     try {
         const supported = await isSupported();

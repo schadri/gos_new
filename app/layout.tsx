@@ -34,8 +34,8 @@ export default async function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background`}>
-        {user && <RealtimeNotifications userId={user.id} />}
         <Providers>
+          {user && <RealtimeNotifications userId={user.id} />}
           <Navbar />
           <main className="flex-1 w-full mx-auto">
             {children}

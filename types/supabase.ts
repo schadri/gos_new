@@ -70,6 +70,7 @@ export type Database = {
                     company_logo: string | null
                     location: string | null
                     updated_at: string | null
+                    fcm_token: string | null
                 }
                 Insert: {
                     id: string
@@ -80,6 +81,7 @@ export type Database = {
                     company_logo?: string | null
                     location?: string | null
                     updated_at?: string | null
+                    fcm_token?: string | null
                 }
                 Update: {
                     id?: string
@@ -90,6 +92,7 @@ export type Database = {
                     company_logo?: string | null
                     location?: string | null
                     updated_at?: string | null
+                    fcm_token?: string | null
                 }
                 Relationships: []
             }

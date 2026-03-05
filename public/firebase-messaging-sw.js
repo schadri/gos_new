@@ -15,50 +15,37 @@ self.addEventListener('activate', function (event) {
     console.log('FCM Service Worker activated');
 });
 
-// Since we cannot use process.env here directly without a bundler, 
-// we will intercept a message from the client to initialize with the correct config.
+// Initialized via message from client
+let firebaseConfig = null;
 let messaging = null;
 
-// Hardcoded config for background reliability (since process.env isn't available in public JS)
-const firebaseConfig = {
-  apiKey: "AIzaSyC8p85DtyrAK0zDbvRDvaftiJByrrq1Xl4",
-  authDomain: "gosapp.firebaseapp.com",
-  projectId: "gosapp",
-  storageBucket: "gosapp.firebasestorage.app",
-  messagingSenderId: "571996893586",
-  appId: "1:571996893586:web:a5cf0b415e0a65a054114b",
+const initializeMessaging = (config) => {
+    if (!firebase.apps.length) {
+        firebase.initializeApp(config);
+        messaging = firebase.messaging();
+        
+        messaging.onBackgroundMessage((payload) => {
+            console.log('[firebase-messaging-sw.js] Received background message ', payload);
+            const notificationTitle = payload.notification?.title || payload.data?.title || 'Nueva Notificación';
+            const notificationOptions = {
+                body: payload.notification?.body || payload.data?.body,
+                icon: '/icon-192x192.png',
+                badge: '/icon-192x192.png',
+                data: payload.data,
+            };
+
+            self.registration.showNotification(notificationTitle, notificationOptions);
+        });
+    }
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-    messaging = firebase.messaging();
-    
-    messaging.onBackgroundMessage((payload) => {
-        console.log('[firebase-messaging-sw.js] Received background message ', payload);
-        const notificationTitle = payload.notification?.title || payload.data?.title || 'Nueva Notificación';
-        const notificationOptions = {
-            body: payload.notification?.body || payload.data?.body,
-            icon: '/icon-192x192.png',
-            badge: '/icon-192x192.png',
-            data: payload.data,
-        };
-
-        self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-}
+// Redundant initialization removed - now handled via message event
 
 self.addEventListener('message', (event) => {
-    // This listener can still be used if there's a need to update config or perform other actions
-    // from the client, but the primary messaging setup is now handled by the hardcoded config.
-    // If the client sends a FIREBASE_CONFIG message, it will re-initialize, which might be redundant
-    // or cause issues if not handled carefully. For now, we'll keep it as is, but the hardcoded
-    // config ensures background messages work even without the client message.
     if (event.data && event.data.type === 'FIREBASE_CONFIG') {
-        const clientFirebaseConfig = event.data.config;
-        // Optionally, re-initialize if the client config is different or if we want to prioritize client config
-        // For this change, we prioritize the hardcoded config for background reliability.
-        // If you want the client config to override, you'd need more complex logic here.
-        console.log('Received FIREBASE_CONFIG from client, but using hardcoded config for background.');
+        firebaseConfig = event.data.config;
+        console.log('[firebase-messaging-sw.js] Received config from client');
+        initializeMessaging(firebaseConfig);
     }
 });
 

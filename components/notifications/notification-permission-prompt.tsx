@@ -27,11 +27,8 @@ export function NotificationPermissionPrompt() {
         return () => clearTimeout(timer)
       } else if (Notification.permission === 'granted') {
           setIsGranted(true)
-          // Still show for 2 seconds to allow testing if they want
-          const timer = setTimeout(() => {
-              setShow(true)
-          }, 2000)
-          return () => clearTimeout(timer)
+          // Hide it once it's granted and working
+          setShow(false)
       }
     }
   }, [])
@@ -64,6 +61,8 @@ export function NotificationPermissionPrompt() {
           const res = await sendTestNotification()
           if (res.success) {
               toast.success(res.message)
+              // Hide after successful test
+              setTimeout(() => setShow(false), 2000)
           } else {
               toast.error(res.error)
           }
@@ -120,13 +119,6 @@ export function NotificationPermissionPrompt() {
                   {loading ? 'Habilitando...' : 'Habilitar Notificaciones'}
                 </Button>
               ) : (
-                <Button 
-                    onClick={handleTest}
-                    disabled={loading}
-                    className="mt-5 w-full bg-[#da5c29] text-white hover:bg-[#da5c29]/90 border-none font-extrabold rounded-2xl shadow-lg transition-all h-12 text-base active:scale-95"
-                >
-                    {loading ? 'Enviando...' : 'Enviar Prueba'}
-                </Button>
               )}
             </div>
           </div>

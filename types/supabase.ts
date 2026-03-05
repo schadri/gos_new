@@ -124,27 +124,30 @@ export type Database = {
                     id: string
                     user_id: string
                     title: string | null
-                    message: string | null
+                    description: string | null
                     type: string | null
-                    read: boolean | null
+                    link_url: string | null
+                    is_read: boolean | null
                     created_at: string
                 }
                 Insert: {
                     id?: string
                     user_id: string
                     title?: string | null
-                    message?: string | null
+                    description?: string | null
                     type?: string | null
-                    read?: boolean | null
+                    link_url?: string | null
+                    is_read?: boolean | null
                     created_at?: string
                 }
                 Update: {
                     id?: string
                     user_id?: string
                     title?: string | null
-                    message?: string | null
+                    description?: string | null
                     type?: string | null
-                    read?: boolean | null
+                    link_url?: string | null
+                    is_read?: boolean | null
                     created_at?: string
                 }
             }

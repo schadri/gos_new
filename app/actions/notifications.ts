@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendPushNotification } from '@/lib/notifications'
 
 // Called secretly when an employer clicks "Match!"
 export async function createMatchNotification(applicantId: string, jobId: string, companyName: string) {
@@ -26,6 +27,14 @@ export async function createMatchNotification(applicantId: string, jobId: string
         console.error('MATCH NOTIF ERROR:', error)
         throw new Error('No se pudo crear la notificacion de match: ' + error.message)
     }
+
+    // Send Push Notification
+    await sendPushNotification({
+        userId: applicantId,
+        title: '¡Nuevo Match! Una empresa quiere conectar contigo',
+        body: `${companyName} ha avanzado tu postulación a la fase de Entrevista.`,
+        link: linkUrl
+    })
 
     revalidatePath('/notifications')
 }
@@ -62,6 +71,14 @@ export async function createMessageNotification(recipientId: string, chatId: str
         throw new Error('No se pudo crear la notificacion de mensaje: ' + error.message)
     }
 
+    // Send Push Notification
+    await sendPushNotification({
+        userId: recipientId,
+        title: 'Nuevo mensaje recibido',
+        body: `Tienes un nuevo mensaje de ${senderName}.`,
+        link: `/chat/${chatId}`
+    })
+
     revalidatePath('/notifications')
 }
 
@@ -84,6 +101,14 @@ export async function createApplicationNotification(employerId: string, jobId: s
         console.error('NEW APPLICANT NOTIF ERROR:', error)
         throw new Error('No se pudo crear la notificacion de aplicante: ' + error.message)
     }
+
+    // Send Push Notification
+    await sendPushNotification({
+        userId: employerId,
+        title: 'Nueva Postulación Recibida',
+        body: `${applicantName} se ha postulado a tu oferta de "${jobTitle}".`,
+        link: `/employer/jobs/${jobId}/applicants`
+    })
 
     revalidatePath('/notifications')
 }

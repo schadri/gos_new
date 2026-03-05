@@ -1,20 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import * as admin from 'firebase-admin'
-
-// Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-    try {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            }),
-        })
-    } catch (error: any) {
-        console.error('Firebase admin initialization error', error.stack)
-    }
-}
+import { adminMessaging } from '@/lib/firebase-admin'
 
 export async function POST(req: NextRequest) {
     try {
@@ -45,7 +30,7 @@ export async function POST(req: NextRequest) {
             },
         }
 
-        const response = await admin.messaging().send(message)
+        const response = await adminMessaging.send(message)
         return NextResponse.json({ success: true, response })
     } catch (error: any) {
         console.error('Error sending notification:', error)

@@ -90,7 +90,7 @@ export function LocationPicker({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           
-          <Popover open={open} onOpenChange={setOpen}>
+          <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"

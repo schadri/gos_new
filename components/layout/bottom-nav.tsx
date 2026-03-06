@@ -130,7 +130,7 @@ export function BottomNav() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
             </span>
           )}
-          <span className="text-[10px] font-medium">Notifs</span>
+          <span className="text-[10px] font-medium">Notificaciones</span>
         </Link>
         <Link href="/profile" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${pathname?.startsWith('/profile') ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
           <User className="h-5 w-5 mb-1" />

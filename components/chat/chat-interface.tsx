@@ -95,46 +95,48 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer }: C
 
   return (
     <div className="flex flex-col h-full relative bg-muted/10">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-        {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-muted-foreground/60 p-8 text-center space-y-4">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-              <Send className="w-8 h-8 opacity-50" />
-            </div>
-            <div>
-              <p className="font-medium text-lg text-foreground">Aún no hay mensajes</p>
-              <p className="text-sm">
-                {isEmployer 
-                  ? 'Envía el primer mensaje para iniciar la conversación.'
-                  : 'Espera a que la empresa inicie la conversación para responder.'}
-              </p>
-            </div>
-          </div>
-        ) : (
-          messages.map((msg) => {
-            const isMe = msg.sender_id === currentUserId
-            return (
-              <div 
-                key={msg.id} 
-                className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 shadow-sm ${
-                    isMe 
-                      ? 'bg-primary text-primary-foreground rounded-br-sm' 
-                      : 'bg-card border border-border/50 text-foreground rounded-bl-sm'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">{msg.content}</p>
-                  <span className={`text-[11px] font-medium block mt-2 ${isMe ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground text-left'}`}>
-                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
+      <div className="flex-1 overflow-y-auto pb-24">
+        <div className="max-w-4xl mx-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="h-[50vh] flex flex-col items-center justify-center text-muted-foreground/60 p-8 text-center space-y-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                <Send className="w-8 h-8 opacity-50" />
               </div>
-            )
-          })
-        )}
-        <div ref={messagesEndRef} className="h-4" />
+              <div>
+                <p className="font-medium text-lg text-foreground">Aún no hay mensajes</p>
+                <p className="text-sm">
+                  {isEmployer 
+                    ? 'Envía el primer mensaje para iniciar la conversación.'
+                    : 'Espera a que la empresa inicie la conversación para responder.'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            messages.map((msg) => {
+              const isMe = msg.sender_id === currentUserId
+              return (
+                <div 
+                  key={msg.id} 
+                  className={`flex w-full ${isMe ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div 
+                    className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 shadow-sm ${
+                      isMe 
+                        ? 'bg-primary text-primary-foreground rounded-br-sm' 
+                        : 'bg-card border border-border/50 text-foreground rounded-bl-sm'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap break-words leading-relaxed text-[15px]">{msg.content}</p>
+                    <span className={`text-[11px] font-medium block mt-2 ${isMe ? 'text-primary-foreground/70 text-right' : 'text-muted-foreground text-left'}`}>
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              )
+            })
+          )}
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
       </div>
 
       <div className="sticky bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-3 pb-safe-bottom sm:pb-4 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-40 mt-auto">

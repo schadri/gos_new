@@ -68,21 +68,23 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="flex flex-col h-[calc(100dvh-4rem)] bg-background">
-      <div className="sticky top-16 border-b bg-card px-4 py-3 flex items-center gap-4 shrink-0 shadow-sm z-40">
-        <Link 
-          href={isEmployer ? '/employer/dashboard' : '/profile'} 
-          className="p-2 hover:bg-muted rounded-full transition-colors flex shrink-0"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div className="flex items-center gap-3 min-w-0">
-          <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={displayAvatar || ''} />
-            <AvatarFallback className="bg-primary/10 text-primary font-bold">{displayName.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <h2 className="font-bold truncate text-base">{displayName}</h2>
-            <p className="text-xs text-muted-foreground truncate">{typedChat.job?.title} en {typedChat.job?.company}</p>
+      <div className="sticky top-16 border-b bg-card w-full shadow-sm z-40">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-4">
+          <Link 
+            href={isEmployer ? '/employer/dashboard' : '/profile'} 
+            className="p-2 hover:bg-muted rounded-full transition-colors flex shrink-0"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar className="h-10 w-10 border border-border">
+              <AvatarImage src={displayAvatar || ''} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">{displayName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <h2 className="font-bold truncate text-base">{displayName}</h2>
+              <p className="text-xs text-muted-foreground truncate">{typedChat.job?.title} en {typedChat.job?.company}</p>
+            </div>
           </div>
         </div>
       </div>

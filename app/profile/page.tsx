@@ -276,23 +276,7 @@ export default async function TalentProfile() {
             </div>
           </div>
 
-          <div className="space-y-6 pt-4">
-            <h2 className="text-xl font-bold flex items-center gap-2 border-b border-border/50 pb-4">
-              <Bookmark className="h-5 w-5" /> Trabajos Guardados
-            </h2>
-            <div className="bg-card p-8 rounded-3xl border border-dashed border-border flex flex-col items-center justify-center text-center">
-              <div className="p-4 bg-muted/40 rounded-full mb-4">
-                <Bookmark className="h-8 w-8 text-muted-foreground/60" />
-              </div>
-              <h4 className="font-bold text-lg mb-2">No tienes trabajos guardados</h4>
-              <p className="text-muted-foreground font-medium text-sm mb-6 max-w-sm">
-                Explora la bolsa de trabajo y guarda las oportunidades que te interesen para postularte más tarde.
-              </p>
-              <Button asChild className="rounded-xl font-bold shadow-sm">
-                <Link href="/jobs">Explorar Empleos</Link>
-              </Button>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

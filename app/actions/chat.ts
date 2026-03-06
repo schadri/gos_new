@@ -62,7 +62,12 @@ export async function sendMessage(chatId: string, content: string, messageId: st
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('No user found')
+    if (!user) return { success: false, error: 'No user found' }
+
+    const { data: chatInfo } = await supabase.from('chats').select('is_paused').eq('id', chatId).single()
+    if (chatInfo?.is_paused) {
+        return { success: false, error: 'El chat ha sido pausado por el empleador' }
+    }
 
     const { error } = await supabase
         .from('messages')
@@ -76,7 +81,7 @@ export async function sendMessage(chatId: string, content: string, messageId: st
 
     if (error) {
         console.error('Error sending message:', error)
-        throw new Error('Failed to send message')
+        return { success: false, error: 'Failed to send message' }
     }
 
     // Update chat's updated_at timestamp
@@ -102,5 +107,94 @@ export async function sendMessage(chatId: string, content: string, messageId: st
         console.error('Failed to dispatch message notification', notifErr)
     }
 
+    return { success: true }
+}
+
+export async function deleteChat(chatId: string) {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No user found')
+
+    // Only allow employer to delete for now, or both? 
+    // Usually "Undo match" is an employer action in this context
+    const { data: chat } = await supabase
+        .from('chats')
+        .select('employer_id, applicant_id, job_id')
+        .eq('id', chatId)
+        .single()
+
+    if (!chat || chat.employer_id !== user.id) {
+        throw new Error('No tienes permiso para realizar esta acción')
+    }
+
+    // Attempt to also delete the job application to completely undo the match
+    if (chat.job_id && chat.applicant_id) {
+        const { error: appError } = await supabase
+            .from('job_applications')
+            .delete()
+            .eq('job_id', chat.job_id)
+            .eq('applicant_id', chat.applicant_id)
+
+        if (appError) {
+            console.error('Error deleting job application:', appError)
+            // We can gracefully continue to delete the chat even if app deletion fails,
+            // or just log it if there's no foreign key constraint blocking it.
+        }
+    }
+
+    const { data: deletedChats, error } = await supabase
+        .from('chats')
+        .delete()
+        .eq('id', chatId)
+        .select('id')
+
+    if (error) {
+        console.error('Error deleting chat:', error)
+        throw new Error('Hubo un error al deshacer el match')
+    }
+
+    if (!deletedChats || deletedChats.length === 0) {
+        console.error('Delete blocked by RLS. No rows deleted.')
+        throw new Error('No se pudo deshacer el match. Verifica que la tabla "chats" tenga una política de DELETE permitida.')
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+}
+
+export async function togglePauseChat(chatId: string, isPaused: boolean) {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No user found')
+
+    const { data: chat } = await supabase
+        .from('chats')
+        .select('employer_id')
+        .eq('id', chatId)
+        .single()
+
+    if (!chat || chat.employer_id !== user.id) {
+        throw new Error('No tienes permiso para pausar este chat')
+    }
+
+    const { data: updatedChats, error } = await supabase
+        .from('chats')
+        .update({ is_paused: isPaused })
+        .eq('id', chatId)
+        .select('id')
+
+    if (error) {
+        console.error('Error toggling pause:', error)
+        throw new Error('No se pudo cambiar el estado del chat')
+    }
+
+    if (!updatedChats || updatedChats.length === 0) {
+        console.error('Update blocked by RLS. No rows updated.')
+        throw new Error('No se pudo actualizar el chat. Por favor, verifica que la tabla "chats" tenga una política de UPDATE (RLS) que permita modificaciones.')
+    }
+
+    revalidatePath(`/chat/${chatId}`)
     return { success: true }
 }

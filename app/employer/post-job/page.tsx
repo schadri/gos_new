@@ -155,8 +155,8 @@ function PostJobForm() {
 
   const handlePostJob = async () => {
     try {
-      if (!title || !description || !location) {
-        toast.error('Por favor completa los campos obligatorios (Título, Descripción, Ubicación)')
+      if (!category || !location) {
+        toast.error('Por favor selecciona un sector y la ubicación.')
         return
       }
 

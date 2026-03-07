@@ -65,7 +65,7 @@ export function NotificationPermissionPrompt() {
         exit={{ y: 50, opacity: 0 }}
         className="fixed bottom-24 md:bottom-10 left-4 right-4 md:left-auto md:right-10 md:max-w-sm z-[100]"
       >
-        <div className="bg-[#1b6164] text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group border border-white/10 backdrop-blur-md">
+        <div className="bg-primary text-white rounded-[2rem] p-6 shadow-2xl relative overflow-hidden group border border-white/10 backdrop-blur-md">
           {/* Decorative background element */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
           
@@ -96,7 +96,7 @@ export function NotificationPermissionPrompt() {
                 <Button 
                   onClick={handleRequest}
                   disabled={loading}
-                  className="mt-5 w-full bg-white text-[#1b6164] hover:bg-white/90 font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition-all h-12 text-base active:scale-95"
+                  className="mt-5 w-full bg-white text-primary hover:bg-white/90 font-extrabold rounded-2xl shadow-lg hover:shadow-xl transition-all h-12 text-base active:scale-95"
                 >
                   {loading ? 'Habilitando...' : 'Habilitar Notificaciones'}
                 </Button>

@@ -30,10 +30,21 @@ export default async function RootLayout({
 }>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  
+  let isTalent = false
+  if (user) {
+    const { data: profile } = await (supabase
+      .from('profiles') as any)
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+    
+    isTalent = profile?.user_type === 'TALENT' || user.user_metadata?.role === 'talent'
+  }
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background`}>
+      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background ${isTalent ? 'talent-theme' : ''}`}>
         <Providers>
           {user && <RealtimeNotifications userId={user.id} />}
           <Navbar />

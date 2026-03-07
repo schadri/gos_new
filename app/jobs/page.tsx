@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Database } from '@/types/supabase'
 import { getAvatarUrl } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown } from 'lucide-react'
+import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Popover,
@@ -35,7 +35,8 @@ type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
   profiles: {
     id: string;
     company_logo: string | null;
-  } | null
+  } | null;
+  application_status?: string | null;
 }
 
 
@@ -73,26 +74,32 @@ export default function JobBoard() {
           return
         }
 
-        // 2. Fetch employer profiles for these jobs
-        const employerIds = Array.from(new Set(jobsData.map((j: any) => j.created_by)))
-        if (employerIds.length > 0) {
-          const { data: profilesData, error: profilesError } = await (supabase
-            .from('profiles')
-            .select('id, company_logo')
-            .in('id', employerIds) as any)
-          
-          if (!profilesError && profilesData) {
-            const jobsWithProfiles = jobsData.map((job: any) => ({
-              ...job,
-              profiles: profilesData.find((p: any) => p.id === job.created_by) || null
-            })) as JobWithProfile[]
-            setJobs(jobsWithProfiles)
-          } else {
-            setJobs(jobsData as JobWithProfile[])
-          }
-        } else {
-          setJobs(jobsData as JobWithProfile[])
+        // 3. Fetch current user's applications
+        const { data: { user } } = await supabase.auth.getUser()
+        let userApplications: any[] = []
+        if (user) {
+          const { data: appsData } = await supabase
+            .from('job_applications')
+            .select('job_id, status')
+            .eq('applicant_id', user.id)
+          userApplications = appsData || []
         }
+
+        // 4. Combine all data
+        const jobsWithProfiles = jobsData.map((job: any) => {
+          const employerProfile = employerIds.length > 0
+            ? (profilesData?.find((p: any) => p.id === job.created_by) || null)
+            : null
+          const userApp = userApplications.find((a: any) => a.job_id === job.id)
+          
+          return {
+            ...job,
+            profiles: employerProfile,
+            application_status: userApp?.status || null
+          }
+        }) as JobWithProfile[]
+        
+        setJobs(jobsWithProfiles)
       } catch (err) {
         console.error('Error fetching jobs:', err)
       } finally {
@@ -379,6 +386,12 @@ export default function JobBoard() {
                     {job.is_featured && (
                       <div className="absolute top-0 right-8 translate-y-[-50%] bg-gradient-to-r from-primary to-orange-500 text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
                         DESTACADO
+                      </div>
+                    )}
+
+                    {job.application_status === 'auto-match' && (
+                      <div className="absolute top-0 left-8 translate-y-[-50%] bg-gradient-to-r from-teal-500 to-blue-500 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> ¡MATCH IDEAL!
                       </div>
                     )}
                     

@@ -48,3 +48,21 @@ export async function incrementJobApplicationsAction(jobId: string) {
         console.error('Failed to increment job applications:', err)
     }
 }
+export async function incrementJobMatchesAction(jobId: string) {
+    try {
+        const { data: job, error: fetchError } = await supabaseAdmin
+            .from('jobs')
+            .select('contacted_count')
+            .eq('id', jobId)
+            .single()
+
+        if (fetchError || !job) return
+
+        await supabaseAdmin
+            .from('jobs')
+            .update({ contacted_count: (job.contacted_count || 0) + 1 })
+            .eq('id', jobId)
+    } catch (err) {
+        console.error('Failed to increment job matches:', err)
+    }
+}

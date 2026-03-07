@@ -2,7 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { sendNotification } from './notifications'
-import { incrementJobApplicationsAction } from './jobs'
+import { incrementJobApplicationsAction, incrementJobMatchesAction } from './jobs'
+import { getOrCreateChat } from './chat'
 
 /**
  * Calculates the distance between two points in kilometers using the Haversine formula.
@@ -93,6 +94,13 @@ export async function triggerMatchesForJob(jobId: string) {
             status: 'auto-match'
         })
 
+        // Update stats
+        await incrementJobApplicationsAction(job.id)
+        await incrementJobMatchesAction(job.id)
+
+        // Ensure chat exists
+        await getOrCreateChat(job.id, talent.id).catch(console.error)
+
         // 4. Notify both parties
         await sendNotification({
             userId: talent.id,
@@ -180,6 +188,13 @@ export async function triggerMatchesForTalent(talentId: string) {
             applicant_id: talent.id,
             status: 'auto-match'
         })
+
+        // Update stats
+        await incrementJobApplicationsAction(job.id)
+        await incrementJobMatchesAction(job.id)
+
+        // Ensure chat exists
+        await getOrCreateChat(job.id, talent.id).catch(console.error)
 
         // 4. Notify both parties
         await sendNotification({

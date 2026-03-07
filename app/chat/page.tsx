@@ -1,8 +1,68 @@
+import Link from 'next/link'
+import { Search, Send, MapPin, Briefcase, Bell, MessageSquare } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { getAvatarUrl } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Send, MapPin, Briefcase } from 'lucide-react'
 
-export default function ChatPage() {
+export default async function ChatPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Fetch all chats for the current user
+  const { data: chats, error } = await supabase
+    .from('chats')
+    .select(`
+      *,
+      job:jobs(title, company)
+    `)
+    .or(`employer_id.eq.${user.id},applicant_id.eq.${user.id}`)
+    .order('updated_at', { ascending: false })
+
+  let typedChats: any[] = chats || []
+
+  if (typedChats.length > 0) {
+    // Collect all other participant IDs
+    const otherParticipantIds = typedChats.map(chat => 
+      chat.employer_id === user.id ? chat.applicant_id : chat.employer_id
+    )
+
+    // Fetch profiles for these participants
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, profile_photo, company_name, company_logo')
+      .in('id', otherParticipantIds)
+
+    // Combine data
+    typedChats = typedChats.map(chat => {
+      const otherId = chat.employer_id === user.id ? chat.applicant_id : chat.employer_id
+      const profile = profiles?.find(p => p.id === otherId)
+      const isEmployer = chat.employer_id === user.id
+      
+      const displayName = isEmployer 
+        ? (profile?.full_name || 'Candidato')
+        : (profile?.company_name || profile?.full_name || 'Empresa')
+
+      const displayAvatar = getAvatarUrl(
+        isEmployer
+          ? profile?.profile_photo
+          : (profile?.company_logo || profile?.profile_photo)
+      )
+
+      return {
+        ...chat,
+        displayName,
+        displayAvatar,
+        otherId
+      }
+    })
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl h-[calc(100vh-6rem)]">
       <div className="bg-card border border-border/60 rounded-[2rem] shadow-sm flex h-full overflow-hidden">
@@ -18,71 +78,54 @@ export default function ChatPage() {
           </div>
           
           <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3">
-            {[1, 2, 3, 4].map((chat, i) => (
-              <div key={i} className={`p-4 lg:p-5 rounded-2xl flex gap-4 lg:gap-5 cursor-pointer transition-all duration-300 ${i === 0 ? 'bg-background shadow-md border border-primary/20 scale-[1.02]' : 'hover:bg-muted border border-transparent hover:border-border/50'}`}>
-                <div className={`w-14 h-14 rounded-full ${i === 0 ? 'bg-primary/10 text-primary' : 'bg-muted-foreground/10 text-muted-foreground'} flex items-center justify-center font-bold text-xl shrink-0`}>
-                  {i === 0 ? 'L' : 'M'}
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                  <div className="flex justify-between items-center mb-1.5">
-                    <h3 className={`font-bold truncate pr-2 text-lg ${i === 0 ? 'text-foreground' : 'text-foreground/80'}`}>{i === 0 ? 'La Mar Cevichería' : 'Martín P.'}</h3>
-                    <span className={`text-xs font-bold shrink-0 ${i === 0 ? 'text-primary' : 'text-muted-foreground'}`}>12:30</span>
-                  </div>
-                  <p className={`text-sm font-medium truncate ${i === 0 ? 'text-foreground/90' : 'text-muted-foreground'}`}>{i === 0 ? '¡Hola! Vimos tu perfil y nos...' : '¿Qué horarios manejan?'}</p>
-                </div>
-                {i === 0 && <div className="w-3.5 h-3.5 bg-primary rounded-full shrink-0 self-center shadow-sm"></div>}
+            {typedChats.length === 0 ? (
+              <div className="text-center py-10 opacity-50 px-4">
+                <Bell className="h-10 w-10 mx-auto mb-4" />
+                <p className="font-bold">No hay mensajes aún</p>
+                <p className="text-sm">Cuando tengas un match, aparecerá aquí.</p>
               </div>
-            ))}
+            ) : (
+              typedChats.map((chat) => (
+                <Link 
+                  href={`/chat/${chat.id}`}
+                  key={chat.id} 
+                  className="p-4 lg:p-5 rounded-2xl flex gap-4 lg:gap-5 cursor-pointer transition-all duration-300 hover:bg-muted border border-transparent hover:border-border/50 bg-background/50"
+                >
+                  <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl shrink-0 overflow-hidden border">
+                    {chat.displayAvatar ? (
+                      <img src={chat.displayAvatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      chat.displayName.charAt(0)
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <h3 className="font-bold truncate pr-2 text-lg text-foreground/80">{chat.displayName}</h3>
+                      <span className="text-xs font-bold shrink-0 text-muted-foreground">
+                        {new Date(chat.updated_at || chat.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium truncate text-muted-foreground">
+                      {chat.job?.title || 'Nuevo Match'}
+                    </p>
+                  </div>
+                </Link>
+              ))
+             )}
           </div>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="hidden md:flex flex-col flex-1 h-full bg-background relative">
-          <div className="p-6 lg:p-8 border-b border-border/60 flex justify-between items-center bg-card/60 backdrop-blur-md sticky top-0 z-10 w-full shrink-0">
-            <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-extrabold text-2xl shadow-sm border border-primary/20">
-                L
-              </div>
-              <div>
-                <h2 className="font-extrabold text-2xl">La Mar Cevichería</h2>
-                <div className="flex items-center mt-1">
-                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full mr-2"></div>
-                  <p className="text-sm font-bold text-muted-foreground">En línea</p>
-                </div>
-              </div>
+        {/* Placeholder for Desktop */}
+        <div className="hidden md:flex flex-col flex-1 h-full bg-background relative items-center justify-center p-12 text-center">
+          <div className="max-w-md space-y-6">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+              <MessageSquare className="h-12 w-12" />
             </div>
-            <Button variant="outline" className="rounded-2xl font-bold shadow-sm border-border/50 h-12 px-6">Ver Perfil</Button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 bg-muted/5">
-            <div className="flex justify-center mb-10">
-              <span className="bg-muted px-5 py-2 rounded-full text-xs font-bold text-muted-foreground border border-border/50 shadow-sm">
-                Match creado el 12 de Octubre, 11:45 AM
-              </span>
-            </div>
-
-            <div className="flex items-start gap-4 max-w-[85%]">
-              <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-lg shrink-0 shadow-sm mt-1">L</div>
-              <div className="bg-card border border-border/60 p-5 rounded-3xl rounded-tl-sm shadow-sm group relative">
-                <p className="font-medium text-[15px] leading-relaxed">¡Hola Juan! Vimos tu perfil y el algoritmo nos indicó que eres un excelente match para nuestra vacante de Jefe de Cocina. ¿Estás disponible para una breve llamada mañana?</p>
-                <p className="text-xs font-bold text-muted-foreground mt-3 text-right">12:30 PM</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start justify-end gap-3 max-w-[85%] ml-auto mt-6">
-              <div className="bg-primary text-primary-foreground p-5 rounded-3xl rounded-tr-sm shadow-md">
-                <p className="font-medium text-[15px] leading-relaxed">¡Hola! Muchas gracias por el contacto. Sí, estoy disponible mañana por la tarde. ¿A las 15:00 les queda bien?</p>
-                <p className="text-xs font-bold text-primary-foreground/70 mt-3 text-right">12:45 PM <span className="ml-1 text-primary-foreground/90">✓✓</span></p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-6 lg:p-8 border-t border-border/60 bg-card/60 backdrop-blur-sm shrink-0">
-            <div className="flex items-center gap-4 max-w-4xl mx-auto">
-              <Input placeholder="Escribe tu mensaje..." className="flex-1 rounded-2xl h-16 bg-background border-border/50 focus-visible:ring-primary/50 text-base font-medium shadow-sm px-6" />
-              <Button size="icon" className="h-16 w-16 rounded-2xl bg-primary hover:bg-primary/90 shadow-md hover:-translate-y-1 transition-transform border-t border-white/20">
-                <Send className="h-6 w-6" />
-              </Button>
+            <div>
+              <h2 className="text-3xl font-extrabold mb-3">Tus Conversaciones</h2>
+              <p className="text-muted-foreground font-medium">
+                Selecciona un chat de la lista de la izquierda para comenzar a hablar con el talento o la empresa.
+              </p>
             </div>
           </div>
         </div>

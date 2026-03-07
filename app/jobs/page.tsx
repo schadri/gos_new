@@ -74,6 +74,17 @@ export default function JobBoard() {
           return
         }
 
+        // 2. Fetch employer profiles for these jobs
+        const employerIds = Array.from(new Set(jobsData.map((j: any) => j.created_by)))
+        let profilesData: any[] = []
+        if (employerIds.length > 0) {
+          const { data } = await (supabase
+            .from('profiles')
+            .select('id, company_logo')
+            .in('id', employerIds) as any)
+          profilesData = data || []
+        }
+
         // 3. Fetch current user's applications
         const { data: { user } } = await supabase.auth.getUser()
         let userApplications: any[] = []
@@ -87,9 +98,7 @@ export default function JobBoard() {
 
         // 4. Combine all data
         const jobsWithProfiles = jobsData.map((job: any) => {
-          const employerProfile = employerIds.length > 0
-            ? (profilesData?.find((p: any) => p.id === job.created_by) || null)
-            : null
+          const employerProfile = profilesData?.find((p: any) => p.id === job.created_by) || null
           const userApp = userApplications.find((a: any) => a.job_id === job.id)
           
           return {

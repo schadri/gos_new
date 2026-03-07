@@ -21,6 +21,9 @@ export default function TalentRegistration() {
   const [fullName, setFullName] = React.useState('')
   const [cvUrl, setCvUrl] = React.useState<string | null>(null)
   const [photoUrl, setPhotoUrl] = React.useState<string | null>(null)
+  const [latitude, setLatitude] = React.useState<number | null>(null)
+  const [longitude, setLongitude] = React.useState<number | null>(null)
+  const [radius, setRadius] = React.useState<number>(5)
   
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -69,6 +72,9 @@ export default function TalentRegistration() {
         keywords: keywords,
         profile_photo: photoUrl?.split('?')[0],
         cv_url: cvUrl?.split('?')[0],
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
       })
 
       if (error) {
@@ -111,7 +117,15 @@ export default function TalentRegistration() {
           <div className="grid gap-3 w-full">
             <LocationPicker 
               value={location} 
-              onChange={setLocation} 
+              onChange={setLocation}
+              latitude={latitude}
+              longitude={longitude}
+              radius={radius}
+              onRadiusChange={setRadius}
+              onCoordinatesChange={(lat, lng) => {
+                setLatitude(lat)
+                setLongitude(lng)
+              }}
             />
           </div>
 

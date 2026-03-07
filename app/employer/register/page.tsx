@@ -18,6 +18,9 @@ export default function EmployerRegistration() {
   const [description, setDescription] = React.useState('')
   const [location, setLocation] = React.useState('')
   const [logoUrl, setLogoUrl] = React.useState<string | null>(null)
+  const [latitude, setLatitude] = React.useState<number | null>(null)
+  const [longitude, setLongitude] = React.useState<number | null>(null)
+  const [radius, setRadius] = React.useState<number>(5)
   
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -64,6 +67,9 @@ export default function EmployerRegistration() {
         company_description: description,
         location: location,
         company_logo: logoUrl,
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
       })
 
       if (error) {
@@ -97,7 +103,15 @@ export default function EmployerRegistration() {
           <div className="grid gap-3 w-full">
             <LocationPicker 
               value={location} 
-              onChange={setLocation} 
+              onChange={setLocation}
+              latitude={latitude}
+              longitude={longitude}
+              radius={radius}
+              onRadiusChange={setRadius}
+              onCoordinatesChange={(lat, lng) => {
+                setLatitude(lat)
+                setLongitude(lng)
+              }}
             />
           </div>
 

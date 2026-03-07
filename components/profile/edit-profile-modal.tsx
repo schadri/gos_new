@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings, Loader2, Eye, ArrowLeft, ExternalLink, FileText } from 'lucide-react'
+import { Settings, Loader2, Eye, ArrowLeft, ExternalLink, FileText, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getAvatarUrl } from '@/lib/utils'
@@ -29,7 +29,10 @@ export function EditProfileModal({
   initialCv,
   initialKeywords,
   initialPositions,
-  initialLocation
+  initialLocation,
+  initialLatitude,
+  initialLongitude,
+  initialRadius = 5
 }: {
   initialName: string
   initialPhoto: string | null
@@ -37,6 +40,9 @@ export function EditProfileModal({
   initialKeywords: string[]
   initialPositions: string[]
   initialLocation: string
+  initialLatitude?: number | null
+  initialLongitude?: number | null
+  initialRadius?: number
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -47,9 +53,19 @@ export function EditProfileModal({
   const [keywords, setKeywords] = React.useState<string[]>(initialKeywords)
   const [positions, setPositions] = React.useState<string[]>(initialPositions)
   const [location, setLocation] = React.useState(initialLocation)
+  const [latitude, setLatitude] = React.useState<number | null>(initialLatitude || null)
+  const [longitude, setLongitude] = React.useState<number | null>(initialLongitude || null)
+  const [radius, setRadius] = React.useState<number>(initialRadius)
   
+  const [mounted, setMounted] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [viewingCv, setViewingCv] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
 
   const handleSave = async () => {
     try {
@@ -71,7 +87,10 @@ export function EditProfileModal({
         keywords: keywords,
         position: positions,
         location: location,
-      }).eq('id', user.id)
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
+      } as any).eq('id', user.id)
 
       if (error) throw error
 
@@ -186,7 +205,19 @@ export function EditProfileModal({
               </div>
 
               <div className="grid gap-2 pb-2">
-                <Label className="font-semibold">Habilidades / Keywords</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold">Habilidades / Keywords</Label>
+                  {keywords.length > 0 && (
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => setKeywords([])} 
+                      className="h-7 text-[11px] px-2 font-bold"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" /> Limpiar todo
+                    </Button>
+                  )}
+                </div>
                 <KeywordInput 
                   keywords={keywords}
                   onChange={setKeywords}
@@ -198,7 +229,15 @@ export function EditProfileModal({
                 <Label className="font-semibold">Ubicación</Label>
                 <LocationPicker 
                   value={location} 
-                  onChange={setLocation} 
+                  onChange={setLocation}
+                  latitude={latitude}
+                  longitude={longitude}
+                  radius={radius}
+                  onRadiusChange={setRadius}
+                  onCoordinatesChange={(lat, lng) => {
+                    setLatitude(lat)
+                    setLongitude(lng)
+                  }}
                 />
               </div>
             </div>

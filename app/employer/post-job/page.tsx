@@ -69,6 +69,9 @@ function PostJobForm() {
   const [showExitDialog, setShowExitDialog] = React.useState(false)
   const [profileLocation, setProfileLocation] = React.useState<string | null>(null)
   const [companyName, setCompanyName] = React.useState<string>('Empresa Confidencial')
+  const [latitude, setLatitude] = React.useState<number | null>(null)
+  const [longitude, setLongitude] = React.useState<number | null>(null)
+  const [radius, setRadius] = React.useState<number>(5)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isSavingDraft, setIsSavingDraft] = React.useState(false)
 
@@ -98,6 +101,9 @@ function PostJobForm() {
           setExperience(loadedData.experience)
           setLocation(loadedData.location)
           setKeywords(loadedData.keywords)
+          setLatitude(data.latitude)
+          setLongitude(data.longitude)
+          setRadius(data.search_radius || 5)
           setInitialData(loadedData)
         }
       }
@@ -179,6 +185,9 @@ function PostJobForm() {
         contract_type: contractType || null,
         experience_required: experience ? experience.replace(' años', '') : null,
         location: location || null,
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
         keywords: keywords,
         status: 'active'
       }
@@ -225,16 +234,19 @@ function PostJobForm() {
         contract_type: contractType || null,
         experience_required: experience ? experience.replace(' años', '') : null,
         location: location || null,
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
         keywords: keywords,
         status: 'draft'
       }
 
       let error;
       if (editId) {
-        const res = await supabase.from('jobs').update(jobData).eq('id', editId)
+        const res = await (supabase.from('jobs') as any).update(jobData as any).eq('id', editId)
         error = res.error
       } else {
-        const res = await supabase.from('jobs').insert(jobData).select('id').single()
+        const res = await (supabase.from('jobs') as any).insert(jobData as any).select('id').single()
         error = res.error
         if (!error && res.data) {
           router.replace(`/employer/post-job?id=${res.data.id}`)
@@ -373,7 +385,18 @@ function PostJobForm() {
                   )}
                 </div>
                 <div className="-mt-8">
-                  <LocationPicker value={location} onChange={setLocation} />
+                  <LocationPicker 
+                    value={location} 
+                    onChange={setLocation} 
+                    latitude={latitude}
+                    longitude={longitude}
+                    radius={radius}
+                    onRadiusChange={setRadius}
+                    onCoordinatesChange={(lat, lng) => {
+                      setLatitude(lat)
+                      setLongitude(lng)
+                    }}
+                  />
                 </div>
               </div>
           </div>

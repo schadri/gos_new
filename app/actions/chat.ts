@@ -138,8 +138,20 @@ export async function deleteChat(chatId: string) {
 
         if (appError) {
             console.error('Error deleting job application:', appError)
-            // We can gracefully continue to delete the chat even if app deletion fails,
-            // or just log it if there's no foreign key constraint blocking it.
+        }
+
+        // Decrement contacted count in jobs table
+        const { data: jobData } = await supabase
+            .from('jobs')
+            .select('contacted_count')
+            .eq('id', chat.job_id)
+            .single() as any
+
+        if (jobData && jobData.contacted_count > 0) {
+            await supabase
+                .from('jobs')
+                .update({ contacted_count: jobData.contacted_count - 1 })
+                .eq('id', chat.job_id)
         }
     }
 
@@ -147,7 +159,7 @@ export async function deleteChat(chatId: string) {
         .from('chats')
         .delete()
         .eq('id', chatId)
-        .select('id')
+        .select('id') as any
 
     if (error) {
         console.error('Error deleting chat:', error)

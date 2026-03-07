@@ -27,11 +27,17 @@ export function EditEmployerProfileModal({
   initialPhoto,
   initialDescription,
   initialLocation,
+  initialLatitude,
+  initialLongitude,
+  initialRadius = 5,
 }: {
   initialName: string
   initialPhoto: string | null
   initialDescription: string
   initialLocation: string
+  initialLatitude?: number | null
+  initialLongitude?: number | null
+  initialRadius?: number
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -40,8 +46,18 @@ export function EditEmployerProfileModal({
   const [companyLogo, setCompanyLogo] = React.useState<string | null>(initialPhoto)
   const [companyDescription, setCompanyDescription] = React.useState(initialDescription)
   const [location, setLocation] = React.useState(initialLocation)
+  const [latitude, setLatitude] = React.useState<number | null>(initialLatitude || null)
+  const [longitude, setLongitude] = React.useState<number | null>(initialLongitude || null)
+  const [radius, setRadius] = React.useState<number>(initialRadius)
   
+  const [mounted, setMounted] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
 
   const handleSave = async () => {
     try {
@@ -60,11 +76,20 @@ export function EditEmployerProfileModal({
 
       if (!user) throw new Error('No estás autenticado')
 
-      const { error } = await supabase.from('profiles').update({
+      // Ensure the profile exists for the user, creating it if not
+      await (supabase.from('profiles') as any).upsert({
+        id: user.id,
+        user_type: 'EMPLOYER' // Assuming this is an employer profile
+      })
+
+      const { error } = await (supabase.from('profiles') as any).update({
         company_name: companyName,
         company_logo: companyLogo?.split('?')[0],
         company_description: companyDescription,
         location: location,
+        latitude: latitude,
+        longitude: longitude,
+        search_radius: radius,
       }).eq('id', user.id)
 
       if (error) throw error
@@ -103,7 +128,7 @@ export function EditEmployerProfileModal({
         <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
           <div className="w-32 h-32 bg-muted rounded-2xl border border-border shadow-sm mb-4 mx-auto flex items-center justify-center overflow-hidden">
             {companyLogo ? (
-              <img src={getAvatarUrl(companyLogo)} alt="Logo Preview" className="w-full h-full object-cover" />
+              <img src={getAvatarUrl(companyLogo) || undefined} alt="Logo Preview" className="w-full h-full object-cover" />
             ) : (
               <Settings className="h-16 w-16 text-muted-foreground" />
             )}
@@ -127,7 +152,15 @@ export function EditEmployerProfileModal({
           <div className="grid gap-2">
             <LocationPicker 
               value={location} 
-              onChange={setLocation} 
+              onChange={setLocation}
+              latitude={latitude}
+              longitude={longitude}
+              radius={radius}
+              onRadiusChange={setRadius}
+              onCoordinatesChange={(lat, lng) => {
+                setLatitude(lat)
+                setLongitude(lng)
+              }}
             />
           </div>
 

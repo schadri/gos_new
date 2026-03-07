@@ -20,8 +20,8 @@ export default async function TalentProfile() {
   }
 
   // Fetch real profile data
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: profile } = await (supabase
+    .from('profiles') as any)
     .select('*')
     .eq('id', user.id)
     .single()
@@ -54,17 +54,17 @@ export default async function TalentProfile() {
 
   if (applications.length > 0) {
     const employerIds = Array.from(new Set(applications.map(app => app.jobs?.created_by)))
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, company_logo')
-      .in('id', employerIds)
+      const { data: profilesData } = await (supabase
+        .from('profiles') as any)
+        .select('id, company_logo')
+        .in('id', employerIds)
 
     if (profilesData) {
       applications = applications.map(app => ({
         ...app,
         jobs: {
           ...app.jobs,
-          profiles: profilesData.find(p => p.id === app.jobs?.created_by) || null
+          profiles: (profilesData as any[]).find((p: any) => p.id === app.jobs?.created_by) || null
         }
       }))
     }
@@ -88,6 +88,9 @@ export default async function TalentProfile() {
             initialPhoto={companyLogoPath}
             initialDescription={companyDesc}
             initialLocation={companyLocation}
+            initialLatitude={profile?.latitude}
+            initialLongitude={profile?.longitude}
+            initialRadius={profile?.search_radius}
           />
           <div className="absolute top-0 w-full h-32 bg-primary/10 left-0"></div>
           
@@ -142,6 +145,9 @@ export default async function TalentProfile() {
               initialKeywords={skills}
               initialPositions={positions}
               initialLocation={profile?.location || ""}
+              initialLatitude={profile?.latitude}
+              initialLongitude={profile?.longitude}
+              initialRadius={profile?.search_radius}
             />
             
             <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">

@@ -12,6 +12,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"
 import { getAvatarUrl } from '@/lib/utils'
+import { ShareApplicantButton } from '@/components/employer/share-applicant-button'
 
 export default async function ApplicantsPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -115,11 +116,19 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                       <p className="text-lg text-muted-foreground font-medium">{app.profiles?.position?.[0] || 'Profesional'}</p>
                     </div>
                   </div>
-                  {app.status === 'interview' && (
-                    <Badge variant="default" className="bg-green-500 hover:bg-green-600 font-bold px-3 py-1">
-                      Match Realizado
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <ShareApplicantButton 
+                      applicantId={app.profiles?.id} 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-full" 
+                    />
+                    {app.status === 'interview' && (
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600 font-bold px-3 py-1">
+                        Match Realizado
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground mb-6">

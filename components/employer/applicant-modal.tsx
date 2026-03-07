@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Briefcase, UserCircle2, Mail, Phone, Calendar, ExternalLink, FileText } from "lucide-react"
 import { getAvatarUrl } from "@/lib/utils"
+import { ShareApplicantButton } from "@/components/employer/share-applicant-button"
 
 interface ApplicantModalProps {
   profile: any
@@ -42,9 +43,19 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
                 <UserCircle2 className="w-10 h-10 text-primary/60" />
               )}
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold mb-1">{profile.full_name || 'Candidato'}</DialogTitle>
-              <p className="text-lg text-muted-foreground font-medium">{profile.position?.[0] || 'Profesional'}</p>
+            <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <div>
+                  <DialogTitle className="text-2xl font-bold mb-1 pr-4">{profile.full_name || 'Candidato'}</DialogTitle>
+                  <p className="text-lg text-muted-foreground font-medium">{profile.position?.[0] || 'Profesional'}</p>
+                </div>
+                <ShareApplicantButton 
+                  applicantId={profile.id} 
+                  variant="outline" 
+                  size="icon" 
+                  className="rounded-full bg-background/50 backdrop-blur-sm border-border/40 shrink-0" 
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -24,6 +24,11 @@ export type Database = {
                     created_at: string
                     created_by: string
                     applications_count: number | null
+                    contacted_count: number | null
+                    views_count: number | null
+                    latitude: number | null
+                    longitude: number | null
+                    search_radius: number | null
                     description: string | null
                 }
                 Insert: {
@@ -40,6 +45,11 @@ export type Database = {
                     created_at?: string
                     created_by: string
                     applications_count?: number | null
+                    contacted_count?: number | null
+                    views_count?: number | null
+                    latitude?: number | null
+                    longitude?: number | null
+                    search_radius?: number | null
                     description?: string | null
                 }
                 Update: {
@@ -56,6 +66,11 @@ export type Database = {
                     created_at?: string
                     created_by?: string
                     applications_count?: number | null
+                    contacted_count?: number | null
+                    views_count?: number | null
+                    latitude?: number | null
+                    longitude?: number | null
+                    search_radius?: number | null
                     description?: string | null
                 }
                 Relationships: []
@@ -69,6 +84,12 @@ export type Database = {
                     company_name: string | null
                     company_logo: string | null
                     location: string | null
+                    latitude: number | null
+                    longitude: number | null
+                    search_radius: number | null
+                    position: string[] | null
+                    keywords: string[] | null
+                    cv_url: string | null
                     updated_at: string | null
                     fcm_token: string | null
                 }
@@ -80,6 +101,12 @@ export type Database = {
                     company_name?: string | null
                     company_logo?: string | null
                     location?: string | null
+                    latitude?: number | null
+                    longitude?: number | null
+                    search_radius?: number | null
+                    position?: string[] | null
+                    keywords?: string[] | null
+                    cv_url?: string | null
                     updated_at?: string | null
                     fcm_token?: string | null
                 }
@@ -91,6 +118,12 @@ export type Database = {
                     company_name?: string | null
                     company_logo?: string | null
                     location?: string | null
+                    latitude?: number | null
+                    longitude?: number | null
+                    search_radius?: number | null
+                    position?: string[] | null
+                    keywords?: string[] | null
+                    cv_url?: string | null
                     updated_at?: string | null
                     fcm_token?: string | null
                 }

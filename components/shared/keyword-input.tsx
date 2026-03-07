@@ -4,38 +4,54 @@ import * as React from 'react'
 import { X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 
 export function KeywordInput({
   keywords,
   onChange,
   placeholder = "Escribe y presiona Enter...",
-  suggestions = []
+  suggestions = [],
+  max
 }: {
   keywords: string[];
   onChange: (keys: string[]) => void;
   placeholder?: string;
   suggestions?: string[];
+  max?: number;
 }) {
-  const [inputValue, setInputValue] = React.useState('')
+  const maxLimit = max || 8
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === 'NumpadEnter' || e.keyCode === 13) {
-      e.preventDefault()
-      e.stopPropagation()
-      addKeyword(inputValue)
-    }
-  }
+  // User's exact list of keywords
+  const baseSuggestions = [
+    "Puntual", "Prolijo", "Comprometido", "Iniciativa", "Liderazgo",
+    "Organizado", "Creativo", "Proactivo", "Trabajo en Equipo", "Adaptabilidad",
+    "Resolución de Problemas", "Vocación de Servicio", "Versatilidad",
+    "Eficiente", "Capacidad de Aprendizaje"
+  ]
+
+  // We filter out what is already selected
+  const activeSuggestions = React.useMemo(() => {
+    return baseSuggestions.filter(s => !keywords.includes(s))
+  }, [keywords])
+
 
   const addKeyword = (val: string) => {
+    if (keywords.length >= maxLimit) {
+      toast.error(`Solo puedes agregar hasta ${maxLimit} habilidades`)
+      return
+    }
     const cleanVal = val.trim()
     if (cleanVal && !keywords.includes(cleanVal)) {
       onChange([...keywords, cleanVal])
-      setInputValue('')
     }
   }
 
   const removeKeyword = (idx: number) => {
     onChange(keywords.filter((_, i) => i !== idx))
+  }
+
+  const clearAll = () => {
+    onChange([])
   }
 
   return (
@@ -53,28 +69,26 @@ export function KeywordInput({
             </button>
           </Badge>
         ))}
+        {keywords.length === 0 && (
+          <span className="text-sm text-muted-foreground italic">Ninguna habilidad seleccionada.</span>
+        )}
       </div>
-      <Input
-        type="text"
-        enterKeyHint="enter"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter') e.preventDefault();
-        }}
-        placeholder={placeholder}
-        className="bg-muted/40 border-muted focus-visible:ring-primary/50 transition-colors"
-      />
-      {suggestions.length > 0 && (
+
+      <div className="flex items-center justify-between mt-1 pt-2 border-t border-border/50">
+        <p className="text-[11px] font-bold text-muted-foreground">
+          {keywords.length}/{maxLimit} habilidades seleccionadas
+        </p>
+      </div>
+
+      {activeSuggestions.length > 0 && keywords.length < maxLimit && (
         <div className="pt-2">
-          <p className="text-xs text-muted-foreground mb-2 font-medium">Sugerencias (haz clic para agregar):</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestions.filter(s => !keywords.includes(s)).map((s, idx) => (
+          <p className="text-xs text-muted-foreground mb-3 font-medium">✨ Selecciona tus habilidades principales:</p>
+          <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-2 pb-2">
+            {activeSuggestions.map((s, idx) => (
               <Badge 
                 key={idx} 
                 variant="outline" 
-                className="cursor-pointer hover:bg-muted font-normal text-muted-foreground transition-colors"
+                className="cursor-pointer hover:bg-primary/10 hover:text-primary font-normal text-muted-foreground transition-colors border-muted"
                 onClick={() => addKeyword(s)}
               >
                 + {s}

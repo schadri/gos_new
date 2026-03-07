@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Database } from '@/types/supabase'
 import { getAvatarUrl } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Bookmark, Loader2, Check, ChevronsUpDown } from 'lucide-react'
+import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Popover,
@@ -21,6 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command'
 import { PROVINCES } from '@/lib/constants/locations'
+import { POSITIONS } from '@/lib/constants/positions'
 import { cn } from '@/lib/utils'
 import {
   Avatar,
@@ -46,8 +47,9 @@ export default function JobBoard() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [locationQuery, setLocationQuery] = React.useState('')
   
-  const [selectedContracts, setSelectedContracts] = React.useState<string[]>([])
-  const [selectedExperience, setSelectedExperience] = React.useState<string[]>([])
+  const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
+  const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
+  const [expandedCategory, setExpandedCategory] = React.useState<string | null>(null)
   const [sortBy, setSortBy] = React.useState('Mejor match')
  
   // Fetch Jobs
@@ -101,48 +103,59 @@ export default function JobBoard() {
     fetchJobs()
   }, [])
 
-  const handleContractChange = (type: string) => {
-    setSelectedContracts(prev => 
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+  const handlePositionChange = (pos: string) => {
+    setSelectedPositions(prev => 
+      prev.includes(pos) ? prev.filter(p => p !== pos) : [...prev, pos]
     )
   }
 
-  const handleExperienceChange = (exp: string) => {
-    setSelectedExperience(prev => 
-      prev.includes(exp) ? prev.filter(e => e !== exp) : [...prev, exp]
+  const handleLocationChange = (loc: string) => {
+    setSelectedLocations(prev => 
+      prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
     )
   }
 
   const clearFilters = () => {
     setSearchQuery('')
     setLocationQuery('')
-    setSelectedContracts([])
-    setSelectedExperience([])
+    setSelectedPositions([])
+    setSelectedLocations([])
+    setExpandedCategory(null)
   }
 
   // Filter Jobs
   const filteredJobs = React.useMemo(() => {
     return jobs.filter(job => {
+      // 1. Text Search (Title, Company, Keywords)
       const matchSearch = (job.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || 
                           (job.company?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                           (job.keywords || []).some((k: string) => k.toLowerCase().includes(searchQuery.toLowerCase()))
       
-      const matchLocation = (job.location?.toLowerCase() || '').includes(locationQuery.toLowerCase())
+      // 2. Bar Search (Input Province)
+      const matchBarLocation = !locationQuery || (job.location?.toLowerCase() || '').includes(locationQuery.toLowerCase())
       
-      const matchContract = selectedContracts.length === 0 || 
-                            (job.contract_type && selectedContracts.includes(job.contract_type))
-      
-      const matchExp = selectedExperience.length === 0 || 
-                       (job.experience_required && selectedExperience.includes(job.experience_required))
+      // 3. Sidebar Multi-Location
+      const matchSidebarLocation = selectedLocations.length === 0 || 
+                                   (job.location && selectedLocations.some(loc => job.location?.includes(loc)))
 
-      return matchSearch && matchLocation && matchContract && matchExp
+      // 4. Sidebar Position Filter
+      const jobTitle = job.title?.toLowerCase() || ''
+      const jobKeywords = (job.keywords || []).map((k: string) => k.toLowerCase())
+      
+      const matchPosition = selectedPositions.length === 0 || 
+                            selectedPositions.some(pos => {
+                              const lowerPos = pos.toLowerCase()
+                              return jobTitle.includes(lowerPos) || jobKeywords.includes(lowerPos)
+                            })
+
+      return matchSearch && matchBarLocation && matchSidebarLocation && matchPosition
     }).sort((a, b) => {
       if (sortBy === 'Más recientes') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
-      return 0 // Keep native sort for "Mejor match" or others for now
+      return 0
     })
-  }, [jobs, searchQuery, locationQuery, selectedContracts, selectedExperience, sortBy])
+  }, [jobs, searchQuery, locationQuery, selectedPositions, selectedLocations, sortBy])
 
   // Map internal database values to display labels
   const getContractLabel = (type: string | null) => {
@@ -253,19 +266,7 @@ export default function JobBoard() {
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-sm pt-2">
-          <span className="text-muted-foreground font-semibold mr-1">Sugerencias:</span>
-          {["Cocinero", "Camarero", "Barista", "Recepcionista", "Gerente"].map((tag, i) => (
-            <Badge 
-              key={i} 
-              variant="secondary" 
-              onClick={() => setSearchQuery(tag)}
-              className="hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors bg-muted/60 text-foreground font-medium border-transparent px-4 py-1.5 rounded-full"
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
+        
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
@@ -283,48 +284,66 @@ export default function JobBoard() {
             </div>
             
             <div className="space-y-8">
+              {/* Position Filter */}
               <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Tipo de Contrato</h4>
-                {[
-                  { label: 'Tiempo Completo', value: 'full-time' },
-                  { label: 'Medio Tiempo', value: 'part-time' },
-                  { label: 'Eventual / Temporada', value: 'temporary' },
-                  { label: 'Freelance', value: 'freelance' }
-                ].map(item => (
-                  <div key={item.value} className="flex items-center gap-3 group">
-                    <input 
-                      type="checkbox" 
-                      id={item.value} 
-                      checked={selectedContracts.includes(item.value)}
-                      onChange={() => handleContractChange(item.value)}
-                      className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                    />
-                    <label htmlFor={item.value} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item.label}</label>
-                  </div>
-                ))}
+                <h4 className="font-bold text-sm text-foreground">Puesto</h4>
+                <div className="space-y-2">
+                  {POSITIONS.map(group => (
+                    <div key={group.category} className="space-y-2">
+                      <button 
+                        onClick={() => setExpandedCategory(expandedCategory === group.category ? null : group.category)}
+                        className={cn(
+                          "w-full flex items-center justify-between text-sm font-semibold p-2 rounded-xl transition-colors",
+                          expandedCategory === group.category ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        {group.category}
+                        <ChevronRight className={cn(
+                          "h-4 w-4 transition-transform",
+                          expandedCategory === group.category && "rotate-90"
+                        )} />
+                      </button>
+                      
+                      {expandedCategory === group.category && (
+                        <div className="pl-4 space-y-3 pt-2 pb-2 animate-in slide-in-from-top-2 duration-200">
+                          {group.items.map(item => (
+                            <div key={item} className="flex items-center gap-3 group">
+                              <input 
+                                type="checkbox" 
+                                id={`pos-${item}`} 
+                                checked={selectedPositions.includes(item)}
+                                onChange={() => handlePositionChange(item)}
+                                className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                              />
+                              <label htmlFor={`pos-${item}`} className="text-xs cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item}</label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="w-full h-px bg-border/60"></div>
 
+              {/* Location Filter */}
               <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Experiencia Requerida</h4>
-                {[
-                  { label: 'Sin experiencia', value: '0-1' },
-                  { label: '1 a 3 años', value: '1-3' },
-                  { label: '3 a 5 años', value: '3-5' },
-                  { label: '+5 años', value: '+5' }
-                ].map(item => (
-                  <div key={item.value} className="flex items-center gap-3 group">
-                    <input 
-                      type="checkbox" 
-                      id={`exp-${item.value}`} 
-                      checked={selectedExperience.includes(item.value)}
-                      onChange={() => handleExperienceChange(item.value)}
-                      className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                    />
-                    <label htmlFor={`exp-${item.value}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item.label}</label>
-                  </div>
-                ))}
+                <h4 className="font-bold text-sm text-foreground">Ubicación</h4>
+                <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                  {PROVINCES.map(province => (
+                    <div key={province} className="flex items-center gap-3 group">
+                      <input 
+                        type="checkbox" 
+                        id={`loc-${province}`} 
+                        checked={selectedLocations.includes(province)}
+                        onChange={() => handleLocationChange(province)}
+                        className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                      />
+                      <label htmlFor={`loc-${province}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{province}</label>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -363,11 +382,7 @@ export default function JobBoard() {
                       </div>
                     )}
                     
-                    <div className="flex items-start justify-between absolute right-6 top-6">
-                      <button className="text-muted-foreground/50 hover:text-primary transition-colors hover:scale-110">
-                        <Bookmark className="h-6 w-6" />
-                      </button>
-                    </div>
+
                     
                     <div className="flex flex-col sm:flex-row sm:items-start gap-6 pr-10">
                       <Avatar className="h-20 w-20 rounded-2xl border bg-background flex-shrink-0 group-hover:scale-105 group-hover:shadow-md transition-all shadow-sm">

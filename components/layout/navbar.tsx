@@ -38,44 +38,69 @@ export function Navbar() {
   React.useEffect(() => {
     const supabase = createClient()
     
-    const fetchUserAndRole = async (sessionUser: any) => {
-      setUser(sessionUser)
-      if (sessionUser) {
-        // First check metadata
-        let currentRole = sessionUser.user_metadata?.role
+    const fetchUserAndRole = async () => {
+      try {
+        const withTimeout = (promise: Promise<any>, ms: number) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), ms))
+          ])
+        }
+
+        // Authenticate the user securely
+        const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
+        
+        if (authError || !authUser) {
+          setUser(null)
+          setRole(null)
+          setProfile(null)
+          return
+        }
+
+        setUser(authUser)
+        
+        // First check metadata for immediate role detection
+        let currentRole = authUser.user_metadata?.role
+        
         // Then verify with the database and get profile info
-        const { data: profileData } = await supabase
-          .from('profiles')
+        const { data: profileData, error: profileError } = await (supabase
+          .from('profiles') as any)
           .select('user_type, full_name, profile_photo, company_logo')
-          .eq('id', sessionUser.id)
+          .eq('id', authUser.id)
           .maybeSingle()
           
-        if (profileData) {
-          if (profileData.user_type === 'BUSINESS') {
+        if (profileData && !profileError) {
+          const profile = profileData as any
+          if (profile.user_type === 'BUSINESS') {
             currentRole = 'employer'
+          } else if (profile.user_type === 'TALENT') {
+            currentRole = 'talent'
           }
+          
           setRole(currentRole)
           setProfile({
-            name: profileData.full_name,
+            name: profile.full_name,
             avatar: getAvatarUrl(
-              profileData.user_type === 'BUSINESS' ? profileData.company_logo : profileData.profile_photo
+              profile.user_type === 'BUSINESS' ? profile.company_logo : profile.profile_photo
             ) || undefined
           })
         } else {
           setRole(currentRole)
         }
-      } else {
-        setRole(null)
-        setProfile(null)
+      } catch (err) {
+        console.error('Navbar: Error fetching user/role:', err)
       }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      fetchUserAndRole(session?.user || null)
-    })
+    // Initial fetch
+    fetchUserAndRole()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      fetchUserAndRole(session?.user || null)
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Navbar: Auth state changed:', event)
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
+        fetchUserAndRole()
+      }
     })
 
     return () => subscription.unsubscribe()

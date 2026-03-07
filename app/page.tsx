@@ -50,20 +50,20 @@ export default async function Home() {
         
         <div className="container mx-auto px-4 md:px-6 relative z-10 w-full">
           <div className="flex flex-col items-center space-y-10 text-center max-w-5xl mx-auto">
+                        
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl text-foreground">
+              Bienvenidos a{' '}
+              <span className="text-primary inline-block mt-2">GOS</span>
+            </h1>
             <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary shadow-sm hover:scale-105 transition-transform cursor-default">
               <span className="relative flex h-2 w-2 mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              La bolsa de trabajo #1 en Gastronomía y Hotelería
+              La bolsa de trabajo #1 
             </div>
-            
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl max-w-4xl text-foreground">
-              Encuentra tu próximo desafío <span className="text-primary block mt-2 relative inline-block">en cocinas y hoteles</span>
-            </h1>
-            
             <p className="mx-auto max-w-[700px] text-muted-foreground text-lg md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed font-medium">
-              Conectamos a los mejores profesionales con los emprendimientos más destacados del sector. <br className="hidden md:block"/> Busca trabajos o publica tus ofertas.
+               La Comunidad Hotelero Gastronomica de Argentina
             </p>
             
             <div className="grid sm:grid-cols-2 gap-6 sm:gap-6 w-full max-w-2xl mt-12 md:mt-8">

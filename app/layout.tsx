@@ -28,18 +28,36 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
+  let user = null
   let isTalent = false
-  if (user) {
-    const { data: profile } = await (supabase
-      .from('profiles') as any)
-      .select('user_type')
-      .eq('id', user.id)
-      .single()
+
+  try {
+    const supabase = await createClient()
     
-    isTalent = profile?.user_type === 'TALENT' || user.user_metadata?.role === 'talent'
+    // Add a timeout to prevent infinite hangs in local development
+    const withTimeout = (promise: Promise<any>, ms: number) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), ms))
+      ])
+    }
+
+    const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
+    
+    if (authUser && !authError) {
+      user = authUser
+      const { data: profile, error: profileError } = await (supabase
+        .from('profiles') as any)
+        .select('user_type')
+        .eq('id', user.id)
+        .maybeSingle()
+      
+      if (!profileError) {
+        isTalent = profile?.user_type === 'TALENT' || user.user_metadata?.role === 'talent'
+      }
+    }
+  } catch (error) {
+    console.warn('RootLayout: Auth/Profile fetch stalled or failed:', error)
   }
 
   return (

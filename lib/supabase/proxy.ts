@@ -40,13 +40,22 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const isProtected = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
+
+  // Use getSession() instead of getUser() in middleware.
+  // getSession() reads the JWT from the cookie locally — NO network call.
+  // This is instant and avoids the "fetch failed" / timeout errors in local dev.
+  // Security note: individual pages still call getUser() to validate with the server.
+  let user = null
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    user = session?.user ?? null
+  } catch (err) {
+    console.warn('Middleware: getSession failed:', err)
+    // Continue without user on error
+  }
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone()

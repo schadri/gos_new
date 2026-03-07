@@ -40,7 +40,7 @@ function LoginContent() {
     const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
     console.log(`Login: Starting Google OAuth with next=${nextRoute}`)
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
         redirectTo: redirectUrl,
@@ -49,6 +49,11 @@ function LoginContent() {
         }
       },
     })
+
+    if (error) {
+      console.error('Login: Google OAuth Error:', error)
+      toast.error(`Error al conectar con Google: ${error.message}`)
+    }
   }
 
   const handleEmailAuth = async (e: React.FormEvent) => {

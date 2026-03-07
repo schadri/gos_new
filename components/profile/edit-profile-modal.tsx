@@ -6,6 +6,7 @@ import { Settings, Loader2, Eye, ArrowLeft, ExternalLink, FileText, Trash2 } fro
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { getAvatarUrl } from '@/lib/utils'
+import { triggerMatchesForTalent } from '@/app/actions/auto-match'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,6 +96,10 @@ export function EditProfileModal({
       if (error) throw error
 
       toast.success('Perfil actualizado correctamente')
+      
+      // Trigger auto-matching in the background
+      triggerMatchesForTalent(user.id).catch(console.error)
+
       setOpen(false)
       router.refresh() // Recarga la página para mostrar los nuevos datos en el Server Component
     } catch (error: any) {

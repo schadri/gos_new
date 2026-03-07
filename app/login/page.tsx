@@ -15,6 +15,7 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const flow = searchParams?.get('flow')
+  const isTalentFlow = flow === 'talent'
 
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
@@ -105,7 +106,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center">
+    <div className={`container mx-auto flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center ${isTalentFlow ? 'talent-theme' : ''}`}>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[400px] p-8 border rounded-2xl bg-card shadow-sm">
         <div className="flex flex-col space-y-2 text-center">
           <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-2 text-primary">
@@ -192,9 +193,11 @@ function LoginContent() {
         )}
         <div className={`grid ${!flow ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
           {(flow === 'employer' || !flow) && (
-            <Button variant="outline" asChild className="h-14 rounded-2xl border-primary/20 hover:border-primary/50 hover:bg-primary/5 shadow-sm bg-card">
-              <Link href="/login?flow=talent" className="text-sm font-bold">Soy Postulante</Link>
-            </Button>
+            <div className="talent-theme">
+              <Button variant="outline" asChild className="h-14 w-full rounded-2xl border-primary/20 hover:border-primary/50 hover:bg-primary/5 shadow-sm bg-card">
+                <Link href="/login?flow=talent" className="text-sm font-bold">Soy Postulante</Link>
+              </Button>
+            </div>
           )}
           {(flow === 'talent' || !flow) && (
             <Button variant="outline" asChild className="h-14 rounded-2xl border-primary/20 hover:border-primary/50 hover:bg-primary/5 shadow-sm bg-card">

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { ArrowLeft, MapPin, Building, Briefcase, Calendar, CheckCircle2, UserCircle2 } from 'lucide-react'
+import { ArrowLeft, MapPin, Building, Briefcase, Calendar, CheckCircle2, UserCircle2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,7 +35,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
     notFound()
   }
 
-  if (job.created_by !== user.id) {
+  if ((job as any).created_by !== user.id) {
     redirect('/employer/dashboard')
   }
 
@@ -80,13 +80,13 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center gap-3 mb-3">
-              <h1 className="text-3xl font-extrabold tracking-tight">{job.title}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight">{(job as any).title}</h1>
               <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">{typedApplications.length} Postulantes</Badge>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-medium">
-              <span className="flex items-center"><Building className="mr-1.5 h-4 w-4" /> {job.company}</span>
-              <span className="flex items-center"><MapPin className="mr-1.5 h-4 w-4" /> {job.location || 'Remoto'}</span>
-              <span className="flex items-center"><Briefcase className="mr-1.5 h-4 w-4" /> {job.contract_type}</span>
+              <span className="flex items-center"><Building className="mr-1.5 h-4 w-4" /> {(job as any).company}</span>
+              <span className="flex items-center"><MapPin className="mr-1.5 h-4 w-4" /> {(job as any).location || 'Remoto'}</span>
+              <span className="flex items-center"><Briefcase className="mr-1.5 h-4 w-4" /> {(job as any).contract_type}</span>
             </div>
           </div>
         </div>
@@ -116,19 +116,24 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                       <p className="text-lg text-muted-foreground font-medium">{app.profiles?.position?.[0] || 'Profesional'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <ShareApplicantButton 
-                      applicantId={app.profiles?.id} 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-full" 
-                    />
-                    {app.status === 'interview' && (
-                      <Badge variant="default" className="bg-green-500 hover:bg-green-600 font-bold px-3 py-1">
-                        Match Realizado
-                      </Badge>
-                    )}
-                  </div>
+                    <div className="flex flex-col items-end gap-2">
+                        <ShareApplicantButton 
+                        applicantId={app.profiles?.id} 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-full" 
+                        />
+                        {app.status === 'auto-match' && (
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold px-3 py-1 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" /> Sugerencia IA
+                        </Badge>
+                        )}
+                        {app.status === 'interview' && (
+                        <Badge variant="default" className="bg-green-500 hover:bg-green-600 font-bold px-3 py-1">
+                            Match Realizado
+                        </Badge>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-muted-foreground mb-6">

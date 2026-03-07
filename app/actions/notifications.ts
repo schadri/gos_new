@@ -141,3 +141,51 @@ export async function markAllAsRead() {
     revalidatePath('/notifications')
     return { success: true }
 }
+
+export async function sendNotification({
+    userId,
+    title,
+    description,
+    type,
+    linkUrl
+}: {
+    userId: string,
+    title: string,
+    description: string,
+    type: string,
+    linkUrl?: string
+}) {
+    const supabase = await createClient()
+
+    const { error } = await (supabase
+        .from('notifications')
+        .insert({
+            user_id: userId,
+            type,
+            title,
+            description,
+            link_url: linkUrl || null,
+            is_read: false
+        }) as any)
+
+    if (error) {
+        console.error('SEND NOTIF ERROR:', error)
+        return { success: false, error }
+    }
+
+    // Send Push Notification
+    try {
+        const { sendPushNotification: pushLib } = require('@/lib/notifications')
+        await pushLib({
+            userId,
+            title,
+            body: description,
+            link: linkUrl || undefined
+        })
+    } catch (err) {
+        console.warn('Push notification failed:', err)
+    }
+
+    revalidatePath('/notifications')
+    return { success: true }
+}

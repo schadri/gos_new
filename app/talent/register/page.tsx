@@ -33,7 +33,7 @@ export default function TalentRegistration() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await supabase.from('profiles').upsert({
+        await (supabase.from('profiles') as any).upsert({
           id: user.id,
           user_type: 'TALENT'
         })
@@ -63,7 +63,7 @@ export default function TalentRegistration() {
         return
       }
 
-      const { error } = await supabase.from('profiles').upsert({
+      const { error } = await (supabase.from('profiles') as any).upsert({
         id: session.user.id,
         user_type: 'TALENT',
         full_name: fullName,
@@ -92,7 +92,7 @@ export default function TalentRegistration() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl py-12 md:py-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="talent-theme container mx-auto max-w-3xl py-12 md:py-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-8 px-4 md:px-0">
         <div className="text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">Completa tu Perfil de Talento</h1>

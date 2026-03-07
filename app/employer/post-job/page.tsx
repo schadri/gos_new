@@ -27,6 +27,7 @@ import { Briefcase, Sparkles, AlertCircle, Loader2, MapPin, ArrowLeft } from 'lu
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { triggerMatchesForJob } from '@/app/actions/auto-match'
 
 const CATEGORY_ROLES: Record<string, string[]> = {
   cocina: [
@@ -193,18 +194,27 @@ function PostJobForm() {
       }
 
       let error;
+      let finalId = editId;
+      
       if (editId) {
-        const res = await supabase.from('jobs').update(jobData).eq('id', editId)
+        const res = await (supabase.from('jobs') as any).update(jobData).eq('id', editId)
         error = res.error
       } else {
-        const res = await supabase.from('jobs').insert(jobData)
+        const res = await (supabase.from('jobs') as any).insert(jobData).select('id').single()
         error = res.error
+        if (res.data) finalId = res.data.id
       }
 
       if (error) throw error
 
       toast.success('¡Oferta publicada exitosamente!')
       setInitialData(null) // Reset dirty check
+      
+      // Trigger auto-matching in the background
+      if (finalId) {
+        triggerMatchesForJob(finalId).catch(console.error)
+      }
+
       router.push('/employer/dashboard')
       
     } catch (error: any) {

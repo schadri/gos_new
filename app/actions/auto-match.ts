@@ -56,17 +56,23 @@ export async function triggerMatchesForJob(jobId: string) {
     const matches = []
 
     for (const talent of talents) {
-        // Check if position matches (job title is in talent positions array)
-        const positionMatch = Array.isArray(talent.position) && talent.position.includes(job.title)
+        // Case-insensitive position match
+        const lowerJobTitle = job.title.toLowerCase()
+        const positionMatch = Array.isArray(talent.position) &&
+            talent.position.some((p: string) => p.toLowerCase() === lowerJobTitle)
+
         if (!positionMatch) continue
 
-        if (talent.latitude && talent.longitude) {
+        const hasCoords = talent.latitude !== null && talent.longitude !== null
+        if (hasCoords) {
             const distance = calculateDistance(
                 job.latitude,
                 job.longitude,
                 talent.latitude,
                 talent.longitude
             )
+
+            console.log(`Auto-Match Debug: Talent ${talent.full_name} is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
 
             if (distance <= (job.search_radius || 5)) {
                 matches.push(talent)
@@ -154,8 +160,11 @@ export async function triggerMatchesForTalent(talentId: string) {
     const matches = []
 
     for (const job of jobs) {
-        // Check if position matches
-        const positionMatch = Array.isArray(talent.position) && talent.position.includes(job.title)
+        // Case-insensitive position match
+        const lowerJobTitle = job.title.toLowerCase()
+        const positionMatch = Array.isArray(talent.position) &&
+            talent.position.some((p: string) => p.toLowerCase() === lowerJobTitle)
+
         if (!positionMatch) continue
 
         const distance = calculateDistance(
@@ -164,6 +173,8 @@ export async function triggerMatchesForTalent(talentId: string) {
             job.latitude,
             job.longitude
         )
+
+        console.log(`Auto-Match Debug: Job "${job.title}" is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
 
         if (distance <= (job.search_radius || 5)) {
             matches.push(job)

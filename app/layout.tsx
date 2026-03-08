@@ -34,17 +34,10 @@ export default async function RootLayout({
   try {
     const supabase = await createClient()
     
-    // Add a timeout to prevent infinite hangs in local development
-    const withTimeout = (promise: Promise<any>, ms: number) => {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), ms))
-      ])
-    }
-
-    const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
+    // We use getUser() to avoid Next.js warnings and ensure fresh auth data on Server Side Render
+    const { data: { user: authUser }, error: userError } = await supabase.auth.getUser()
     
-    if (authUser && !authError) {
+    if (authUser && !userError) {
       user = authUser
       const { data: profile, error: profileError } = await (supabase
         .from('profiles') as any)

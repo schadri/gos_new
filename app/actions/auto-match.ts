@@ -31,6 +31,8 @@ function deg2rad(deg: number): number {
 export async function triggerMatchesForJob(jobId: string) {
     const supabase = await createClient()
 
+    console.log(`[Auto-Match] Starting triggerMatchesForJob for job: ${jobId}`)
+
     // 1. Fetch job details
     const { data: job, error: jobError } = await (supabase
         .from('jobs')
@@ -38,8 +40,19 @@ export async function triggerMatchesForJob(jobId: string) {
         .eq('id', jobId)
         .single() as any)
 
-    if (jobError || !job || job.status !== 'active' || !job.latitude || !job.longitude) {
-        return { success: false, message: 'Invalid job or coordinates missing' }
+    if (jobError) {
+        console.error(`[Auto-Match] Error fetching job ${jobId}:`, jobError)
+        return { success: false, message: 'Invalid job' }
+    }
+
+    if (!job || job.status !== 'active') {
+        console.log(`[Auto-Match] Job ${jobId} is not active or not found. Status: ${job?.status}`)
+        return { success: false, message: 'Job not active' }
+    }
+
+    if (!job.latitude || !job.longitude) {
+        console.log(`[Auto-Match] Job ${jobId} has no coordinates. Skipping distance matching.`)
+        return { success: false, message: 'Coordinates missing' }
     }
 
     // 2. Fetch all talents that have the matching position
@@ -52,6 +65,8 @@ export async function triggerMatchesForJob(jobId: string) {
     if (talentError || !talents) {
         return { success: false, message: 'Could not fetch talents' }
     }
+
+    console.log(`[Auto-Match] Job ${jobId}: Found ${talents.length} talents with position. Filtering...`)
 
     const matches = []
 
@@ -72,13 +87,15 @@ export async function triggerMatchesForJob(jobId: string) {
                 talent.longitude
             )
 
-            console.log(`Auto-Match Debug: Talent ${talent.full_name} is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
+            // console.log(`Auto-Match Debug: Talent ${talent.full_name} is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
 
             if (distance <= (job.search_radius || 5)) {
                 matches.push(talent)
             }
         }
     }
+
+    console.log(`[Auto-Match] Job ${jobId}: Found ${matches.length} valid matches in radius.`)
 
     if (matches.length === 0) return { success: true, count: 0 }
 
@@ -94,18 +111,29 @@ export async function triggerMatchesForJob(jobId: string) {
 
         if (existingApp) continue
 
-        await (supabase.from('job_applications') as any).insert({
-            job_id: job.id,
-            applicant_id: talent.id,
-            status: 'auto-match'
-        })
+        try {
+            await (supabase.from('job_applications') as any).insert({
+                job_id: job.id,
+                applicant_id: talent.id,
+                status: 'auto-match'
+            })
+            console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
+        } catch (appErr) {
+            console.error(`[Auto-Match] Failed to create application:`, appErr)
+            continue; // Skip if inserting application fails
+        }
 
         // Update stats
         await incrementJobApplicationsAction(job.id)
         await incrementJobMatchesAction(job.id)
 
-        // Ensure chat exists
-        await getOrCreateChat(job.id, talent.id).catch(console.error)
+        // Ensure chat exists safely (pass created_by to avoid background auth errors)
+        try {
+            await getOrCreateChat(job.id, talent.id, job.created_by)
+        } catch (chatError) {
+            console.error(`[Auto-Match] Failed to create chat for ${talent.id}:`, chatError)
+            // Continue anyway so notifications are sent
+        }
 
         // 4. Notify both parties
         await sendNotification({
@@ -134,6 +162,8 @@ export async function triggerMatchesForJob(jobId: string) {
 export async function triggerMatchesForTalent(talentId: string) {
     const supabase = await createClient()
 
+    console.log(`[Auto-Match] Starting triggerMatchesForTalent for talent: ${talentId}`)
+
     // 1. Fetch talent details
     const { data: talent, error: talentError } = await (supabase
         .from('profiles')
@@ -141,8 +171,14 @@ export async function triggerMatchesForTalent(talentId: string) {
         .eq('id', talentId)
         .single() as any)
 
-    if (talentError || !talent || !talent.latitude || !talent.longitude || !talent.position || talent.position.length === 0) {
-        return { success: false, message: 'Invalid talent or data missing' }
+    if (talentError) {
+        console.error(`[Auto-Match] Error fetching talent ${talentId}:`, talentError)
+        return { success: false, message: 'Invalid talent' }
+    }
+
+    if (!talent.latitude || !talent.longitude || !talent.position || talent.position.length === 0) {
+        console.log(`[Auto-Match] Talent ${talentId} misses coords or positions. Skipped.`)
+        return { success: false, message: 'Data missing' }
     }
 
     // 2. Fetch all active jobs
@@ -156,6 +192,8 @@ export async function triggerMatchesForTalent(talentId: string) {
     if (jobError || !jobs) {
         return { success: false, message: 'Could not fetch jobs' }
     }
+
+    console.log(`[Auto-Match] Talent ${talentId}: Found ${jobs.length} active jobs. Filtering...`)
 
     const matches = []
 
@@ -174,12 +212,15 @@ export async function triggerMatchesForTalent(talentId: string) {
             job.longitude
         )
 
-        console.log(`Auto-Match Debug: Job "${job.title}" is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
+        // console.log(`Auto-Match Debug: Job "${job.title}" is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
 
+        // For talent matching, we use the job's required radius or a default
         if (distance <= (job.search_radius || 5)) {
             matches.push(job)
         }
     }
+
+    console.log(`[Auto-Match] Talent ${talentId}: Found ${matches.length} valid job matches in radius.`)
 
     if (matches.length === 0) return { success: true, count: 0 }
 
@@ -194,18 +235,28 @@ export async function triggerMatchesForTalent(talentId: string) {
 
         if (existingApp) continue
 
-        await (supabase.from('job_applications') as any).insert({
-            job_id: job.id,
-            applicant_id: talent.id,
-            status: 'auto-match'
-        })
+        try {
+            await (supabase.from('job_applications') as any).insert({
+                job_id: job.id,
+                applicant_id: talent.id,
+                status: 'auto-match'
+            })
+            console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
+        } catch (appErr) {
+            console.error(`[Auto-Match] Failed to create application:`, appErr)
+            continue; // Skip if inserting application fails
+        }
 
         // Update stats
         await incrementJobApplicationsAction(job.id)
         await incrementJobMatchesAction(job.id)
 
-        // Ensure chat exists
-        await getOrCreateChat(job.id, talent.id).catch(console.error)
+        // Ensure chat exists (pass created_by to avoid background auth errors)
+        try {
+            await getOrCreateChat(job.id, talent.id, job.created_by)
+        } catch (chatError) {
+            console.error(`[Auto-Match] Failed to create chat for ${talent.id}:`, chatError)
+        }
 
         // 4. Notify both parties
         await sendNotification({

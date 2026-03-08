@@ -4,11 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createMessageNotification } from '@/app/actions/notifications'
 
-export async function getOrCreateChat(jobId: string, applicantId: string) {
+export async function getOrCreateChat(jobId: string, applicantId: string, forceEmployerId?: string) {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('No user found')
+    let userId = forceEmployerId
+    if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('No user found')
+        userId = user.id
+    }
 
     // Check if chat already exists
     const { data: existingChat, error: findError } = await supabase

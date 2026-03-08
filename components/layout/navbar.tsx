@@ -47,16 +47,18 @@ export function Navbar() {
           ])
         }
 
-        // Authenticate the user securely
-        const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
+        // getSession() reads from cookie/localStorage — no network call, instant.
+        // The middleware already validates security on protected routes.
+        const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), 3000)
         
-        if (authError || !authUser) {
+        if (sessionError || !session?.user) {
           setUser(null)
           setRole(null)
           setProfile(null)
           return
         }
 
+        const authUser = session.user
         setUser(authUser)
         
         // First check metadata for immediate role detection

@@ -175,7 +175,7 @@ export async function sendNotification({
 
     // Send Push Notification
     try {
-        const { sendPushNotification: pushLib } = require('@/lib/notifications')
+        const { sendPushNotification: pushLib } = await import('@/lib/notifications')
         await pushLib({
             userId,
             title,

@@ -51,12 +51,17 @@ export default async function RootLayout({
     }
   } catch (error: any) {
     // Do not swallow Next.js internal dynamic rendering or redirect errors
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const digest = error && typeof error === 'object' && 'digest' in error ? String(error.digest) : ''
+    
     if (
-      error?.name === 'DynamicServerError' || 
-      error?.digest?.includes('NEXT_') || 
-      error?.message?.includes('Dynamic server usage')
+      errMsg.includes('Dynamic server usage') ||
+      errMsg.includes('NEXT_REDIRECT') ||
+      digest.includes('DYNAMIC_SERVER_USAGE') ||
+      digest.includes('NEXT_') ||
+      error?.name === 'DynamicServerError'
     ) {
-      throw error
+      throw error // Let Next.js handle its own internal errors to avoid build failure
     }
     console.warn('RootLayout: Auth/Profile fetch stalled or failed:', error)
   }

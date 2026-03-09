@@ -90,7 +90,7 @@ export async function triggerMatchesForJob(jobId: string) {
 
             console.log(`[Auto-Match] Distance check for ${talent.full_name}: distance=${distance.toFixed(2)}km, targetJobRadius=${jobRadius}km, talentPrefersRadius=${talentRadius}km`)
 
-            if (distance <= talentRadius && distance <= jobRadius) {
+            if (distance <= talentRadius || distance <= jobRadius) {
                 // Check if already applied
                 console.log(`[Auto-Match] Potential match: ${talent.full_name}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin
@@ -210,7 +210,7 @@ export async function triggerMatchesForTalent(talentId: string) {
 
             console.log(`[Auto-Match] Distance check for job "${job.title}": distance=${distance.toFixed(2)}km, jobPrefersRadius=${jobRadius}km, talentRadius=${talentRadius}km`)
 
-            if (distance <= talentRadius && distance <= jobRadius) {
+            if (distance <= talentRadius || distance <= jobRadius) {
                 // Check if already applied
                 console.log(`[Auto-Match] Potential match found for job: ${job.title}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin

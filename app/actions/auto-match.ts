@@ -1,17 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { sendNotification } from './notifications'
 import { incrementJobApplicationsAction, incrementJobMatchesAction } from './jobs'
 import { getOrCreateChat } from './chat'
-
-function getSupabaseAdmin() {
-    return createAdminClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-}
 
 /**
  * Calculates the distance between two points in kilometers using the Haversine formula.
@@ -37,12 +29,17 @@ function deg2rad(deg: number): number {
  * Matches a newly published job with existing talent profiles.
  */
 export async function triggerMatchesForJob(jobId: string) {
-    const supabase = await createClient()
-
-    console.log(`[Auto-Match] Starting triggerMatchesForJob for job: ${jobId}`)
+    let supabaseAdmin;
+    try {
+        supabaseAdmin = getSupabaseAdmin()
+        console.log(`[Auto-Match] Starting triggerMatchesForJob for job: ${jobId}`)
+    } catch (initErr) {
+        console.error('[Auto-Match] Failed to initialize admin client in triggerMatchesForJob:', initErr)
+        return { success: false, message: 'Initialization failed' }
+    }
 
     // 1. Fetch job details
-    const { data: job, error: jobError } = await (supabase
+    const { data: job, error: jobError } = await (supabaseAdmin
         .from('jobs')
         .select('*')
         .eq('id', jobId)
@@ -64,7 +61,7 @@ export async function triggerMatchesForJob(jobId: string) {
     }
 
     // 2. Fetch all talents that have the matching position
-    const { data: talents, error: talentError } = await (supabase
+    const { data: talents, error: talentError } = await (supabaseAdmin
         .from('profiles')
         .select('id, full_name, position, latitude, longitude')
         .eq('user_type', 'TALENT')
@@ -113,7 +110,7 @@ export async function triggerMatchesForJob(jobId: string) {
     // 3. Create applications with 'auto-match' status
     for (const talent of matches) {
         // Check if application already exists
-        const { data: existingApp } = await (supabase
+        const { data: existingApp } = await (supabaseAdmin
             .from('job_applications')
             .select('id')
             .eq('job_id', job.id)
@@ -123,7 +120,6 @@ export async function triggerMatchesForJob(jobId: string) {
         if (existingApp) continue
 
         try {
-            const supabaseAdmin = getSupabaseAdmin()
             const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
                 job_id: job.id,
                 applicant_id: talent.id,
@@ -178,12 +174,17 @@ export async function triggerMatchesForJob(jobId: string) {
  * Matches a talent profile with existing active jobs.
  */
 export async function triggerMatchesForTalent(talentId: string) {
-    const supabase = await createClient()
-
-    console.log(`[Auto-Match] Starting triggerMatchesForTalent for talent: ${talentId}`)
+    let supabaseAdmin;
+    try {
+        supabaseAdmin = getSupabaseAdmin()
+        console.log(`[Auto-Match] Starting triggerMatchesForTalent for talent: ${talentId}`)
+    } catch (initErr) {
+        console.error('[Auto-Match] Failed to initialize admin client in triggerMatchesForTalent:', initErr)
+        return { success: false, message: 'Initialization failed' }
+    }
 
     // 1. Fetch talent details
-    const { data: talent, error: talentError } = await (supabase
+    const { data: talent, error: talentError } = await (supabaseAdmin
         .from('profiles')
         .select('*')
         .eq('id', talentId)
@@ -200,7 +201,7 @@ export async function triggerMatchesForTalent(talentId: string) {
     }
 
     // 2. Fetch all active jobs
-    const { data: jobs, error: jobError } = await (supabase
+    const { data: jobs, error: jobError } = await (supabaseAdmin
         .from('jobs')
         .select('*')
         .eq('status', 'active')
@@ -247,7 +248,7 @@ export async function triggerMatchesForTalent(talentId: string) {
 
     // 3. Create applications
     for (const job of matches) {
-        const { data: existingApp } = await (supabase
+        const { data: existingApp } = await (supabaseAdmin
             .from('job_applications')
             .select('id')
             .eq('job_id', job.id)
@@ -257,7 +258,6 @@ export async function triggerMatchesForTalent(talentId: string) {
         if (existingApp) continue
 
         try {
-            const supabaseAdmin = getSupabaseAdmin()
             const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
                 job_id: job.id,
                 applicant_id: talent.id,

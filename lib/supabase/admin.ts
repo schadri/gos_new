@@ -1,10 +1,17 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { nodeHttpsFetch } from '@/lib/native-fetch'
+
+// Cache the admin client instance globally to prevent exhausting connections
+// and avoids the overhead of creating a new client/TLS handshake for every operation.
+let adminClient: SupabaseClient | null = null;
 
 /**
- * Creates a Supabase client with the Service Role key to bypass RLS.
- * Includes a fix for Next.js 18+ half-duplex ECONNRESET bug in local development.
+ * Creates or returns a cached Supabase client with the Service Role key.
+ * Uses a custom native node:https fetcher to bypass UND_ERR_CONNECT_TIMEOUT loops on Windows.
  */
 export function getSupabaseAdmin() {
+    if (adminClient) return adminClient;
+
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -12,28 +19,16 @@ export function getSupabaseAdmin() {
         throw new Error('Missing Supabase Admin credentials. Check your environment variables.');
     }
 
-    let customFetch = undefined;
-
+    let fetchObj = fetch;
     if (process.env.NODE_ENV === 'development') {
-        try {
-            // Force IPv4 in Node.js Local Development safely
-            const dns = require('dns');
-            dns.setDefaultResultOrder('ipv4first');
-        } catch (e) {
-            // Ignore in edge runtimes
-        }
-
-        // Fix Next.js 18+ half-duplex ECONNRESET bug locally
-        customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
-            return fetch(url, {
-                ...options,
-                // @ts-ignore
-                duplex: 'half',
-            });
-        };
+        fetchObj = nodeHttpsFetch as any;
     }
 
-    return createClient(url, key, {
-        global: customFetch ? { fetch: customFetch } : undefined
-    })
+    adminClient = createClient(url, key, {
+        global: {
+            fetch: fetchObj
+        }
+    });
+
+    return adminClient;
 }

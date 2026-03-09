@@ -39,6 +39,7 @@ export async function triggerMatchesForJob(jobId: string) {
     }
 
     // 1. Fetch job details
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 1: Fetching job details for ${jobId}`)
     const { data: job, error: jobError } = await (supabaseAdmin
         .from('jobs')
         .select('*')
@@ -56,6 +57,7 @@ export async function triggerMatchesForJob(jobId: string) {
     }
 
     // 2. Fetch all talents
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 2: Fetching matching talents`)
     const { data: talents, error: talentError } = await (supabaseAdmin
         .from('profiles')
         .select('id, full_name, position, latitude, longitude')
@@ -71,6 +73,7 @@ export async function triggerMatchesForJob(jobId: string) {
     let matchCount = 0
 
     // 3. Process matches
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 3: Starting match processing for ${talents.length} candidates`)
     for (const talent of talents) {
         try {
             // Case-insensitive position match
@@ -84,6 +87,7 @@ export async function triggerMatchesForJob(jobId: string) {
 
             if (distance <= (job.search_radius || 5)) {
                 // Check if already applied
+                console.log(`[Auto-Match] Potential match: ${talent.full_name}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin
                     .from('job_applications')
                     .select('id')
@@ -152,6 +156,7 @@ export async function triggerMatchesForTalent(talentId: string) {
     }
 
     // 1. Fetch talent details
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 1: Fetching talent details for ${talentId}`)
     const { data: talent, error: talentError } = await (supabaseAdmin
         .from('profiles')
         .select('*')
@@ -169,6 +174,7 @@ export async function triggerMatchesForTalent(talentId: string) {
     }
 
     // 2. Fetch active jobs
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 2: Fetching active jobs`)
     const { data: jobs, error: jobError } = await (supabaseAdmin
         .from('jobs')
         .select('*')
@@ -185,6 +191,7 @@ export async function triggerMatchesForTalent(talentId: string) {
     let matchCount = 0
 
     // 3. Process matches
+    console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 3: Starting match processing for ${jobs.length} jobs`)
     for (const job of jobs) {
         try {
             const lowerJobTitle = (job.title || '').toLowerCase()
@@ -195,6 +202,7 @@ export async function triggerMatchesForTalent(talentId: string) {
 
             if (distance <= (job.search_radius || 5)) {
                 // Check if already applied
+                console.log(`[Auto-Match] Potential match found for job: ${job.title}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin
                     .from('job_applications')
                     .select('id')

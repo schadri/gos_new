@@ -1,27 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/supabase'
+import { nodeHttpsFetch } from '@/lib/native-fetch'
 
 export async function createClient() {
   const cookieStore = await cookies()
 
-  let customFetch = undefined;
-
+  let fetchObj = fetch;
   if (process.env.NODE_ENV === 'development') {
-    try {
-      const dns = require('dns');
-      dns.setDefaultResultOrder('ipv4first');
-    } catch (e) {
-      // Ignore
-    }
-
-    customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
-      return fetch(url, {
-        ...options,
-        // @ts-ignore
-        duplex: 'half',
-      });
-    };
+    fetchObj = nodeHttpsFetch as any;
   }
 
   return createServerClient<Database>(
@@ -39,12 +26,10 @@ export async function createClient() {
             )
           } catch {
             // The "setAll" method was called from a Server Component.
-            // This can be ignored if you have proxy refreshing
-            // user sessions.
           }
         },
       },
-      global: customFetch ? { fetch: customFetch } : undefined
+      global: { fetch: fetchObj }
     },
   )
 }

@@ -381,20 +381,7 @@ function PostJobForm() {
             </div>
 
               <div className="flex flex-col gap-2 relative">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between z-10">
-                  <span /> {/* Spacer */}
-                  {profileLocation && location !== profileLocation && (
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      onClick={() => setLocation(profileLocation)}
-                      className="text-xs font-semibold bg-primary/10 text-primary hover:bg-primary/20 h-8 self-end sm:self-auto mb-1"
-                    >
-                      <MapPin className="h-3 w-3 mr-1" /> Utilizar mi ubicación de perfil
-                    </Button>
-                  )}
-                </div>
-                <div className="-mt-8">
+                <div>
                   <LocationPicker 
                     value={location} 
                     onChange={setLocation} 

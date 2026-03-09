@@ -49,7 +49,15 @@ export default async function RootLayout({
         isTalent = profile?.user_type === 'TALENT' || user.user_metadata?.role === 'talent'
       }
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Do not swallow Next.js internal dynamic rendering or redirect errors
+    if (
+      error?.name === 'DynamicServerError' || 
+      error?.digest?.includes('NEXT_') || 
+      error?.message?.includes('Dynamic server usage')
+    ) {
+      throw error
+    }
     console.warn('RootLayout: Auth/Profile fetch stalled or failed:', error)
   }
 

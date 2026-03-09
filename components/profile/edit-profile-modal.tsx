@@ -97,8 +97,8 @@ export function EditProfileModal({
 
       toast.success('Perfil actualizado correctamente')
       
-      // Trigger auto-matching in the background
-      triggerMatchesForTalent(user.id).catch(console.error)
+      // Trigger auto-matching
+      await triggerMatchesForTalent(user.id).catch(console.error)
 
       setOpen(false)
       router.refresh() // Recarga la página para mostrar los nuevos datos en el Server Component

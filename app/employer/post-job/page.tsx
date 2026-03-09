@@ -210,9 +210,9 @@ function PostJobForm() {
       toast.success('¡Oferta publicada exitosamente!')
       setInitialData(null) // Reset dirty check
       
-      // Trigger auto-matching in the background
+      // Trigger auto-matching
       if (finalId) {
-        triggerMatchesForJob(finalId).catch(console.error)
+        await triggerMatchesForJob(finalId).catch(console.error)
       }
 
       router.push('/employer/dashboard')

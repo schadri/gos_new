@@ -73,8 +73,11 @@ export async function triggerMatchesForJob(jobId: string) {
     for (const talent of talents) {
         // Case-insensitive position match
         const lowerJobTitle = job.title.toLowerCase()
-        const positionMatch = Array.isArray(talent.position) &&
-            talent.position.some((p: string) => p.toLowerCase() === lowerJobTitle)
+        const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
+
+        const positionMatch = talentPositions.some((p: string) => p.toLowerCase() === lowerJobTitle)
+
+        console.log(`[Auto-Match] Checking talent ${talent.full_name}. Positions:`, talentPositions, `vs Job Title:`, lowerJobTitle, `Match:`, positionMatch)
 
         if (!positionMatch) continue
 
@@ -200,8 +203,11 @@ export async function triggerMatchesForTalent(talentId: string) {
     for (const job of jobs) {
         // Case-insensitive position match
         const lowerJobTitle = job.title.toLowerCase()
-        const positionMatch = Array.isArray(talent.position) &&
-            talent.position.some((p: string) => p.toLowerCase() === lowerJobTitle)
+        const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
+
+        const positionMatch = talentPositions.some((p: string) => p.toLowerCase() === lowerJobTitle)
+
+        console.log(`[Auto-Match] Checking Job "${job.title}" vs Talent Positions:`, talentPositions, `Match:`, positionMatch)
 
         if (!positionMatch) continue
 

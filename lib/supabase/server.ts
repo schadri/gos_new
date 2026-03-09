@@ -1,29 +1,28 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/supabase'
-import { setDefaultResultOrder } from 'dns'
 
-// Force Node.js (v18+) to prefer IPv4 when resolving supabase.co. 
-// This fixes ECONNRESET and UND_ERR_CONNECT_TIMEOUT issues in local development.
-setDefaultResultOrder('ipv4first')
-
-/**
- * Especially important if using Fluid compute: Don't put this client in a
- * global variable. Always create a new client within each function when using
- * it.
- */
 export async function createClient() {
   const cookieStore = await cookies()
 
-  // Fix for Next.js / Node 18+ IPv6 timeout issues in local development (ECONNRESET / UND_ERR_CONNECT_TIMEOUT)
-  // We use a simple custom fetch wrapper that asks Node to prefer IPv4 if it's struggling.
-  const customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
-    return fetch(url, {
-      ...options,
-      // @ts-ignore - Next.js extended fetch options
-      duplex: 'half',
-    });
-  };
+  let customFetch = undefined;
+
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const dns = require('dns');
+      dns.setDefaultResultOrder('ipv4first');
+    } catch (e) {
+      // Ignore
+    }
+
+    customFetch = async (url: RequestInfo | URL, options?: RequestInit) => {
+      return fetch(url, {
+        ...options,
+        // @ts-ignore
+        duplex: 'half',
+      });
+    };
+  }
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,10 +44,7 @@ export async function createClient() {
           }
         },
       },
-      // Pass the custom fetch to fix ECONNRESET
-      global: {
-        fetch: customFetch
-      }
+      global: customFetch ? { fetch: customFetch } : undefined
     },
   )
 }

@@ -33,22 +33,51 @@ export async function incrementJobApplicationsAction(jobId: string) {
     try {
         console.log(`[Jobs Action] Incrementing applications for job: ${jobId}`);
         const supabaseAdmin = getSupabaseAdmin()
-        const { error } = await supabaseAdmin.rpc('increment_job_applications', {
-            job_uuid: jobId
-        })
-        if (error) console.error('[Jobs Action] Error incrementing apps count:', error)
+
+        const { data: job, error: fetchError } = await supabaseAdmin
+            .from('jobs')
+            .select('applications_count')
+            .eq('id', jobId)
+            .single()
+
+        if (fetchError || !job) {
+            console.error('[Jobs Action] Error fetching job for apps increment:', fetchError)
+            return
+        }
+
+        const { error: updateError } = await supabaseAdmin
+            .from('jobs')
+            .update({ applications_count: (job.applications_count || 0) + 1 })
+            .eq('id', jobId)
+
+        if (updateError) console.error('[Jobs Action] Error incrementing apps count:', updateError)
     } catch (err) {
         console.error('[Jobs Action] Failed to increment job applications:', err)
     }
 }
+
 export async function incrementJobMatchesAction(jobId: string) {
     try {
         console.log(`[Jobs Action] Incrementing matches for job: ${jobId}`);
         const supabaseAdmin = getSupabaseAdmin()
-        const { error } = await supabaseAdmin.rpc('increment_job_contacted_count', {
-            job_uuid: jobId
-        })
-        if (error) console.error('[Jobs Action] Error incrementing matches count:', error)
+
+        const { data: job, error: fetchError } = await supabaseAdmin
+            .from('jobs')
+            .select('contacted_count')
+            .eq('id', jobId)
+            .single()
+
+        if (fetchError || !job) {
+            console.error('[Jobs Action] Error fetching job for matches increment:', fetchError)
+            return
+        }
+
+        const { error: updateError } = await supabaseAdmin
+            .from('jobs')
+            .update({ contacted_count: (job.contacted_count || 0) + 1 })
+            .eq('id', jobId)
+
+        if (updateError) console.error('[Jobs Action] Error incrementing matches count:', updateError)
     } catch (err) {
         console.error('[Jobs Action] Failed to increment job matches:', err)
     }

@@ -45,22 +45,17 @@ export async function triggerMatchesForJob(jobId: string) {
         .eq('id', jobId)
         .single() as any)
 
-    if (jobError) {
-        console.error(`[Auto-Match] Error fetching job ${jobId}:`, jobError)
-        return { success: false, message: 'Invalid job' }
-    }
-
-    if (!job || job.status !== 'active') {
-        console.log(`[Auto-Match] Job ${jobId} is not active or not found. Status: ${job?.status}`)
-        return { success: false, message: 'Job not active' }
+    if (jobError || !job || job.status !== 'active') {
+        console.error(`[Auto-Match] Job mismatch/inactive: ${jobId}`, jobError)
+        return { success: false, message: 'Invalid or inactive job' }
     }
 
     if (!job.latitude || !job.longitude) {
-        console.log(`[Auto-Match] Job ${jobId} has no coordinates. Skipping distance matching.`)
+        console.log(`[Auto-Match] Job ${jobId} has no coordinates. Skipping matching.`)
         return { success: false, message: 'Coordinates missing' }
     }
 
-    // 2. Fetch all talents that have the matching position
+    // 2. Fetch all talents
     const { data: talents, error: talentError } = await (supabaseAdmin
         .from('profiles')
         .select('id, full_name, position, latitude, longitude')
@@ -68,106 +63,79 @@ export async function triggerMatchesForJob(jobId: string) {
         .not('position', 'is', null) as any)
 
     if (talentError || !talents) {
+        console.error(`[Auto-Match] Failed to fetch talents:`, talentError)
         return { success: false, message: 'Could not fetch talents' }
     }
 
-    console.log(`[Auto-Match] Job ${jobId}: Found ${talents.length} talents with position. Filtering...`)
+    const lowerJobTitle = (job.title || '').toLowerCase()
+    let matchCount = 0
 
-    const matches = []
-
+    // 3. Process matches
     for (const talent of talents) {
-        // Case-insensitive position match
-        const lowerJobTitle = job.title.toLowerCase()
-        const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
+        try {
+            // Case-insensitive position match
+            const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
+            const positionMatch = talentPositions.some((p: string) => (p || '').toLowerCase() === lowerJobTitle)
+            if (!positionMatch) continue
 
-        const positionMatch = talentPositions.some((p: string) => p.toLowerCase() === lowerJobTitle)
-
-        console.log(`[Auto-Match] Checking talent ${talent.full_name}. Positions:`, talentPositions, `vs Job Title:`, lowerJobTitle, `Match:`, positionMatch)
-
-        if (!positionMatch) continue
-
-        const hasCoords = talent.latitude !== null && talent.longitude !== null
-        if (hasCoords) {
-            const distance = calculateDistance(
-                job.latitude,
-                job.longitude,
-                talent.latitude,
-                talent.longitude
-            )
-
-            // console.log(`Auto-Match Debug: Talent ${talent.full_name} is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
+            // Distance check
+            if (talent.latitude === null || talent.longitude === null) continue
+            const distance = calculateDistance(job.latitude, job.longitude, talent.latitude, talent.longitude)
 
             if (distance <= (job.search_radius || 5)) {
-                matches.push(talent)
+                // Check if already applied
+                const { data: exists } = await (supabaseAdmin
+                    .from('job_applications')
+                    .select('id')
+                    .eq('job_id', job.id)
+                    .eq('applicant_id', talent.id)
+                    .maybeSingle() as any)
+                if (exists) continue
+
+                // Insert application
+                const { error: insErr } = await (supabaseAdmin.from('job_applications') as any).insert({
+                    job_id: job.id,
+                    applicant_id: talent.id,
+                    status: 'auto-match'
+                })
+                if (insErr) {
+                    console.error(`[Auto-Match] Insert error:`, insErr)
+                    continue
+                }
+
+                // Stats and notifications
+                await incrementJobApplicationsAction(job.id)
+                await incrementJobMatchesAction(job.id)
+
+                try {
+                    await getOrCreateChat(job.id, talent.id, job.created_by)
+                } catch (ce) { console.error('[Auto-Match] Chat creation failed:', ce) }
+
+                await sendNotification({
+                    userId: talent.id,
+                    title: '¡Nuevo Match Automático! 🎯',
+                    description: `Vimos que "${job.title}" en ${job.company || 'una empresa'} coincide con tu perfil.`,
+                    type: 'match',
+                    linkUrl: `/profile`
+                }).catch(console.error)
+
+                await sendNotification({
+                    userId: job.created_by,
+                    title: 'Candidato Ideal Encontrado 🚀',
+                    description: `Hemos encontrado a ${talent.full_name || 'un candidato'} para tu puesto de "${job.title}".`,
+                    type: 'match',
+                    linkUrl: `/employer/dashboard`
+                }).catch(console.error)
+
+                matchCount++
+                console.log(`[Auto-Match] Linked talent ${talent.full_name} to job ${job.title}`)
             }
+        } catch (err) {
+            console.error('[Auto-Match] Error in loop:', err)
         }
     }
 
-    console.log(`[Auto-Match] Job ${jobId}: Found ${matches.length} valid matches in radius.`)
-
-    if (matches.length === 0) return { success: true, count: 0 }
-
-    // 3. Create applications with 'auto-match' status
-    for (const talent of matches) {
-        // Check if application already exists
-        const { data: existingApp } = await (supabaseAdmin
-            .from('job_applications')
-            .select('id')
-            .eq('job_id', job.id)
-            .eq('applicant_id', talent.id)
-            .maybeSingle() as any)
-
-        if (existingApp) continue
-
-        try {
-            const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
-                job_id: job.id,
-                applicant_id: talent.id,
-                status: 'auto-match'
-            })
-
-            if (insertError) {
-                console.error(`[Auto-Match] Failed to insert application for talent ${talent.id}:`, insertError)
-                continue
-            }
-
-            console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
-        } catch (appErr) {
-            console.error(`[Auto-Match] Exception creating application:`, appErr)
-            continue; // Skip if inserting application fails
-        }
-
-        // Update stats
-        await incrementJobApplicationsAction(job.id)
-        await incrementJobMatchesAction(job.id)
-
-        // Ensure chat exists safely (pass created_by to avoid background auth errors)
-        try {
-            await getOrCreateChat(job.id, talent.id, job.created_by)
-        } catch (chatError) {
-            console.error(`[Auto-Match] Failed to create chat for ${talent.id}:`, chatError)
-            // Continue anyway so notifications are sent
-        }
-
-        // 4. Notify both parties
-        await sendNotification({
-            userId: talent.id,
-            title: '¡Nuevo Match Automático! 🎯',
-            description: `Vimos que "${job.title}" en ${job.company || 'una empresa'} te queda cerca y coincide con tu perfil. ¡Míralo ahora!`,
-            type: 'match',
-            linkUrl: `/jobs`
-        }).catch(console.error)
-
-        await sendNotification({
-            userId: job.created_by,
-            title: 'Candidato Ideal Encontrado 🚀',
-            description: `Hemos encontrado a ${talent.full_name || 'un candidato'} para tu puesto de "${job.title}". Se encuentra dentro de tu radio de búsqueda.`,
-            type: 'match',
-            linkUrl: `/employer/dashboard`
-        }).catch(console.error)
-    }
-
-    return { success: true, count: matches.length }
+    return { success: true, count: matchCount }
 }
 
 /**
@@ -177,7 +145,7 @@ export async function triggerMatchesForTalent(talentId: string) {
     let supabaseAdmin;
     try {
         supabaseAdmin = getSupabaseAdmin()
-        console.log(`[Auto-Match] Starting triggerMatchesForTalent for talent: ${talentId}`)
+        console.log(`[Auto-Match] Starting triggerMatchesForTalent for: ${talentId}`)
     } catch (initErr) {
         console.error('[Auto-Match] Failed to initialize admin client in triggerMatchesForTalent:', initErr)
         return { success: false, message: 'Initialization failed' }
@@ -190,17 +158,17 @@ export async function triggerMatchesForTalent(talentId: string) {
         .eq('id', talentId)
         .single() as any)
 
-    if (talentError) {
-        console.error(`[Auto-Match] Error fetching talent ${talentId}:`, talentError)
+    if (talentError || !talent) {
+        console.error(`[Auto-Match] Talent mismatch: ${talentId}`, talentError)
         return { success: false, message: 'Invalid talent' }
     }
 
-    if (!talent.latitude || !talent.longitude || !talent.position || talent.position.length === 0) {
-        console.log(`[Auto-Match] Talent ${talentId} misses coords or positions. Skipped.`)
+    if (!talent.latitude || !talent.longitude || !talent.position) {
+        console.log(`[Auto-Match] Talent ${talentId} misses coords or positions.`)
         return { success: false, message: 'Data missing' }
     }
 
-    // 2. Fetch all active jobs
+    // 2. Fetch active jobs
     const { data: jobs, error: jobError } = await (supabaseAdmin
         .from('jobs')
         .select('*')
@@ -209,100 +177,74 @@ export async function triggerMatchesForTalent(talentId: string) {
         .not('longitude', 'is', null) as any)
 
     if (jobError || !jobs) {
+        console.error(`[Auto-Match] Failed to fetch jobs:`, jobError)
         return { success: false, message: 'Could not fetch jobs' }
     }
 
-    console.log(`[Auto-Match] Talent ${talentId}: Found ${jobs.length} active jobs. Filtering...`)
+    const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
+    let matchCount = 0
 
-    const matches = []
-
+    // 3. Process matches
     for (const job of jobs) {
-        // Case-insensitive position match
-        const lowerJobTitle = job.title.toLowerCase()
-        const talentPositions = Array.isArray(talent.position) ? talent.position : (typeof talent.position === 'string' ? [talent.position] : [])
-
-        const positionMatch = talentPositions.some((p: string) => p.toLowerCase() === lowerJobTitle)
-
-        console.log(`[Auto-Match] Checking Job "${job.title}" vs Talent Positions:`, talentPositions, `Match:`, positionMatch)
-
-        if (!positionMatch) continue
-
-        const distance = calculateDistance(
-            talent.latitude,
-            talent.longitude,
-            job.latitude,
-            job.longitude
-        )
-
-        // console.log(`Auto-Match Debug: Job "${job.title}" is ${distance.toFixed(2)}km away. Radius: ${job.search_radius || 5}km`)
-
-        // For talent matching, we use the job's required radius or a default
-        if (distance <= (job.search_radius || 5)) {
-            matches.push(job)
-        }
-    }
-
-    console.log(`[Auto-Match] Talent ${talentId}: Found ${matches.length} valid job matches in radius.`)
-
-    if (matches.length === 0) return { success: true, count: 0 }
-
-    // 3. Create applications
-    for (const job of matches) {
-        const { data: existingApp } = await (supabaseAdmin
-            .from('job_applications')
-            .select('id')
-            .eq('job_id', job.id)
-            .eq('applicant_id', talent.id)
-            .maybeSingle() as any)
-
-        if (existingApp) continue
-
         try {
-            const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
-                job_id: job.id,
-                applicant_id: talent.id,
-                status: 'auto-match'
-            })
+            const lowerJobTitle = (job.title || '').toLowerCase()
+            const positionMatch = talentPositions.some((p: string) => (p || '').toLowerCase() === lowerJobTitle)
+            if (!positionMatch) continue
 
-            if (insertError) {
-                console.error(`[Auto-Match] Failed to insert application for talent ${talent.id}:`, insertError)
-                continue
+            const distance = calculateDistance(talent.latitude, talent.longitude, job.latitude, job.longitude)
+
+            if (distance <= (job.search_radius || 5)) {
+                // Check if already applied
+                const { data: exists } = await (supabaseAdmin
+                    .from('job_applications')
+                    .select('id')
+                    .eq('job_id', job.id)
+                    .eq('applicant_id', talent.id)
+                    .maybeSingle() as any)
+                if (exists) continue
+
+                // Insert application
+                const { error: insErr } = await (supabaseAdmin.from('job_applications') as any).insert({
+                    job_id: job.id,
+                    applicant_id: talent.id,
+                    status: 'auto-match'
+                })
+                if (insErr) {
+                    console.error(`[Auto-Match] Insert error:`, insErr)
+                    continue
+                }
+
+                // Stats and notifications
+                await incrementJobApplicationsAction(job.id)
+                await incrementJobMatchesAction(job.id)
+
+                try {
+                    await getOrCreateChat(job.id, talent.id, job.created_by)
+                } catch (ce) { console.error('[Auto-Match] Chat creation failed:', ce) }
+
+                await sendNotification({
+                    userId: talent.id,
+                    title: '¡Match Encontrado! 🎯',
+                    description: `Tu perfil coincide con "${job.title}" en ${job.company || 'una empresa'}.`,
+                    type: 'match',
+                    linkUrl: `/profile`
+                }).catch(console.error)
+
+                await sendNotification({
+                    userId: job.created_by,
+                    title: 'Candidato Ideal Encontrado 🚀',
+                    description: `${talent.full_name || 'Un candidato'} coincide con tu búsqueda de "${job.title}".`,
+                    type: 'match',
+                    linkUrl: `/employer/dashboard`
+                }).catch(console.error)
+
+                matchCount++
+                console.log(`[Auto-Match] Linked talent ${talent.full_name} to job ${job.title}`)
             }
-
-            console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
-        } catch (appErr) {
-            console.error(`[Auto-Match] Exception creating application:`, appErr)
-            continue; // Skip if inserting application fails
+        } catch (err) {
+            console.error('[Auto-Match] Error in talent trigger loop:', err)
         }
-
-        // Update stats
-        await incrementJobApplicationsAction(job.id)
-        await incrementJobMatchesAction(job.id)
-
-        // Ensure chat exists (pass created_by to avoid background auth errors)
-        try {
-            await getOrCreateChat(job.id, talent.id, job.created_by)
-        } catch (chatError) {
-            console.error(`[Auto-Match] Failed to create chat for ${talent.id}:`, chatError)
-        }
-
-        // 4. Notify both parties
-        await sendNotification({
-            userId: talent.id,
-            title: '¡Nuevo Match Automático! 🎯',
-            description: `Tu perfil coincide con "${job.title}" en ${job.company || 'una empresa'}. ¡Mira la oferta!`,
-            type: 'match',
-            linkUrl: `/jobs`
-        }).catch(console.error)
-
-        await sendNotification({
-            userId: job.created_by,
-            title: 'Candidato Ideal Encontrado 🚀',
-            description: `Hemos encontrado a ${talent.full_name || 'un candidato'} para tu puesto de "${job.title}".`,
-            type: 'match',
-            linkUrl: `/employer/dashboard`
-        }).catch(console.error)
     }
 
-    return { success: true, count: matches.length }
+    return { success: true, count: matchCount }
 }

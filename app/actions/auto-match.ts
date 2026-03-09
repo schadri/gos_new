@@ -60,7 +60,7 @@ export async function triggerMatchesForJob(jobId: string) {
     console.log(`[Auto-Match] [${new Date().toLocaleTimeString()}] Step 2: Fetching matching talents`)
     const { data: talents, error: talentError } = await (supabaseAdmin
         .from('profiles')
-        .select('id, full_name, position, latitude, longitude')
+        .select('id, full_name, position, latitude, longitude, search_radius')
         .eq('user_type', 'TALENT')
         .not('position', 'is', null) as any)
 
@@ -85,7 +85,10 @@ export async function triggerMatchesForJob(jobId: string) {
             if (talent.latitude === null || talent.longitude === null) continue
             const distance = calculateDistance(job.latitude, job.longitude, talent.latitude, talent.longitude)
 
-            if (distance <= (job.search_radius || 5)) {
+            const talentRadius = talent.search_radius || 5
+            const jobRadius = job.search_radius || 5
+
+            if (distance <= talentRadius && distance <= jobRadius) {
                 // Check if already applied
                 console.log(`[Auto-Match] Potential match: ${talent.full_name}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin
@@ -200,7 +203,10 @@ export async function triggerMatchesForTalent(talentId: string) {
 
             const distance = calculateDistance(talent.latitude, talent.longitude, job.latitude, job.longitude)
 
-            if (distance <= (job.search_radius || 5)) {
+            const talentRadius = talent.search_radius || 5
+            const jobRadius = job.search_radius || 5
+
+            if (distance <= talentRadius && distance <= jobRadius) {
                 // Check if already applied
                 console.log(`[Auto-Match] Potential match found for job: ${job.title}. Checking existence...`)
                 const { data: exists } = await (supabaseAdmin

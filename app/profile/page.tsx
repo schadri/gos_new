@@ -237,6 +237,11 @@ export default async function TalentProfile() {
                     statusColor = 'text-yellow-600'
                     statusBg = 'bg-yellow-500/10'
                     StatusIcon = Clock
+                  } else if (app.status === 'auto-match') {
+                    statusText = 'Sugerencia IA'
+                    statusColor = 'text-teal-600 dark:text-teal-400'
+                    statusBg = 'bg-teal-500/10'
+                    StatusIcon = Sparkles
                   }
 
                   const date = new Date(app.created_at).toLocaleDateString()

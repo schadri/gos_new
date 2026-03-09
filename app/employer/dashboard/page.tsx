@@ -18,22 +18,22 @@ export default async function EmployerDashboard() {
   }
 
   // Fetch real profile data
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: profile } = await (supabase
+    .from('profiles') as any)
     .select('*')
     .eq('id', user.id)
-    .single()
+    .single() as any
 
   const companyName = profile?.company_name || 'Mi Emprendimiento'
 
   // Fetch real jobs created by this employer
-  const { data: jobs } = await supabase
+  const { data: jobsData } = await supabase
     .from('jobs')
     .select('*')
     .eq('created_by', user.id)
     .order('created_at', { ascending: false })
 
-  const activeJobs = jobs || []
+  const activeJobs = (jobsData || []) as any[]
 
   const totalActiveJobs = activeJobs.filter(j => j.status === 'active').length
   const totalViews = activeJobs.reduce((acc, job) => acc + (job.views_count || 0), 0)

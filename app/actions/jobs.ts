@@ -60,18 +60,10 @@ export async function incrementJobViewsAction(jobId: string) {
 export async function incrementJobApplicationsAction(jobId: string) {
     try {
         const supabaseAdmin = getSupabaseAdmin()
-        const { data: job, error: fetchError } = await supabaseAdmin
-            .from('jobs')
-            .select('applications_count')
-            .eq('id', jobId)
-            .single()
-
-        if (fetchError || !job) return
-
-        await supabaseAdmin
-            .from('jobs')
-            .update({ applications_count: (job.applications_count || 0) + 1 })
-            .eq('id', jobId)
+        const { error } = await supabaseAdmin.rpc('increment_job_applications_count', {
+            job_uuid: jobId
+        })
+        if (error) console.error('Error incrementing apps count:', error)
     } catch (err) {
         console.error('Failed to increment job applications:', err)
     }
@@ -79,18 +71,10 @@ export async function incrementJobApplicationsAction(jobId: string) {
 export async function incrementJobMatchesAction(jobId: string) {
     try {
         const supabaseAdmin = getSupabaseAdmin()
-        const { data: job, error: fetchError } = await supabaseAdmin
-            .from('jobs')
-            .select('contacted_count')
-            .eq('id', jobId)
-            .single()
-
-        if (fetchError || !job) return
-
-        await supabaseAdmin
-            .from('jobs')
-            .update({ contacted_count: (job.contacted_count || 0) + 1 })
-            .eq('id', jobId)
+        const { error } = await supabaseAdmin.rpc('increment_job_contacted_count', {
+            job_uuid: jobId
+        })
+        if (error) console.error('Error incrementing matches count:', error)
     } catch (err) {
         console.error('Failed to increment job matches:', err)
     }

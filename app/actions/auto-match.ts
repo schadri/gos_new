@@ -1,9 +1,17 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { sendNotification } from './notifications'
 import { incrementJobApplicationsAction, incrementJobMatchesAction } from './jobs'
 import { getOrCreateChat } from './chat'
+
+function getSupabaseAdmin() {
+    return createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+}
 
 /**
  * Calculates the distance between two points in kilometers using the Haversine formula.
@@ -115,14 +123,21 @@ export async function triggerMatchesForJob(jobId: string) {
         if (existingApp) continue
 
         try {
-            await (supabase.from('job_applications') as any).insert({
+            const supabaseAdmin = getSupabaseAdmin()
+            const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
                 job_id: job.id,
                 applicant_id: talent.id,
                 status: 'auto-match'
             })
+
+            if (insertError) {
+                console.error(`[Auto-Match] Failed to insert application for talent ${talent.id}:`, insertError)
+                continue
+            }
+
             console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
         } catch (appErr) {
-            console.error(`[Auto-Match] Failed to create application:`, appErr)
+            console.error(`[Auto-Match] Exception creating application:`, appErr)
             continue; // Skip if inserting application fails
         }
 
@@ -242,14 +257,21 @@ export async function triggerMatchesForTalent(talentId: string) {
         if (existingApp) continue
 
         try {
-            await (supabase.from('job_applications') as any).insert({
+            const supabaseAdmin = getSupabaseAdmin()
+            const { error: insertError } = await (supabaseAdmin.from('job_applications') as any).insert({
                 job_id: job.id,
                 applicant_id: talent.id,
                 status: 'auto-match'
             })
+
+            if (insertError) {
+                console.error(`[Auto-Match] Failed to insert application for talent ${talent.id}:`, insertError)
+                continue
+            }
+
             console.log(`[Auto-Match] Created application for talent ${talent.id} on job ${job.id}`)
         } catch (appErr) {
-            console.error(`[Auto-Match] Failed to create application:`, appErr)
+            console.error(`[Auto-Match] Exception creating application:`, appErr)
             continue; // Skip if inserting application fails
         }
 

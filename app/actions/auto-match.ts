@@ -100,7 +100,7 @@ export async function triggerMatchesForJob(jobId: string) {
                 const { error: insErr } = await (supabaseAdmin.from('job_applications') as any).insert({
                     job_id: job.id,
                     applicant_id: talent.id,
-                    status: 'pending'
+                    status: 'interview'
                 })
                 if (insErr) {
                     console.error(`[Auto-Match] Insert error:`, insErr)
@@ -215,7 +215,7 @@ export async function triggerMatchesForTalent(talentId: string) {
                 const { error: insErr } = await (supabaseAdmin.from('job_applications') as any).insert({
                     job_id: job.id,
                     applicant_id: talent.id,
-                    status: 'pending'
+                    status: 'interview'
                 })
                 if (insErr) {
                     console.error(`[Auto-Match] Insert error:`, insErr)

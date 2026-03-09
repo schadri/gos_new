@@ -88,6 +88,8 @@ export async function triggerMatchesForJob(jobId: string) {
             const talentRadius = talent.search_radius || 5
             const jobRadius = job.search_radius || 5
 
+            console.log(`[Auto-Match] Distance check for ${talent.full_name}: distance=${distance.toFixed(2)}km, targetJobRadius=${jobRadius}km, talentPrefersRadius=${talentRadius}km`)
+
             if (distance <= talentRadius && distance <= jobRadius) {
                 // Check if already applied
                 console.log(`[Auto-Match] Potential match: ${talent.full_name}. Checking existence...`)
@@ -205,6 +207,8 @@ export async function triggerMatchesForTalent(talentId: string) {
 
             const talentRadius = talent.search_radius || 5
             const jobRadius = job.search_radius || 5
+
+            console.log(`[Auto-Match] Distance check for job "${job.title}": distance=${distance.toFixed(2)}km, jobPrefersRadius=${jobRadius}km, talentRadius=${talentRadius}km`)
 
             if (distance <= talentRadius && distance <= jobRadius) {
                 // Check if already applied

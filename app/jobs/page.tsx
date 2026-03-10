@@ -47,6 +47,7 @@ export default function JobBoard() {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = React.useState('')
   const [locationQuery, setLocationQuery] = React.useState('')
+  const [cityQuery, setCityQuery] = React.useState('')
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
@@ -134,6 +135,7 @@ export default function JobBoard() {
   const clearFilters = () => {
     setSearchQuery('')
     setLocationQuery('')
+    setCityQuery('')
     setSelectedPositions([])
     setSelectedLocations([])
     setExpandedCategory(null)
@@ -150,6 +152,9 @@ export default function JobBoard() {
       // 2. Bar Search (Input Province)
       const matchBarLocation = !locationQuery || (job.location?.toLowerCase() || '').includes(locationQuery.toLowerCase())
       
+      // 2.b Bar Search (Input City)
+      const matchCity = !cityQuery || (job.location?.toLowerCase() || '').includes(cityQuery.toLowerCase())
+      
       // 3. Sidebar Multi-Location
       const matchSidebarLocation = selectedLocations.length === 0 || 
                                    (job.location && selectedLocations.some(loc => job.location?.includes(loc)))
@@ -164,7 +169,7 @@ export default function JobBoard() {
                               return jobTitle.includes(lowerPos) || jobKeywords.includes(lowerPos)
                             })
 
-      return matchSearch && matchBarLocation && matchSidebarLocation && matchPosition
+      return matchSearch && matchBarLocation && matchCity && matchSidebarLocation && matchPosition
     }).sort((a, b) => {
       if (sortBy === 'Más recientes') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -273,6 +278,15 @@ export default function JobBoard() {
                 </Command>
               </PopoverContent>
             </Popover>
+          </div>
+          <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
+            <MapPin className="absolute left-4 h-5 w-5 text-muted-foreground/50" />
+            <Input 
+              placeholder="Ciudad (Opcional)..." 
+              value={cityQuery}
+              onChange={(e) => setCityQuery(e.target.value)}
+              className="pl-12 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 shadow-none rounded-2xl bg-transparent font-medium text-base"
+            />
           </div>
           <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
             <SlidersHorizontal className="h-4 w-4" /> Filtros

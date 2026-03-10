@@ -55,29 +55,29 @@ export function Navbar() {
               <ThemeToggle />
               {role === 'employer' ? (
                 <>
-                  <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
-                  <Link href="/notifications" className="relative p-2 hover:bg-muted rounded-full transition-colors flex items-center justify-center group">
-                    <Bell className="h-5 w-5 text-foreground/60 group-hover:text-foreground/80 transition-colors" />
+                  <Link href="/employer/dashboard" className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
+                  <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
+                    <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
                     {unreadCount > 0 && (
                       <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </Link>
-                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
+                  <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                 </>
               ) : (
                 <>
-                  <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
-                  <Link href="/notifications" className="relative p-2 hover:bg-muted rounded-full transition-colors flex items-center justify-center group">
-                    <Bell className="h-5 w-5 text-foreground/60 group-hover:text-foreground/80 transition-colors" />
+                  <Link href="/jobs" className={`transition-colors ${pathname?.startsWith('/jobs') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Trabajos</Link>
+                  <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
+                    <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
                     {unreadCount > 0 && (
                       <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </Link>
-                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
+                  <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                 </>
               )}
             </nav>
@@ -183,10 +183,10 @@ export function Navbar() {
                     <nav className="flex flex-col flex-1 items-center space-y-6">
                       {role === 'employer' ? (
                         <>
-                          <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium text-center">Portal Emprendedor</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/employer/dashboard" className={`text-lg transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Portal Emprendedor</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>
                           <SheetClose asChild>
-                            <Link href="/notifications" className="text-lg font-medium flex items-center justify-center gap-2">
+                            <Link href="/notifications" className={`text-lg transition-colors flex items-center justify-center gap-2 ${pathname?.startsWith('/notifications') ? 'text-primary font-bold bg-primary/10 px-4 py-1 rounded-full' : 'font-medium hover:text-primary/80'}`}>
                               Notificaciones
                               {unreadCount > 0 && (
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
@@ -195,14 +195,14 @@ export function Navbar() {
                               )}
                             </Link>
                           </SheetClose>
-                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
+                          <SheetClose asChild><Link href="/support" className={`text-lg transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Soporte</Link></SheetClose>
                         </>
                       ) : (
                         <>
-                          <SheetClose asChild><Link href="/jobs" className="text-lg font-medium text-center">Trabajos</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild><Link href="/jobs" className={`text-lg transition-colors ${pathname?.startsWith('/jobs') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Trabajos</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>
                           <SheetClose asChild>
-                            <Link href="/notifications" className="text-lg font-medium flex items-center justify-center gap-2">
+                            <Link href="/notifications" className={`text-lg transition-colors flex items-center justify-center gap-2 ${pathname?.startsWith('/notifications') ? 'text-primary font-bold bg-primary/10 px-4 py-1 rounded-full' : 'font-medium hover:text-primary/80'}`}>
                               Notificaciones
                               {unreadCount > 0 && (
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
@@ -211,7 +211,7 @@ export function Navbar() {
                               )}
                             </Link>
                           </SheetClose>
-                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
+                          <SheetClose asChild><Link href="/support" className={`text-lg transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Soporte</Link></SheetClose>
                         </>
                       )}
                     </nav>

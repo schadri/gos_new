@@ -211,7 +211,6 @@ export default async function TalentProfile() {
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <FileText className="h-5 w-5" /> Mis Postulaciones
               </h2>
-              <Button variant="ghost" size="sm" className="font-medium">Ver historial</Button>
             </div>
 
             <div className="space-y-4">

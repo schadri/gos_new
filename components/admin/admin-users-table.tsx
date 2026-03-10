@@ -47,6 +47,7 @@ import { getAvatarUrl } from '@/lib/utils'
 import { Database } from '@/types/supabase'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { deleteUserAction, toggleUserBanAction } from '@/app/actions/admin-users'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -109,24 +110,19 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
     if (!selectedUser) return
     setIsLoading(true)
     
-    const supabase = createClient()
-    const newActiveStatus = !selectedUser.is_active
-    
     try {
-      const { error } = await (supabase
-        .from('profiles') as any)
-        .update({ is_active: newActiveStatus })
-        .eq('id', selectedUser.id)
+      const result = await toggleUserBanAction(selectedUser.id, !!selectedUser.is_active)
       
-      if (error) throw error
+      if (!result.success) throw new Error(result.error)
       
+      const newActiveStatus = !selectedUser.is_active
       setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, is_active: newActiveStatus } : u))
       setSelectedUser(prev => prev ? { ...prev, is_active: newActiveStatus } : null)
       toast.success(newActiveStatus ? 'Usuario activado' : 'Usuario baneado/suspendido')
       setIsBanDialogOpen(false)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error banning user:', err)
-      toast.error('Error al cambiar estado del usuario')
+      toast.error(err.message || 'Error al cambiar estado del usuario')
     } finally {
       setIsLoading(false)
     }
@@ -136,24 +132,19 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
     if (!selectedUser) return
     setIsLoading(true)
     
-    const supabase = createClient()
-    
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', selectedUser.id)
+      const result = await deleteUserAction(selectedUser.id)
       
-      if (error) throw error
+      if (!result.success) throw new Error(result.error)
       
       setUsers(prev => prev.filter(u => u.id !== selectedUser.id))
       toast.success('Usuario eliminado permanentemente')
       setIsDeleteDialogOpen(false)
       setIsSheetOpen(false)
       setSelectedUser(null)
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting user:', err)
-      toast.error('Error al eliminar usuario')
+      toast.error(err.message || 'Error al eliminar usuario')
     } finally {
       setIsLoading(false)
     }

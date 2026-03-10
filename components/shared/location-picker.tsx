@@ -279,7 +279,7 @@ export function LocationPicker({
               disabled={isLocating}
               title="Obtener ubicación actual"
             >
-              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
+              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <MapPin className="h-5 w-5" />}
             </Button>
           </div>
         </div>

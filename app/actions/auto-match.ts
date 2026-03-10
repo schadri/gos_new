@@ -62,6 +62,7 @@ export async function triggerMatchesForJob(jobId: string) {
         .from('profiles')
         .select('id, full_name, position, latitude, longitude, search_radius')
         .eq('user_type', 'TALENT')
+        .neq('is_active', false)
         .not('position', 'is', null) as any)
 
     if (talentError || !talents) {
@@ -176,6 +177,11 @@ export async function triggerMatchesForTalent(talentId: string) {
     if (!talent.latitude || !talent.longitude || !talent.position) {
         console.log(`[Auto-Match] Talent ${talentId} misses coords or positions.`)
         return { success: false, message: 'Data missing' }
+    }
+
+    if (talent.is_active === false) {
+        console.log(`[Auto-Match] Talent ${talentId} is marked as inactive. Skipping.`)
+        return { success: true, message: 'Talent is not actively looking' }
     }
 
     // 2. Fetch active jobs

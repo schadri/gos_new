@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { FileUpload } from '@/components/shared/file-upload'
 import { KeywordInput } from '@/components/shared/keyword-input'
 import { PositionSelect } from '@/components/shared/position-select'
@@ -33,7 +34,8 @@ export function EditProfileModal({
   initialLocation,
   initialLatitude,
   initialLongitude,
-  initialRadius = 5
+  initialRadius = 5,
+  initialIsActive = true
 }: {
   initialName: string
   initialPhoto: string | null
@@ -44,6 +46,7 @@ export function EditProfileModal({
   initialLatitude?: number | null
   initialLongitude?: number | null
   initialRadius?: number
+  initialIsActive?: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -57,6 +60,7 @@ export function EditProfileModal({
   const [latitude, setLatitude] = React.useState<number | null>(initialLatitude || null)
   const [longitude, setLongitude] = React.useState<number | null>(initialLongitude || null)
   const [radius, setRadius] = React.useState<number>(initialRadius)
+  const [isActive, setIsActive] = React.useState<boolean>(initialIsActive ?? true)
   
   const [mounted, setMounted] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -91,6 +95,7 @@ export function EditProfileModal({
         latitude: latitude,
         longitude: longitude,
         search_radius: radius,
+        is_active: isActive,
       } as any).eq('id', user.id)
 
       if (error) throw error
@@ -247,7 +252,21 @@ export function EditProfileModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex items-center justify-between border rounded-lg p-4 bg-card/50 mx-2 mb-6 shadow-sm">
+              <div className="space-y-0.5">
+                <Label className="font-semibold text-base">Búsqueda Activa</Label>
+                <p className="text-sm text-muted-foreground mr-4">
+                  Permite que las ofertas de empleo ajustadas a tu perfil te hagan "Match" automáticamente.
+                </p>
+              </div>
+              <Switch 
+                checked={isActive} 
+                onCheckedChange={setIsActive} 
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 px-2">
               <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
               <Button onClick={handleSave} disabled={isSubmitting} className="font-bold">
                 {isSubmitting ? (

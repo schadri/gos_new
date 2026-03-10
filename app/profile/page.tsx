@@ -148,6 +148,7 @@ export default async function TalentProfile() {
               initialLatitude={profile?.latitude}
               initialLongitude={profile?.longitude}
               initialRadius={profile?.search_radius}
+              initialIsActive={profile?.is_active ?? true}
             />
             
             <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">
@@ -164,7 +165,11 @@ export default async function TalentProfile() {
               <MapPin className="h-4 w-4 mr-1 text-primary" /> {location}
             </p>
             
-            <Badge variant="secondary" className="px-3 py-1 bg-primary/10 text-primary border-transparent font-bold">Activamente buscando</Badge>
+            {profile?.is_active !== false ? (
+              <Badge variant="secondary" className="px-3 py-1 bg-primary/10 text-primary border-transparent font-bold">Activamente buscando</Badge>
+            ) : (
+              <Badge variant="secondary" className="px-3 py-1 bg-muted/50 text-muted-foreground border-transparent font-bold">No buscando empleo</Badge>
+            )}
             
             <div className="mt-8 pt-6 border-t border-border/50 text-left">
               <div className="flex items-center justify-between mb-2">

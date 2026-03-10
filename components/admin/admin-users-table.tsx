@@ -17,7 +17,8 @@ import {
   Fingerprint,
   Loader2,
   UserX,
-  UserCheck as UserCheckIcon
+  UserCheck as UserCheckIcon,
+  Key
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -47,7 +48,7 @@ import { getAvatarUrl } from '@/lib/utils'
 import { Database } from '@/types/supabase'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { deleteUserAction, toggleUserBanAction } from '@/app/actions/admin-users'
+import { deleteUserAction, toggleUserBanAction, resetUserPasswordAction } from '@/app/actions/admin-users'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -145,6 +146,24 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
     } catch (err: any) {
       console.error('Error deleting user:', err)
       toast.error(err.message || 'Error al eliminar usuario')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return
+    setIsLoading(true)
+    
+    try {
+      const result = await resetUserPasswordAction(selectedUser.id)
+      
+      if (!result.success) throw new Error(result.error)
+      
+      toast.success('Correo de restablecimiento enviado correctamente')
+    } catch (err: any) {
+      console.error('Error resetting password:', err)
+      toast.error(err.message || 'Error al enviar el correo de recuperación')
     } finally {
       setIsLoading(false)
     }
@@ -327,6 +346,17 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                       {selectedUser.is_admin ? <Lock className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                       {selectedUser.is_admin ? 'Remover privilegios Admin' : 'Hacer Administrador'}
                     </Button>
+
+                    <Button 
+                      variant="outline" 
+                      onClick={handleResetPassword}
+                      disabled={isLoading}
+                      className="w-full justify-start gap-3 rounded-2xl h-12 font-bold text-primary hover:bg-primary/5"
+                    >
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />}
+                      Resetear Contraseña
+                    </Button>
+
                     
                     <Button 
                       variant="outline" 

@@ -66,11 +66,9 @@ export function LocationPicker({
   })
   const [detail, setDetail] = React.useState(() => {
     if (!value) return ""
-    if (!selectedProvince) return value
-    return value.replace(selectedProvince, "").replace(/^,?\s*/, "").trim()
+    if (!selectedProvince) return value.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim()
+    return value.replace(selectedProvince, "").replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim()
   })
-
-
 
   // Sync internal state with prop ONLY when it changes from the outside
   // to avoid infinite loops with the onChange callback.
@@ -82,9 +80,13 @@ export function LocationPicker({
     }
     
     // Check if the current internal state already represents the incoming 'value'
-    const currentCombined = detail && selectedProvince 
-      ? `${detail}, ${selectedProvince}` 
-      : detail || selectedProvince
+    const cleanDetailCheck = detail 
+      ? detail.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').trim() 
+      : ''
+      
+    const currentCombined = [cleanDetailCheck, selectedProvince]
+      .filter(Boolean)
+      .join(', ')
     
     if (currentCombined !== value) {
       const foundProvince = PROVINCES.find(p => value.includes(p)) || ""
@@ -92,11 +94,12 @@ export function LocationPicker({
       if (foundProvince) {
         const cleanDetail = value
           .replace(foundProvince, "")
+          .replace(/,,+/g, ',')
           .replace(/^[,\s]+|[,\s]+$/g, "")
           .trim()
         setDetail(cleanDetail)
       } else {
-        setDetail(value)
+        setDetail(value.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim())
       }
     }
   }, [value]) // We only react to outside value changes
@@ -105,11 +108,19 @@ export function LocationPicker({
   // This reduces the number of separate state updates that can trigger effects
   const updateLocation = (newProvince: string, newDetail: string) => {
     setSelectedProvince(newProvince)
-    setDetail(newDetail)
     
-    const combined = newDetail && newProvince 
-      ? `${newDetail}, ${newProvince}` 
-      : newDetail || newProvince
+    // Clean up any double commas or stray commas from the newDetail string
+    const cleanDetail = newDetail
+      .replace(/,,+/g, ',')
+      .replace(/^[,\s]+|[,\s]+$/g, '')
+      .trim()
+      
+    setDetail(cleanDetail)
+    
+    // Combine detail and province carefully, avoiding ", ,"
+    const combined = [cleanDetail, newProvince]
+      .filter(Boolean)
+      .join(', ')
     
     if (combined !== value) {
       onChange(combined)
@@ -200,9 +211,14 @@ export function LocationPicker({
   // We'll use a separate effect for that OR just handle it in the onChange of the Input.
   // Let's use an effect but with a check against the prop value to avoid the loop.
   React.useEffect(() => {
-    const combined = detail && selectedProvince 
-      ? `${detail}, ${selectedProvince}` 
-      : detail || selectedProvince
+    // Sanitize detail before combining
+    const cleanDetail = detail 
+      ? detail.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').trim() 
+      : ''
+      
+    const combined = [cleanDetail, selectedProvince]
+      .filter(Boolean)
+      .join(', ')
     
     if (combined !== value) {
       onChange(combined)

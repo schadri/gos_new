@@ -180,7 +180,7 @@ export function EditProfileModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 custom-scrollbar">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 md:px-4 custom-scrollbar">
               <div className="grid gap-2">
                 <Label htmlFor="fullName" className="font-semibold">Nombre Completo</Label>
                 <Input 

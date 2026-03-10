@@ -49,6 +49,28 @@ export default function JobBoard() {
   const [locationQuery, setLocationQuery] = React.useState('')
   const [cityQuery, setCityQuery] = React.useState('')
   const [isProvinceOpen, setIsProvinceOpen] = React.useState(false)
+  const [isCityOpen, setIsCityOpen] = React.useState(false)
+  
+  // Extract unique available cities from active jobs based on selected province
+  const availableCities = React.useMemo(() => {
+    const cities = new Set<string>()
+    jobs.forEach(job => {
+      if (!job.location) return
+      
+      if (locationQuery && !job.location.includes(locationQuery)) return
+      
+      const foundProvince = PROVINCES.find(p => job.location!.includes(p))
+      let cityPart = job.location
+      if (foundProvince) {
+        cityPart = job.location.replace(foundProvince, '').replace(/^[,\s]+|[,\s]+$/g, '').trim()
+      } else {
+        cityPart = job.location.split(',')[0].trim()
+      }
+      
+      if (cityPart) cities.add(cityPart)
+    })
+    return Array.from(cities).sort()
+  }, [jobs, locationQuery])
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
@@ -249,6 +271,7 @@ export default function JobBoard() {
                       <CommandItem
                         onSelect={() => {
                           setLocationQuery('')
+                          setCityQuery('')
                           setIsProvinceOpen(false)
                         }}
                         className="font-bold text-primary"
@@ -286,13 +309,66 @@ export default function JobBoard() {
             </Popover>
           </div>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <MapPin className="absolute left-4 h-5 w-5 text-muted-foreground/50" />
-            <Input 
-              placeholder="Ciudad (Opcional)..." 
-              value={cityQuery}
-              onChange={(e) => setCityQuery(e.target.value)}
-              className="pl-12 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 shadow-none rounded-2xl bg-transparent font-medium text-base"
-            />
+            <Popover open={isCityOpen} onOpenChange={setIsCityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  role="combobox"
+                  aria-expanded={isCityOpen}
+                  className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
+                  disabled={availableCities.length === 0}
+                >
+                  <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {cityQuery || (availableCities.length === 0 && locationQuery ? "No hay ciudades" : "Ciudad...")}
+                  </span>
+                  <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar ciudad..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontró la ciudad.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => {
+                          setCityQuery('')
+                          setIsCityOpen(false)
+                        }}
+                        className="font-bold text-primary"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            cityQuery === '' ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Todas las ciudades
+                      </CommandItem>
+                      {availableCities.map((city) => (
+                        <CommandItem
+                          key={city}
+                          value={city}
+                          onSelect={(currentValue) => {
+                            setCityQuery(currentValue === cityQuery ? "" : currentValue)
+                            setIsCityOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              cityQuery === city ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {city}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
             <SlidersHorizontal className="h-4 w-4" /> Filtros

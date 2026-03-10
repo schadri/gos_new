@@ -13,7 +13,10 @@ import {
   Unlock,
   Trash2,
   ExternalLink,
-  ShieldAlert
+  ShieldAlert,
+  Loader2,
+  UserX,
+  UserCheck as UserCheckIcon
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +32,16 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { getAvatarUrl } from '@/lib/utils'
 import { Database } from '@/types/supabase'
 import { createClient } from '@/lib/supabase/client'
@@ -46,6 +59,9 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
   const [filterType, setFilterType] = React.useState<'ALL' | 'TALENT' | 'BUSINESS'>('ALL')
   const [selectedUser, setSelectedUser] = React.useState<Profile | null>(null)
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
+  const [isBanDialogOpen, setIsBanDialogOpen] = React.useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
 
   const filteredUsers = React.useMemo(() => {
     return users.filter(user => {
@@ -85,6 +101,60 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
     } catch (err) {
       console.error('Error updating admin status:', err)
       toast.error('Error al actualizar estado de administrador')
+    }
+  }
+
+  const handleBan = async () => {
+    if (!selectedUser) return
+    setIsLoading(true)
+    
+    const supabase = createClient()
+    const newActiveStatus = !selectedUser.is_active
+    
+    try {
+      const { error } = await (supabase
+        .from('profiles') as any)
+        .update({ is_active: newActiveStatus })
+        .eq('id', selectedUser.id)
+      
+      if (error) throw error
+      
+      setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, is_active: newActiveStatus } : u))
+      setSelectedUser(prev => prev ? { ...prev, is_active: newActiveStatus } : null)
+      toast.success(newActiveStatus ? 'Usuario activado' : 'Usuario baneado/suspendido')
+      setIsBanDialogOpen(false)
+    } catch (err) {
+      console.error('Error banning user:', err)
+      toast.error('Error al cambiar estado del usuario')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedUser) return
+    setIsLoading(true)
+    
+    const supabase = createClient()
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', selectedUser.id)
+      
+      if (error) throw error
+      
+      setUsers(prev => prev.filter(u => u.id !== selectedUser.id))
+      toast.success('Usuario eliminado permanentemente')
+      setIsDeleteDialogOpen(false)
+      setIsSheetOpen(false)
+      setSelectedUser(null)
+    } catch (err) {
+      console.error('Error deleting user:', err)
+      toast.error('Error al eliminar usuario')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -158,6 +228,9 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                             <p className="font-bold text-sm leading-none flex items-center gap-1.5">
                               {profile.full_name || profile.company_name || 'Sin nombre'}
                               {profile.is_admin && <ShieldCheck className="h-3 w-3 text-primary" />}
+                              {profile.is_active === false && (
+                                <Badge variant="destructive" className="h-4 px-1 text-[8px] font-black uppercase">BAN</Badge>
+                              )}
                             </p>
                             <p className="text-[10px] text-muted-foreground mt-1">ID: {profile.id.slice(0, 8)}...</p>
                           </div>
@@ -258,15 +331,17 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                     
                     <Button 
                       variant="outline" 
-                      className="w-full justify-start gap-3 rounded-2xl h-12 font-bold text-destructive hover:text-destructive hover:bg-destructive/5"
+                      onClick={() => setIsBanDialogOpen(true)}
+                      className={`w-full justify-start gap-3 rounded-2xl h-12 font-bold ${selectedUser.is_active === false ? 'text-green-600 hover:text-green-600 hover:bg-green-50' : 'text-orange-600 hover:text-orange-600 hover:bg-orange-50'}`}
                     >
-                      <ShieldAlert className="h-4 w-4" />
-                      Banear Usuario
+                      {selectedUser.is_active === false ? <UserCheckIcon className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
+                      {selectedUser.is_active === false ? 'Activar Usuario' : 'Banear Usuario'}
                     </Button>
 
                     <Button 
                       variant="outline" 
-                      className="w-full justify-start gap-3 rounded-2xl h-12 font-bold opacity-50 cursor-not-allowed"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="w-full justify-start gap-3 rounded-2xl h-12 font-bold text-destructive hover:text-white hover:bg-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                       Eliminar permanentemente
@@ -291,6 +366,61 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Confirmation Dialogs */}
+      <AlertDialog open={isBanDialogOpen} onOpenChange={setIsBanDialogOpen}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black tracking-tight">
+              ¿Confirmar {selectedUser?.is_active === false ? 'activación' : 'suspensión'}?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-medium text-base">
+              {selectedUser?.is_active === false 
+                ? `El usuario ${selectedUser?.full_name || selectedUser?.company_name} recuperará el acceso a la plataforma inmediatamente.`
+                : `Esta acción impedirá que el usuario ${selectedUser?.full_name || selectedUser?.company_name} pueda realizar nuevas acciones o se vea en la bolsa activa.`
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-2xl font-bold h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBan}
+              disabled={isLoading}
+              className={`rounded-2xl font-bold h-12 px-8 ${selectedUser?.is_active === false ? 'bg-green-600 hover:bg-green-700' : 'bg-orange-600 hover:bg-orange-700'}`}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="rounded-3xl border-2 border-destructive/20 shadow-2xl shadow-destructive/10">
+          <AlertDialogHeader>
+            <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-2">
+              <UserX className="h-6 w-6" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-black tracking-tight text-destructive">
+              ¡Acción Irreversible!
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-medium text-base">
+              ¿Estás seguro de que deseas eliminar permanentemente a <span className="font-black text-foreground">{selectedUser?.full_name || selectedUser?.company_name}</span>? 
+              <br/><br/>
+              Se borrará su perfil, currículum, ofertas publicadas e historial de forma definitiva. **No hay vuelta atrás.**
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-2xl font-bold h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="rounded-2xl font-bold h-12 px-8 bg-destructive hover:bg-destructive/90 text-white shadow-lg shadow-destructive/20"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar para siempre'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

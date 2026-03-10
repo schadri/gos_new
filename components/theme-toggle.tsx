@@ -6,32 +6,20 @@ import { useTheme } from "next-themes"
 import { Switch } from "@/components/ui/switch"
 import { createClient } from "@/lib/supabase/client"
 
+import { useAuth } from "@/components/providers/auth-provider"
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
+  const { user, profile } = useAuth()
   const [mounted, setMounted] = React.useState(false)
 
-  // On mount: load saved theme from Supabase if user is logged in
+  // On mount: load saved theme from AuthProvider if available
   React.useEffect(() => {
     setMounted(true)
-
-    const loadSavedTheme = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('preferred_theme')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (profile?.preferred_theme) {
-        setTheme(profile.preferred_theme)
-      }
+    if (profile?.preferred_theme && profile.preferred_theme !== theme) {
+      setTheme(profile.preferred_theme)
     }
-
-    loadSavedTheme()
-  }, [setTheme])
+  }, [profile?.preferred_theme, setTheme])
 
   if (!mounted) {
     return <div className="w-[72px] h-6"></div> // placeholder for layout shift
@@ -46,11 +34,9 @@ export function ThemeToggle() {
 
     // Persist to Supabase if logged in (fire-and-forget)
     try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await supabase
-          .from('profiles')
+        const supabase = createClient()
+        await (supabase.from('profiles') as any)
           .update({ preferred_theme: newTheme })
           .eq('id', user.id)
       }

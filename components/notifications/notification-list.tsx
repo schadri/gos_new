@@ -8,9 +8,12 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
+import { useAuth } from '@/components/providers/auth-provider'
+
 export function NotificationList({ initialNotifications }: { initialNotifications: any[] }) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const supabase = createClient()
+  const { user } = useAuth()
 
   const hasUnread = notifications?.some(n => !n.is_read)
 
@@ -57,7 +60,6 @@ export function NotificationList({ initialNotifications }: { initialNotification
     setNotifications([])
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast.error('No se pudo verificar tu sesión')
         setNotifications(currentNotifications)

@@ -117,7 +117,10 @@ export function EditEmployerProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent 
+        onOpenAutoFocus={(e) => e.preventDefault()} 
+        className="sm:max-w-[500px] overflow-x-hidden"
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Editar Perfil de Empresa</DialogTitle>
           <DialogDescription>

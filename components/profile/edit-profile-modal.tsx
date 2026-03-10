@@ -85,7 +85,7 @@ export function EditProfileModal({
 
       if (!user) throw new Error('No estás autenticado')
 
-      const { error } = await supabase.from('profiles').update({
+      const { error } = await (supabase.from('profiles') as any).update({
         full_name: fullName,
         profile_photo: photoUrl?.split('?')[0],
         cv_url: cvUrl?.split('?')[0],
@@ -96,7 +96,7 @@ export function EditProfileModal({
         longitude: longitude,
         search_radius: radius,
         is_active: isActive,
-      } as any).eq('id', user.id)
+      }).eq('id', user.id)
 
       if (error) throw error
 
@@ -127,7 +127,10 @@ export function EditProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col" : "sm:max-w-[500px]"}>
+      <DialogContent 
+        onOpenAutoFocus={(e) => e.preventDefault()} 
+        className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col overflow-x-hidden" : "sm:max-w-[500px] overflow-x-hidden"}
+      >
         {viewingCv ? (
           <>
             <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-6 border-b">

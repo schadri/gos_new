@@ -14,6 +14,7 @@ import {
   Trash2,
   ExternalLink,
   ShieldAlert,
+  Fingerprint,
   Loader2,
   UserX,
   UserCheck as UserCheckIcon
@@ -298,6 +299,13 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                 <div className="space-y-4">
                   <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Información de Contacto</h4>
                   <div className="grid gap-4">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 border">
+                      <Fingerprint className="h-4 w-4 text-primary" />
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase leading-none mb-1">ID Único (UUID)</p>
+                        <p className="text-[11px] font-mono font-bold truncate">{selectedUser.id}</p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 border">
                       <MapPin className="h-4 w-4 text-primary" />
                       <div>

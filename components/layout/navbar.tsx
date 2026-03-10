@@ -34,6 +34,20 @@ export function Navbar() {
   const [user, setUser] = React.useState<any>(null)
   const [role, setRole] = React.useState<string | null>(null)
   const [profile, setProfile] = React.useState<{ name?: string, avatar?: string } | null>(null)
+  const [unreadCount, setUnreadCount] = React.useState(0)
+  
+  const fetchUnreadCount = React.useCallback(async (userId: string) => {
+    const supabase = createClient()
+    const { count } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+    
+    if (count !== null) {
+      setUnreadCount(count)
+    }
+  }, [])
   
   React.useEffect(() => {
     const supabase = createClient()
@@ -60,6 +74,9 @@ export function Navbar() {
 
         const authUser = session.user
         setUser(authUser)
+        
+        // Fetch unread count
+        fetchUnreadCount(authUser.id)
         
         // First check metadata for immediate role detection
         let currentRole = authUser.user_metadata?.role
@@ -105,8 +122,18 @@ export function Navbar() {
       }
     })
 
-    return () => subscription.unsubscribe()
-  }, [])
+    // Listen for realtime notifications
+    const channel = supabase.channel('navbar-notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+         if (user?.id) fetchUnreadCount(user.id)
+      })
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
+      supabase.removeChannel(channel)
+    }
+  }, [fetchUnreadCount, user?.id])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -130,13 +157,27 @@ export function Navbar() {
               {role === 'employer' ? (
                 <>
                   <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
-                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                  <Link href="/notifications" className="relative p-2 hover:bg-muted rounded-full transition-colors flex items-center justify-center group">
+                    <Bell className="h-5 w-5 text-foreground/60 group-hover:text-foreground/80 transition-colors" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
                   <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
                 </>
               ) : (
                 <>
                   <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
-                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
+                  <Link href="/notifications" className="relative p-2 hover:bg-muted rounded-full transition-colors flex items-center justify-center group">
+                    <Bell className="h-5 w-5 text-foreground/60 group-hover:text-foreground/80 transition-colors" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
                   <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
                 </>
               )}
@@ -183,9 +224,14 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/notifications" className="cursor-pointer">
+                      <Link href="/notifications" className="cursor-pointer w-full flex items-center">
                         <Bell className="mr-2 h-4 w-4" />
                         <span>Notificaciones</span>
+                        {unreadCount > 0 && (
+                          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -240,14 +286,32 @@ export function Navbar() {
                         <>
                           <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium text-center">Portal Emprendedor</Link></SheetClose>
                           <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild>
+                            <Link href="/notifications" className="text-lg font-medium flex items-center justify-center gap-2">
+                              Notificaciones
+                              {unreadCount > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                                  {unreadCount}
+                                </span>
+                              )}
+                            </Link>
+                          </SheetClose>
                           <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
                         </>
                       ) : (
                         <>
                           <SheetClose asChild><Link href="/jobs" className="text-lg font-medium text-center">Trabajos</Link></SheetClose>
                           <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
+                          <SheetClose asChild>
+                            <Link href="/notifications" className="text-lg font-medium flex items-center justify-center gap-2">
+                              Notificaciones
+                              {unreadCount > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                                  {unreadCount}
+                                </span>
+                              )}
+                            </Link>
+                          </SheetClose>
                           <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
                         </>
                       )}

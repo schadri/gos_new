@@ -264,27 +264,16 @@ function PostJobForm() {
       }
 
       if (error) throw error
-      toast.success('Borrador guardado.')
-      setInitialData({
-        title,
-        description,
-        category,
-        contractType,
-        experience,
-        location,
-        keywords: [...keywords]
-      })
+      toast.success('Borrador guardado. Puedes encontrarlo en la sección Mis Publicaciones.', { duration: 5000 })
+      
+      // Redirect to dashboard instead of staying on form
+      router.push('/employer/dashboard')
       
     } catch (error: any) {
       toast.error('Error al guardar el borrador.')
     } finally {
       setIsSavingDraft(false)
     }
-  }
-
-  const suggestKeywords = () => {
-    const newKeywords = Array.from(new Set([...keywords, 'Liderazgo', 'Control de stock', 'Trabajo en equipo', 'Limpieza']))
-    setKeywords(newKeywords)
   }
 
   return (
@@ -421,9 +410,6 @@ function PostJobForm() {
                   <Label className="text-lg font-bold flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Palabras Clave para el Algoritmo</Label>
                   <p className="text-sm text-muted-foreground mt-1 font-medium">Ayudan a encontrar los candidatos ideales. Escribe y presiona Enter.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={suggestKeywords} className="hidden sm:flex text-sm font-bold border-primary/30 hover:bg-primary/10 transition-colors rounded-xl shadow-sm">
-                  <Sparkles className="h-4 w-4 mr-2 text-primary" /> Sugerir con IA
-                </Button>
               </div>
               
               <KeywordInput 
@@ -437,9 +423,6 @@ function PostJobForm() {
                   "Versatilidad", "Eficiente", "Capacidad de Aprendizaje"
                 ]}
               />
-              <Button variant="outline" size="sm" onClick={suggestKeywords} className="sm:hidden w-full flex text-sm font-bold mt-2">
-                <Sparkles className="h-4 w-4 mr-2 text-primary" /> Sugerir con IA
-              </Button>
             </div>
           </div>
         </div>

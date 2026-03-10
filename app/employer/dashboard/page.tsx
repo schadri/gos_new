@@ -157,17 +157,6 @@ export default async function EmployerDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-primary/5 p-8 rounded-3xl border border-primary/15 shadow-sm text-center">
-            <div className="mx-auto w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-lg border border-primary/20 mb-6">
-              <TrendingUp className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Impulsa tus ofertas</h3>
-            <p className="text-muted-foreground font-medium mb-6 text-sm">
-              Destaca tus publicaciones para aparecer primero en las búsquedas y notificar a los mejores candidatos al instante.
-            </p>
-            <Button className="w-full h-12 rounded-xl font-bold shadow-md hover:shadow-lg transition-shadow">Destacar una Oferta</Button>
-          </div>
-
           <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm">
             <h3 className="text-lg font-bold mb-4">Actividad Reciente</h3>
             <div className="space-y-4">

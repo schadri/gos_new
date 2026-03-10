@@ -43,6 +43,7 @@ type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
 export default function JobBoard() {
   const [jobs, setJobs] = React.useState<JobWithProfile[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [visibleCount, setVisibleCount] = React.useState(5)
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -162,7 +163,13 @@ export default function JobBoard() {
     setSelectedPositions([])
     setSelectedLocations([])
     setExpandedCategory(null)
+    setVisibleCount(5)
   }
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setVisibleCount(5)
+  }, [searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
 
   // Filter Jobs
   const filteredJobs = React.useMemo(() => {
@@ -482,7 +489,7 @@ export default function JobBoard() {
                 </Button>
               </div>
             ) : (
-              filteredJobs.map((job) => (
+              filteredJobs.slice(0, visibleCount).map((job) => (
                 <Link href={`/jobs/${job.id}`} key={job.id} className="block group">
                   <div className={`p-6 sm:p-8 rounded-3xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative bg-card ${
                     job.is_featured ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' : 'border-border/50 hover:border-border'
@@ -555,10 +562,15 @@ export default function JobBoard() {
             )}
           </div>
           
-          {!loading && filteredJobs.length >= 5 && (
+          {!loading && filteredJobs.length > visibleCount && (
             <div className="pt-10 flex justify-center">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted">
-                Cargar más resultados
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => setVisibleCount(prev => prev + 5)}
+                className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted"
+              >
+                Cargar más resultados ({filteredJobs.length - visibleCount} restantes)
               </Button>
             </div>
           )}

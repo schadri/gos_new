@@ -15,6 +15,7 @@ interface AuthContextType {
   user: User | null
   profile: AuthProfile | null
   role: 'talent' | 'employer' | null
+  isAdmin: boolean
   unreadCount: number
   isLoading: boolean
   refreshUnreadCount: () => Promise<void>
@@ -24,6 +25,7 @@ const AuthContext = React.createContext<AuthContextType>({
   user: null,
   profile: null,
   role: null,
+  isAdmin: false,
   unreadCount: 0,
   isLoading: true,
   refreshUnreadCount: async () => {},
@@ -35,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null)
   const [profile, setProfile] = React.useState<AuthProfile | null>(null)
   const [role, setRole] = React.useState<'talent' | 'employer' | null>(null)
+  const [isAdmin, setIsAdmin] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null)
             setRole(null)
             setProfile(null)
+            setIsAdmin(false)
             setUnreadCount(0)
             document.body.classList.remove('talent-theme')
             setIsLoading(false)
@@ -85,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Verify with DB
         const { data: profileData, error: profileError } = await (supabase
           .from('profiles') as any)
-          .select('user_type, full_name, profile_photo, company_logo, preferred_theme')
+          .select('user_type, full_name, profile_photo, company_logo, preferred_theme, is_admin')
           .eq('id', authUser.id)
           .maybeSingle()
           
@@ -96,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (isMounted) {
             setRole(currentRole)
+            setIsAdmin(!!prof.is_admin)
             setProfile({
               name: prof.full_name,
               avatar: getAvatarUrl(
@@ -140,14 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe()
       supabase.removeChannel(channel)
     }
-  }, [fetchUnreadCount]) // Removed user?.id dependency from useEffect to avoid re-triggering the whole auth fetch when user changes.
+  }, [fetchUnreadCount, user?.id]) 
 
-  // Helper to allow descendants to trigger a refresh manually
+
   const refreshUnread = React.useCallback(async () => {
     if (user?.id) await fetchUnreadCount(user.id)
   }, [user?.id, fetchUnreadCount])
 
-  // A separate effect just for real-time notification syncing to avoid stale closure issues
   React.useEffect(() => {
     if (!user?.id) return
     const supabase = createClient()
@@ -167,10 +171,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     role,
+    isAdmin,
     unreadCount,
     isLoading,
     refreshUnreadCount: refreshUnread
-  }), [user, profile, role, unreadCount, isLoading, refreshUnread])
+  }), [user, profile, role, isAdmin, unreadCount, isLoading, refreshUnread])
 
   return (
     <AuthContext.Provider value={value}>

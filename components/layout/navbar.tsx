@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Menu, LogOut, Bell, LifeBuoy } from 'lucide-react'
+import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getAvatarUrl } from '@/lib/utils'
@@ -32,7 +32,7 @@ import { useAuth } from '@/components/providers/auth-provider'
 
 export function Navbar() {
   const pathname = usePathname()
-  const { user, profile, role, unreadCount } = useAuth()
+  const { user, profile, role, isAdmin, unreadCount } = useAuth()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -122,6 +122,14 @@ export function Navbar() {
                         <span>Mi Perfil</span>
                       </Link>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer font-bold text-primary">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          <span>Panel Admin</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/notifications" className="cursor-pointer w-full flex items-center">
                         <Bell className="mr-2 h-4 w-4" />

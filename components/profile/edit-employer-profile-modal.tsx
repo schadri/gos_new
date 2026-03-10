@@ -118,9 +118,9 @@ export function EditEmployerProfileModal({
       </DialogTrigger>
       
       <DialogContent 
-        onOpenAutoFocus={(e) => e.preventDefault()} 
-        className="sm:max-w-[500px] overflow-x-hidden"
+        className="w-[95vw] max-w-[95vw] sm:max-w-[500px] sm:w-full overflow-x-hidden p-4 sm:p-6"
       >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Editar Perfil de Empresa</DialogTitle>
           <DialogDescription>

@@ -128,12 +128,12 @@ export function EditProfileModal({
       </DialogTrigger>
       
       <DialogContent 
-        onOpenAutoFocus={(e) => e.preventDefault()} 
-        className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col overflow-x-hidden" : "sm:max-w-[500px] overflow-x-hidden"}
+        className={viewingCv ? "w-[95vw] max-w-[95vw] sm:max-w-[800px] sm:w-full h-[80vh] flex flex-col overflow-x-hidden p-4 sm:p-6" : "w-[95vw] max-w-[95vw] sm:max-w-[500px] sm:w-full overflow-x-hidden p-4 sm:p-6"}
       >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         {viewingCv ? (
           <>
-            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-6 border-b">
+            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-4 sm:p-6 border-b">
               <Button variant="ghost" size="icon" onClick={() => setViewingCv(false)} className="rounded-full hover:bg-primary/10 transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </Button>

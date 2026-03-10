@@ -48,6 +48,7 @@ export default function JobBoard() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [locationQuery, setLocationQuery] = React.useState('')
   const [cityQuery, setCityQuery] = React.useState('')
+  const [isProvinceOpen, setIsProvinceOpen] = React.useState(false)
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
@@ -224,11 +225,12 @@ export default function JobBoard() {
             />
           </div>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <Popover>
+            <Popover open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   role="combobox"
+                  aria-expanded={isProvinceOpen}
                   className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
                 >
                   <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
@@ -245,7 +247,10 @@ export default function JobBoard() {
                     <CommandEmpty>No se encontró la provincia.</CommandEmpty>
                     <CommandGroup>
                       <CommandItem
-                        onSelect={() => setLocationQuery('')}
+                        onSelect={() => {
+                          setLocationQuery('')
+                          setIsProvinceOpen(false)
+                        }}
                         className="font-bold text-primary"
                       >
                         <Check
@@ -262,6 +267,7 @@ export default function JobBoard() {
                           value={province}
                           onSelect={(currentValue) => {
                             setLocationQuery(currentValue === locationQuery ? "" : currentValue)
+                            setIsProvinceOpen(false)
                           }}
                         >
                           <Check

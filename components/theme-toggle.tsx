@@ -12,14 +12,22 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const { user, profile } = useAuth()
   const [mounted, setMounted] = React.useState(false)
+  const initialized = React.useRef(false)
 
-  // On mount: load saved theme from AuthProvider if available
+  // On mount: set mounted flag to render without hydration mismatch
   React.useEffect(() => {
     setMounted(true)
-    if (profile?.preferred_theme && profile.preferred_theme !== theme) {
-      setTheme(profile.preferred_theme)
+  }, [])
+
+  // Load saved theme from AuthProvider ONLY once to avoid overriding local manual toggles
+  React.useEffect(() => {
+    if (profile?.preferred_theme && !initialized.current) {
+      if (theme !== profile.preferred_theme) {
+        setTheme(profile.preferred_theme)
+      }
+      initialized.current = true
     }
-  }, [profile?.preferred_theme, setTheme])
+  }, [profile?.preferred_theme, theme, setTheme])
 
   if (!mounted) {
     return <div className="w-[72px] h-6"></div> // placeholder for layout shift

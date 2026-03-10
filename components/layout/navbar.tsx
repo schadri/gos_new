@@ -69,6 +69,7 @@ export function Navbar() {
           setUser(null)
           setRole(null)
           setProfile(null)
+          document.body.classList.remove('talent-theme')
           return
         }
 
@@ -105,6 +106,13 @@ export function Navbar() {
           })
         } else {
           setRole(currentRole)
+        }
+        
+        // Ensure the theme class is strictly synced with the role
+        if (currentRole === 'talent') {
+          document.body.classList.add('talent-theme')
+        } else {
+          document.body.classList.remove('talent-theme')
         }
       } catch (err) {
         console.error('Navbar: Error fetching user/role:', err)

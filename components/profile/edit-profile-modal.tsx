@@ -250,20 +250,20 @@ export function EditProfileModal({
                   }}
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-between border rounded-lg p-4 bg-card/50 mx-2 mb-6 shadow-sm">
-              <div className="space-y-0.5">
-                <Label className="font-semibold text-base">Búsqueda Activa</Label>
-                <p className="text-sm text-muted-foreground mr-4">
-                  Permite que las ofertas de empleo ajustadas a tu perfil te hagan "Match" automáticamente.
-                </p>
+              <div className="flex items-center justify-between border rounded-2xl p-4 bg-muted/30 mt-2">
+                <div className="space-y-0.5">
+                  <Label className="font-bold text-sm">Búsqueda Activa</Label>
+                  <p className="text-[12px] text-muted-foreground leading-tight mr-4">
+                    Permite que las ofertas de empleo ajustadas a tu perfil te hagan "Match" automáticamente.
+                  </p>
+                </div>
+                <Switch 
+                  checked={isActive} 
+                  onCheckedChange={setIsActive} 
+                  className="data-[state=checked]:bg-primary scale-90"
+                />
               </div>
-              <Switch 
-                checked={isActive} 
-                onCheckedChange={setIsActive} 
-                className="data-[state=checked]:bg-primary"
-              />
             </div>
 
             <div className="flex justify-end gap-3 px-2">

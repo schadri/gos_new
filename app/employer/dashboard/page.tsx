@@ -79,7 +79,7 @@ export default async function EmployerDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12">
         {dynamicMetrics.map((item, i) => (
-          <div key={i} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+          <div key={i} className="bg-card dark:bg-zinc-900/50 p-6 rounded-3xl border border-border/50 shadow-sm dark:shadow-none hover:shadow-md hover:-translate-y-1 transition-all">
             <div className={`p-3 rounded-2xl w-fit ${item.bg} mb-4`}>
               <item.icon className={`h-6 w-6 ${item.color}`} />
             </div>

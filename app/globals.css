@@ -117,3 +117,30 @@
   border-left: 2px solid transparent;
   background-clip: padding-box;
 }
+
+@layer utilities {
+  .bg-mesh {
+    background-color: var(--background);
+    background-image: 
+      radial-gradient(at 0% 0%, oklch(var(--primary) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, oklch(var(--secondary) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, oklch(var(--primary) / 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, oklch(var(--secondary) / 0.1) 0px, transparent 50%);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px -5px oklch(var(--primary) / 0.3);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px -5px oklch(var(--secondary) / 0.3);
+  }
+
+  .text-glow-primary {
+    text-shadow: 0 0 12px oklch(var(--primary) / 0.4);
+  }
+
+  .text-glow-secondary {
+    text-shadow: 0 0 12px oklch(var(--secondary) / 0.4);
+  }
+}

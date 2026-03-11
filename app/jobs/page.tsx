@@ -32,6 +32,15 @@ import {
 } from "@/components/ui/avatar"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from '@/components/ui/sheet'
+import { FilterSidebar } from '@/components/jobs/filter-sidebar'
 
 type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
   profiles: {
@@ -405,9 +414,30 @@ export default function JobBoard() {
               </PopoverContent>
             </Popover>
           </div>
-          <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
-            <SlidersHorizontal className="h-4 w-4" /> Filtros
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
+                <SlidersHorizontal className="h-4 w-4" /> Filtros
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0 border-none">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Filtros</SheetTitle>
+                <SheetDescription>Ajusta los filtros para encontrar tu empleo ideal.</SheetDescription>
+              </SheetHeader>
+              <div className="h-full overflow-y-auto p-4 pt-10">
+                <FilterSidebar 
+                  clearFilters={clearFilters}
+                  selectedPositions={selectedPositions}
+                  handlePositionChange={handlePositionChange}
+                  expandedCategory={expandedCategory}
+                  setExpandedCategory={setExpandedCategory}
+                  selectedLocations={selectedLocations}
+                  handleLocationChange={handleLocationChange}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
           <Button className="h-14 px-10 rounded-2xl font-bold text-md shadow-md shadow-primary/20">
             Buscar
           </Button>
@@ -419,81 +449,15 @@ export default function JobBoard() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
         {/* Sidebar Filters */}
         <div className="hidden lg:block space-y-10">
-          <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm sticky top-24">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-lg flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filtros</h3>
-              <button 
-                onClick={clearFilters}
-                className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors"
-              >
-                Limpiar
-              </button>
-            </div>
-            
-            <div className="space-y-8">
-              {/* Position Filter */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Puesto</h4>
-                <div className="space-y-2">
-                  {POSITIONS.map(group => (
-                    <div key={group.category} className="space-y-2">
-                      <button 
-                        onClick={() => setExpandedCategory(expandedCategory === group.category ? null : group.category)}
-                        className={cn(
-                          "w-full flex items-center justify-between text-sm font-semibold p-2 rounded-xl transition-colors",
-                          expandedCategory === group.category ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50"
-                        )}
-                      >
-                        {group.category}
-                        <ChevronRight className={cn(
-                          "h-4 w-4 transition-transform",
-                          expandedCategory === group.category && "rotate-90"
-                        )} />
-                      </button>
-                      
-                      {expandedCategory === group.category && (
-                        <div className="pl-4 space-y-3 pt-2 pb-2 animate-in slide-in-from-top-2 duration-200">
-                          {group.items.map(item => (
-                            <div key={item} className="flex items-center gap-3 group">
-                              <input 
-                                type="checkbox" 
-                                id={`pos-${item}`} 
-                                checked={selectedPositions.includes(item)}
-                                onChange={() => handlePositionChange(item)}
-                                className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                              />
-                              <label htmlFor={`pos-${item}`} className="text-xs cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item}</label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="w-full h-px bg-border/60"></div>
-
-              {/* Location Filter */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Ubicación</h4>
-                <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-                  {PROVINCES.map(province => (
-                    <div key={province} className="flex items-center gap-3 group">
-                      <input 
-                        type="checkbox" 
-                        id={`loc-${province}`} 
-                        checked={selectedLocations.includes(province)}
-                        onChange={() => handleLocationChange(province)}
-                        className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                      />
-                      <label htmlFor={`loc-${province}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{province}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <FilterSidebar 
+            clearFilters={clearFilters}
+            selectedPositions={selectedPositions}
+            handlePositionChange={handlePositionChange}
+            expandedCategory={expandedCategory}
+            setExpandedCategory={setExpandedCategory}
+            selectedLocations={selectedLocations}
+            handleLocationChange={handleLocationChange}
+          />
         </div>
 
         {/* Job Listings */}

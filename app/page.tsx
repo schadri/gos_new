@@ -49,7 +49,7 @@ export default async function Home() {
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-foreground drop-shadow-sm leading-[1.1]">
                 Bienvenidos a <br />
-                <span className="text-transparent bg-clip-text animate-brand-fade">GOS</span>
+                <span className="text-transparent bg-clip-text animate-brand-flash pr-4">GOS</span>
               </h1>
               
               {/* Badge */}

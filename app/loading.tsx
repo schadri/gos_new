@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Briefcase } from 'lucide-react'
+import { LogoGOS } from '@/components/logo-gos'
 
 export default function Loading() {
   return (
@@ -40,9 +40,9 @@ export default function Loading() {
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="bg-primary/10 p-3 rounded-2xl text-primary"
+              className="bg-primary/10 p-4 rounded-2xl text-primary flex items-center justify-center"
             >
-              <Briefcase className="h-8 w-8" />
+              <LogoGOS className="h-10 w-10" />
             </motion.div>
           </div>
         </div>

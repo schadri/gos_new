@@ -10,10 +10,10 @@
   --card-foreground: oklch(0.205 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.205 0 0);
-  --primary: oklch(0.488 0.122 195.45); /* Brand Teal */
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.645 0.165 45.45); /* Brand Orange */
-  --secondary-foreground: oklch(0.985 0 0);
+  --primary: #0d9488; /* Brand Teal */
+  --primary-foreground: #ffffff;
+  --secondary: #f97316; /* Brand Orange */
+  --secondary-foreground: #ffffff;
   --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.96 0 0);
@@ -22,7 +22,7 @@
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.9 0 0);
   --input: oklch(0.9 0 0);
-  --ring: oklch(0.488 0.122 195.45);
+  --ring: #0d9488;
   --radius: 0.625rem;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -32,25 +32,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.185 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.185 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.488 0.122 195.45); /* Brand Teal */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.488 0.122 195.45);
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #0d9488; /* Brand Teal Vibrant */
+  --primary-foreground: #ffffff;
+  --secondary: #f97316; /* Brand Orange Vibrant */
+  --secondary-foreground: #ffffff;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fef2f2;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #0d9488;
 }
 
 /* Force colors for Talent theme to ensure orange is used even in dark mode */
@@ -116,4 +116,49 @@
   background: oklch(0.556 0 0 / 0.4);
   border-left: 2px solid transparent;
   background-clip: padding-box;
+}
+
+@layer utilities {
+  .bg-mesh {
+    background-color: var(--background);
+    background-image: 
+      radial-gradient(at 0% 0%, color-mix(in oklch, var(--primary), transparent 85%) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, color-mix(in oklch, var(--secondary), transparent 85%) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, color-mix(in oklch, var(--primary), transparent 90%) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, color-mix(in oklch, var(--secondary), transparent 90%) 0px, transparent 50%);
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 20px -5px oklch(0.488 0.122 195.45 / 0.3);
+  }
+
+  .glow-secondary {
+    box-shadow: 0 0 20px -5px oklch(0.645 0.165 45.45 / 0.3);
+  }
+
+  .text-glow-primary {
+    text-shadow: 0 0 12px oklch(0.488 0.122 195.45 / 0.4);
+  }
+
+  .text-glow-secondary {
+    text-shadow: 0 0 12px oklch(0.645 0.165 45.45 / 0.4);
+  }
+
+  .animate-brand-flash {
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: brand-flash-smooth 4s ease-in-out infinite;
+    display: inline-block;
+  }
+
+  @keyframes brand-flash-smooth {
+    0%, 100% { 
+      color: var(--secondary);
+      filter: drop-shadow(0 0 15px color-mix(in oklch, var(--secondary), transparent 40%));
+    }
+    50% { 
+      color: var(--primary); 
+      filter: drop-shadow(0 0 15px color-mix(in oklch, var(--primary), transparent 40%));
+    }
+  }
 }

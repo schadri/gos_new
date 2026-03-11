@@ -16,7 +16,7 @@ export function RedirectLoading() {
         
         {/* Brand Icon */}
         <div className="relative mb-8 p-6 bg-card border border-border/50 rounded-3xl shadow-2xl shadow-primary/10 group">
-          <LogoGOS className="h-10 w-10 text-primary animate-bounce duration-[2000ms]" />
+          <LogoGOS className="h-20 w-20 text-primary animate-bounce duration-[2000ms]" />
         </div>
         
         {/* Loading text with shimmer */}

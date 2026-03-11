@@ -12,54 +12,32 @@ export async function GET(request: Request) {
         const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (!error && user) {
-            console.log(`Auth Callback: User ${user.email} logged in. Next path: ${next}`)
+            console.log(`Auth Callback: User ${user.email} logged in. Intent next: ${next}`)
 
-            // 1. Force profile creation/update for specific registration flows
-            if (next.includes('/employer/register')) {
-                console.log(`Auth Callback: Forcing BUSINESS role for ${user.email}`)
-                await supabase.from('profiles').upsert({
-                    id: user.id,
-                    user_type: 'BUSINESS'
-                })
-            } else if (next.includes('/talent/register')) {
-                console.log(`Auth Callback: Forcing TALENT role for ${user.email}`)
-                await supabase.from('profiles').upsert({
-                    id: user.id,
-                    user_type: 'TALENT'
-                })
-            }
+            // 1. Fetch profile to determine if user exists and their role
+            let { data: profile } = await supabase
+                .from('profiles')
+                .select('user_type')
+                .eq('id', user.id)
+                .maybeSingle()
 
             // 2. Intelligent Redirect Logic
             let finalRedirect = next
 
-            // If we are at the root, we must decide where to go INSTEAD of going to Home
-            if (next === '/') {
-                console.log('Auth Callback: Identifying role for direct dashboard redirect...')
-
-                // Fetch profile to determine destination
-                let { data: profile } = await supabase
-                    .from('profiles')
-                    .select('user_type')
-                    .eq('id', user.id)
-                    .maybeSingle()
-
-                // If profile doesn't exist yet (brand new user), wait a tiny bit and retry ONCE
-                if (!profile) {
-                    await new Promise(resolve => setTimeout(resolve, 800))
-                    const { data: retryProfile } = await supabase
-                        .from('profiles')
-                        .select('user_type')
-                        .eq('id', user.id)
-                        .maybeSingle()
-                    profile = retryProfile
-                }
-
-                if (profile?.user_type === 'BUSINESS') {
-                    finalRedirect = '/employer/dashboard'
-                } else if (profile?.user_type === 'TALENT') {
-                    finalRedirect = '/jobs'
+            if (profile) {
+                console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
+                finalRedirect = (profile as any).user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+            } else {
+                console.log('Auth Callback: No profile found. Handling registration flow...')
+                // If it's a new user and they came through a registration flow, force the profile creation
+                if (next.includes('/employer/register')) {
+                    await supabase.from('profiles').upsert({ id: user.id, user_type: 'BUSINESS' })
+                    finalRedirect = '/employer/register'
+                } else if (next.includes('/talent/register')) {
+                    await supabase.from('profiles').upsert({ id: user.id, user_type: 'TALENT' })
+                    finalRedirect = '/talent/register'
                 } else {
-                    // Default fallback if role is still unknown (e.g. brand new user without role yet)
+                    // Brand new user without intent? Send to root or a default registration if needed
                     finalRedirect = '/'
                 }
             }

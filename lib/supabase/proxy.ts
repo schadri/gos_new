@@ -72,5 +72,20 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Instant redirect for logged-in users visiting the homepage
+  if (user && request.nextUrl.pathname === '/') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.user_type) {
+      const url = request.nextUrl.clone()
+      url.pathname = profile.user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+      return NextResponse.redirect(url)
+    }
+  }
+
   return supabaseResponse
 }

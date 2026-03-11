@@ -18,5 +18,6 @@ export const config = {
     '/employer/:path*',
     '/jobs/:path*',
     '/auth/:path*',
+    '/admin/:path*',
   ],
 }

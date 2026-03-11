@@ -43,10 +43,35 @@ type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
 export default function JobBoard() {
   const [jobs, setJobs] = React.useState<JobWithProfile[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [visibleCount, setVisibleCount] = React.useState(5)
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = React.useState('')
   const [locationQuery, setLocationQuery] = React.useState('')
+  const [cityQuery, setCityQuery] = React.useState('')
+  const [isProvinceOpen, setIsProvinceOpen] = React.useState(false)
+  const [isCityOpen, setIsCityOpen] = React.useState(false)
+  
+  // Extract unique available cities from active jobs based on selected province
+  const availableCities = React.useMemo(() => {
+    const cities = new Set<string>()
+    jobs.forEach(job => {
+      if (!job.location) return
+      
+      if (locationQuery && !job.location.includes(locationQuery)) return
+      
+      const foundProvince = PROVINCES.find(p => job.location!.includes(p))
+      let cityPart = job.location
+      if (foundProvince) {
+        cityPart = job.location.replace(foundProvince, '').replace(/^[,\s]+|[,\s]+$/g, '').trim()
+      } else {
+        cityPart = job.location.split(',')[0].trim()
+      }
+      
+      if (cityPart) cities.add(cityPart)
+    })
+    return Array.from(cities).sort()
+  }, [jobs, locationQuery])
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
@@ -134,10 +159,17 @@ export default function JobBoard() {
   const clearFilters = () => {
     setSearchQuery('')
     setLocationQuery('')
+    setCityQuery('')
     setSelectedPositions([])
     setSelectedLocations([])
     setExpandedCategory(null)
+    setVisibleCount(5)
   }
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setVisibleCount(5)
+  }, [searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
 
   // Filter Jobs
   const filteredJobs = React.useMemo(() => {
@@ -149,6 +181,9 @@ export default function JobBoard() {
       
       // 2. Bar Search (Input Province)
       const matchBarLocation = !locationQuery || (job.location?.toLowerCase() || '').includes(locationQuery.toLowerCase())
+      
+      // 2.b Bar Search (Input City)
+      const matchCity = !cityQuery || (job.location?.toLowerCase() || '').includes(cityQuery.toLowerCase())
       
       // 3. Sidebar Multi-Location
       const matchSidebarLocation = selectedLocations.length === 0 || 
@@ -164,7 +199,7 @@ export default function JobBoard() {
                               return jobTitle.includes(lowerPos) || jobKeywords.includes(lowerPos)
                             })
 
-      return matchSearch && matchBarLocation && matchSidebarLocation && matchPosition
+      return matchSearch && matchBarLocation && matchCity && matchSidebarLocation && matchPosition
     }).sort((a, b) => {
       if (sortBy === 'Más recientes') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -219,11 +254,12 @@ export default function JobBoard() {
             />
           </div>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <Popover>
+            <Popover open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   role="combobox"
+                  aria-expanded={isProvinceOpen}
                   className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
                 >
                   <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
@@ -240,7 +276,11 @@ export default function JobBoard() {
                     <CommandEmpty>No se encontró la provincia.</CommandEmpty>
                     <CommandGroup>
                       <CommandItem
-                        onSelect={() => setLocationQuery('')}
+                        onSelect={() => {
+                          setLocationQuery('')
+                          setCityQuery('')
+                          setIsProvinceOpen(false)
+                        }}
                         className="font-bold text-primary"
                       >
                         <Check
@@ -257,6 +297,7 @@ export default function JobBoard() {
                           value={province}
                           onSelect={(currentValue) => {
                             setLocationQuery(currentValue === locationQuery ? "" : currentValue)
+                            setIsProvinceOpen(false)
                           }}
                         >
                           <Check
@@ -266,6 +307,68 @@ export default function JobBoard() {
                             )}
                           />
                           {province}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
+            <Popover open={isCityOpen} onOpenChange={setIsCityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  role="combobox"
+                  aria-expanded={isCityOpen}
+                  className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
+                  disabled={availableCities.length === 0}
+                >
+                  <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {cityQuery || (availableCities.length === 0 && locationQuery ? "No hay ciudades" : "Ciudad...")}
+                  </span>
+                  <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar ciudad..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontró la ciudad.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => {
+                          setCityQuery('')
+                          setIsCityOpen(false)
+                        }}
+                        className="font-bold text-primary"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            cityQuery === '' ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Todas las ciudades
+                      </CommandItem>
+                      {availableCities.map((city) => (
+                        <CommandItem
+                          key={city}
+                          value={city}
+                          onSelect={(currentValue) => {
+                            setCityQuery(currentValue === cityQuery ? "" : currentValue)
+                            setIsCityOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              cityQuery === city ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {city}
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -386,7 +489,7 @@ export default function JobBoard() {
                 </Button>
               </div>
             ) : (
-              filteredJobs.map((job) => (
+              filteredJobs.slice(0, visibleCount).map((job) => (
                 <Link href={`/jobs/${job.id}`} key={job.id} className="block group">
                   <div className={`p-6 sm:p-8 rounded-3xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative bg-card ${
                     job.is_featured ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' : 'border-border/50 hover:border-border'
@@ -459,10 +562,15 @@ export default function JobBoard() {
             )}
           </div>
           
-          {!loading && filteredJobs.length >= 5 && (
+          {!loading && filteredJobs.length > visibleCount && (
             <div className="pt-10 flex justify-center">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted">
-                Cargar más resultados
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => setVisibleCount(prev => prev + 5)}
+                className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted"
+              >
+                Cargar más resultados ({filteredJobs.length - visibleCount} restantes)
               </Button>
             </div>
           )}

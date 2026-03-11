@@ -8,9 +8,12 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
+import { useAuth } from '@/components/providers/auth-provider'
+
 export function NotificationList({ initialNotifications }: { initialNotifications: any[] }) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const supabase = createClient()
+  const { user } = useAuth()
 
   const hasUnread = notifications?.some(n => !n.is_read)
 
@@ -57,7 +60,6 @@ export function NotificationList({ initialNotifications }: { initialNotification
     setNotifications([])
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast.error('No se pudo verificar tu sesión')
         setNotifications(currentNotifications)
@@ -146,7 +148,7 @@ export function NotificationList({ initialNotifications }: { initialNotification
 
                 {/* Foreground Card */}
                 <motion.div 
-                  className={`relative z-10 p-6 sm:p-8 rounded-[2rem] border flex flex-col sm:flex-row gap-5 sm:gap-6 cursor-pointer hover:-translate-y-1 w-full ${isUnread ? 'bg-background shadow-lg border-primary/30 ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}
+                  className={`relative z-10 p-6 sm:p-8 rounded-[2rem] border flex flex-col sm:flex-row gap-5 sm:gap-6 cursor-pointer hover:-translate-y-1 w-full ${isUnread ? 'bg-background shadow-lg border-primary/40 border-l-4 border-l-primary ring-1 ring-primary/10' : 'bg-card border-border/50 hover:border-border shadow-sm'}`}
                   whileDrag={{ scale: 0.98, cursor: 'grabbing' }}
                   dragSnapToOrigin={true}
                 >

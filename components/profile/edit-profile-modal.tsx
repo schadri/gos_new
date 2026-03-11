@@ -85,7 +85,7 @@ export function EditProfileModal({
 
       if (!user) throw new Error('No estás autenticado')
 
-      const { error } = await supabase.from('profiles').update({
+      const { error } = await (supabase.from('profiles') as any).update({
         full_name: fullName,
         profile_photo: photoUrl?.split('?')[0],
         cv_url: cvUrl?.split('?')[0],
@@ -96,7 +96,7 @@ export function EditProfileModal({
         longitude: longitude,
         search_radius: radius,
         is_active: isActive,
-      } as any).eq('id', user.id)
+      }).eq('id', user.id)
 
       if (error) throw error
 
@@ -127,10 +127,13 @@ export function EditProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col" : "sm:max-w-[500px]"}>
+      <DialogContent 
+        className={viewingCv ? "w-[95vw] max-w-[95vw] sm:max-w-[800px] sm:w-full h-[80vh] flex flex-col overflow-x-hidden p-4 sm:p-6" : "w-[95vw] max-w-[95vw] sm:max-w-[500px] sm:w-full overflow-x-hidden p-4 sm:p-6"}
+      >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         {viewingCv ? (
           <>
-            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-6 border-b">
+            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-4 sm:p-6 border-b">
               <Button variant="ghost" size="icon" onClick={() => setViewingCv(false)} className="rounded-full hover:bg-primary/10 transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -177,7 +180,7 @@ export function EditProfileModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 custom-scrollbar">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 md:px-4 custom-scrollbar">
               <div className="grid gap-2">
                 <Label htmlFor="fullName" className="font-semibold">Nombre Completo</Label>
                 <Input 

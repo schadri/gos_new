@@ -117,7 +117,10 @@ export function EditEmployerProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent 
+        className="w-[95vw] max-w-[95vw] sm:max-w-[500px] sm:w-full overflow-x-hidden p-4 sm:p-6"
+      >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Editar Perfil de Empresa</DialogTitle>
           <DialogDescription>
@@ -125,7 +128,7 @@ export function EditEmployerProfileModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 md:px-4 custom-scrollbar">
           <div className="w-32 h-32 bg-muted rounded-2xl border border-border shadow-sm mb-4 mx-auto flex items-center justify-center overflow-hidden">
             {companyLogo ? (
               <img src={getAvatarUrl(companyLogo) || undefined} alt="Logo Preview" className="w-full h-full object-cover" />

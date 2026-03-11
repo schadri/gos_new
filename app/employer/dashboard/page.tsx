@@ -79,7 +79,7 @@ export default async function EmployerDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12">
         {dynamicMetrics.map((item, i) => (
-          <div key={i} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+          <div key={i} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm dark:shadow-none hover:shadow-md hover:-translate-y-1 transition-all">
             <div className={`p-3 rounded-2xl w-fit ${item.bg} mb-4`}>
               <item.icon className={`h-6 w-6 ${item.color}`} />
             </div>
@@ -107,7 +107,7 @@ export default async function EmployerDashboard() {
               </div>
             ) : (
               activeJobs.map(job => (
-                <div key={job.id} className="group relative bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all overflow-hidden">
+                <div key={job.id} className="group relative bg-card p-6 rounded-3xl border border-border/50 shadow-sm dark:shadow-none hover:shadow-md hover:border-primary/30 transition-all overflow-hidden">
                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -157,17 +157,6 @@ export default async function EmployerDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-primary/5 p-8 rounded-3xl border border-primary/15 shadow-sm text-center">
-            <div className="mx-auto w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-lg border border-primary/20 mb-6">
-              <TrendingUp className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Impulsa tus ofertas</h3>
-            <p className="text-muted-foreground font-medium mb-6 text-sm">
-              Destaca tus publicaciones para aparecer primero en las búsquedas y notificar a los mejores candidatos al instante.
-            </p>
-            <Button className="w-full h-12 rounded-xl font-bold shadow-md hover:shadow-lg transition-shadow">Destacar una Oferta</Button>
-          </div>
-
           <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm">
             <h3 className="text-lg font-bold mb-4">Actividad Reciente</h3>
             <div className="space-y-4">

@@ -68,7 +68,7 @@ export default async function RootLayout({
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background ${isTalent ? 'talent-theme' : ''}`}>
+      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background overflow-x-hidden ${isTalent ? 'talent-theme' : ''}`}>
         <Providers>
           {user && <RealtimeNotifications userId={user.id} />}
           <Navbar />

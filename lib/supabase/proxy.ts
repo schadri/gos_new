@@ -10,6 +10,7 @@ const protectedPaths = [
   '/chat',
   '/interviews',
   '/notifications',
+  '/admin',
 ]
 
 export async function updateSession(request: NextRequest) {

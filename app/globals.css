@@ -88,12 +88,20 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -129,19 +137,19 @@
   }
 
   .glow-primary {
-    box-shadow: 0 0 20px -5px oklch(0.488 0.122 195.45 / 0.3);
+    box-shadow: 0 0 20px -5px #0d94884d;
   }
 
   .glow-secondary {
-    box-shadow: 0 0 20px -5px oklch(0.645 0.165 45.45 / 0.3);
+    box-shadow: 0 0 20px -5px #f973164d;
   }
 
   .text-glow-primary {
-    text-shadow: 0 0 12px oklch(0.488 0.122 195.45 / 0.4);
+    text-shadow: 0 0 12px #0d948866;
   }
 
   .text-glow-secondary {
-    text-shadow: 0 0 12px oklch(0.645 0.165 45.45 / 0.4);
+    text-shadow: 0 0 12px #f9731666;
   }
 
   .animate-brand-flash {

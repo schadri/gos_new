@@ -50,7 +50,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { deleteUserAction, toggleUserBanAction, resetUserPasswordAction } from '@/app/actions/admin-users'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+type Profile = Database['public']['Tables']['profiles']['Row'] & { email?: string }
 
 interface AdminUsersTableProps {
   initialUsers: Profile[]
@@ -71,6 +71,7 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
       const matchesSearch = 
         (user.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
         (user.company_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
         user.id.toLowerCase().includes(searchQuery.toLowerCase())
       
       const matchesFilter = filterType === 'ALL' || user.user_type === filterType
@@ -212,6 +213,7 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
               <thead>
                 <tr className="bg-muted/10">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b">Usuario</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b">Email</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b">Tipo</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b">Ubicación</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b text-right">Acciones</th>
@@ -246,6 +248,11 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                             <p className="text-[10px] text-muted-foreground mt-1">ID: {profile.id.slice(0, 8)}...</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-medium text-muted-foreground truncate max-w-[180px]">
+                          {profile.email || 'N/A'}
+                        </p>
                       </td>
                       <td className="px-6 py-4">
                         <Badge className={profile.user_type === 'BUSINESS' ? 'bg-green-500/10 text-green-700 hover:bg-green-500/20 border-green-500/20' : 'bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 border-orange-500/20'}>
@@ -314,6 +321,13 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                       <div className="overflow-hidden">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase leading-none mb-1">ID Único (UUID)</p>
                         <p className="text-[11px] font-mono font-bold truncate">{selectedUser.id}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 border">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <div className="overflow-hidden">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase leading-none mb-1">Email Principal</p>
+                        <p className="text-sm font-semibold truncate">{selectedUser.email || 'No disponible'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 border">

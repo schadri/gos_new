@@ -147,17 +147,18 @@
   .animate-brand-flash {
     background-clip: text;
     -webkit-background-clip: text;
-    animation: brand-flash-loop 2s infinite;
+    animation: brand-flash-smooth 4s ease-in-out infinite;
+    display: inline-block;
   }
 
-  @keyframes brand-flash-loop {
-    0%, 48% { 
+  @keyframes brand-flash-smooth {
+    0%, 100% { 
       color: var(--secondary);
-      text-shadow: 0 0 20px oklch(0.645 0.165 45.45 / 0.5);
+      filter: drop-shadow(0 0 15px color-mix(in oklch, var(--secondary), transparent 40%));
     }
-    50%, 98% { 
+    50% { 
       color: var(--primary); 
-      text-shadow: 0 0 20px oklch(0.488 0.122 195.45 / 0.5);
+      filter: drop-shadow(0 0 15px color-mix(in oklch, var(--primary), transparent 40%));
     }
   }
 }

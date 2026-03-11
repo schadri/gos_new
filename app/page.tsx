@@ -68,12 +68,12 @@ export default async function Home() {
             <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl pt-8">
               {/* TALENT CARD */}
               <div 
-                className="group relative flex flex-col items-center p-8 md:p-12 bg-background/40 backdrop-blur-xl rounded-[40px] border-2 border-border/50 hover:border-secondary/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(249,115,22,0.2)]"
+                className="group relative flex flex-col items-center p-8 md:p-12 bg-background/40 backdrop-blur-xl rounded-[40px] border-2 border-border/50 hover:border-secondary/50 active:border-secondary/50 transition-all duration-500 hover:-translate-y-2 active:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(249,115,22,0.2)] active:shadow-[0_20px_50px_-12px_rgba(249,115,22,0.2)]"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity" />
                 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="p-6 rounded-3xl bg-secondary/10 text-secondary mb-6 group-hover:scale-110 group-hover:bg-secondary group-hover:text-white transition-all shadow-xl shadow-secondary/20 glow-secondary">
+                  <div className="p-6 rounded-3xl bg-secondary/10 text-secondary mb-6 group-hover:scale-110 group-active:scale-110 group-hover:bg-secondary group-active:bg-secondary group-hover:text-white group-active:text-white transition-all shadow-xl shadow-secondary/20 glow-secondary">
                     <LogoGOS className="h-16 w-16" />
                   </div>
                   <h3 className="text-3xl font-black mb-3 text-foreground tracking-tight">Soy Postulante</h3>
@@ -87,12 +87,12 @@ export default async function Home() {
 
               {/* EMPLOYER CARD */}
               <div 
-                className="group relative flex flex-col items-center p-8 md:p-12 bg-background/40 backdrop-blur-xl rounded-[40px] border-2 border-border/50 hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(13,148,136,0.2)]"
+                className="group relative flex flex-col items-center p-8 md:p-12 bg-background/40 backdrop-blur-xl rounded-[40px] border-2 border-border/50 hover:border-primary/50 active:border-primary/50 transition-all duration-500 hover:-translate-y-2 active:-translate-y-2 hover:shadow-[0_20px_50px_-12px_rgba(13,148,136,0.2)] active:shadow-[0_20px_50px_-12px_rgba(13,148,136,0.2)]"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity" />
 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="p-6 rounded-3xl bg-primary/10 text-primary mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-xl shadow-primary/20 glow-primary">
+                  <div className="p-6 rounded-3xl bg-primary/10 text-primary mb-6 group-hover:scale-110 group-active:scale-110 group-hover:bg-primary group-active:bg-primary group-hover:text-white group-active:text-white transition-all shadow-xl shadow-primary/20 glow-primary">
                     <LogoGOS className="h-16 w-16" />
                   </div>
                   <h3 className="text-3xl font-black mb-3 text-foreground tracking-tight">Soy Emprendedor</h3>

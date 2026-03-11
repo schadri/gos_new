@@ -145,20 +145,19 @@
   }
 
   .animate-brand-flash {
-    background: linear-gradient(
-      to right, 
-      var(--primary) 20%, 
-      #ffffff 40%, 
-      #ffffff 60%, 
-      var(--secondary) 80%
-    );
-    background-size: 200% auto;
     background-clip: text;
     -webkit-background-clip: text;
-    animation: shine 3s linear infinite;
+    animation: brand-flash-loop 2s infinite;
   }
 
-  @keyframes shine {
-    to { background-position: 200% center; }
+  @keyframes brand-flash-loop {
+    0%, 48% { 
+      color: var(--secondary);
+      text-shadow: 0 0 20px oklch(0.645 0.165 45.45 / 0.5);
+    }
+    50%, 98% { 
+      color: var(--primary); 
+      text-shadow: 0 0 20px oklch(0.488 0.122 195.45 / 0.5);
+    }
   }
 }

@@ -2,7 +2,8 @@
 'use client'
 
 import * as React from 'react'
-import { Briefcase, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { LogoGOS } from '@/components/logo-gos'
 
 export function RedirectLoading() {
   return (
@@ -15,7 +16,7 @@ export function RedirectLoading() {
         
         {/* Brand Icon */}
         <div className="relative mb-8 p-6 bg-card border border-border/50 rounded-3xl shadow-2xl shadow-primary/10 group">
-          <Briefcase className="h-10 w-10 text-primary animate-bounce duration-[2000ms]" />
+          <LogoGOS className="h-10 w-10 text-primary animate-bounce duration-[2000ms]" />
         </div>
         
         {/* Loading text with shimmer */}

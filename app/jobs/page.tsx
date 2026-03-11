@@ -4,6 +4,8 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Database } from '@/types/supabase'
 import { getAvatarUrl } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -41,6 +43,7 @@ type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
 
 
 export default function JobBoard() {
+  const router = useRouter()
   const [jobs, setJobs] = React.useState<JobWithProfile[]>([])
   const [loading, setLoading] = React.useState(true)
   const [visibleCount, setVisibleCount] = React.useState(5)
@@ -54,6 +57,7 @@ export default function JobBoard() {
   
   // Extract unique available cities from active jobs based on selected province
   const availableCities = React.useMemo(() => {
+    if (!locationQuery) return []
     const cities = new Set<string>()
     jobs.forEach(job => {
       if (!job.location) return
@@ -86,6 +90,39 @@ export default function JobBoard() {
         const supabase = createClient()
         if (!supabase) return
 
+        // 0. Check User Type and Profile Completeness
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          const { data: profile } = await (supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle() as any)
+
+          // If user is TALENT, check for completeness
+          if (profile?.user_type === 'TALENT') {
+            const isIncomplete = !profile.full_name || 
+                                 !profile.location || 
+                                 !profile.profile_photo || 
+                                 !profile.cv_url || 
+                                 (!profile.position || profile.position.length === 0)
+
+            if (isIncomplete) {
+              console.log('JobBoard: Profile incomplete, redirecting to registration...')
+              toast.info('Completa tu perfil para acceder a la bolsa de empleo', {
+                description: 'Necesitamos tu nombre, ubicación, foto, CV y puestos de interés.',
+                duration: 5000
+              })
+              router.push('/talent/register')
+              return
+            }
+          } else if (profile?.user_type === 'BUSINESS') {
+             // Employers shouldn't be browsing /jobs either, they should be in dashboard but we let them for now 
+             // unless user asked otherwise.
+          }
+        }
+
         // 1. Fetch active jobs
         const { data: jobsData, error: jobsError } = await (supabase
           .from('jobs')
@@ -111,7 +148,6 @@ export default function JobBoard() {
         }
 
         // 3. Fetch current user's applications
-        const { data: { user } } = await supabase.auth.getUser()
         let userApplications: any[] = []
         if (user) {
           const { data: appsData } = await supabase
@@ -244,15 +280,7 @@ export default function JobBoard() {
         </div>
         
         <div className="bg-card border border-border/60 p-4 rounded-3xl flex flex-col md:flex-row gap-3 shadow-lg shadow-background/5">
-          <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <Search className="absolute left-4 h-5 w-5 text-muted-foreground" />
-            <Input 
-              placeholder="Puesto, habilidades o empresa..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 shadow-none rounded-2xl bg-transparent font-medium text-base"
-            />
-          </div>
+          
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
             <Popover open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
               <PopoverTrigger asChild>
@@ -323,7 +351,7 @@ export default function JobBoard() {
                   role="combobox"
                   aria-expanded={isCityOpen}
                   className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
-                  disabled={availableCities.length === 0}
+                  disabled={!locationQuery || availableCities.length === 0}
                 >
                   <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
                   <span className="truncate">

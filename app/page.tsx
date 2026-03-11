@@ -74,8 +74,8 @@ export default async function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="p-5 rounded-3xl bg-secondary/20 text-secondary mb-6 group-hover:scale-110 group-hover:bg-secondary group-hover:text-white transition-all shadow-xl shadow-secondary/20 glow-secondary">
-                    <LogoGOS className="h-10 w-10" />
+                  <div className="p-6 rounded-3xl bg-secondary/10 text-secondary mb-6 group-hover:scale-110 group-hover:bg-secondary group-hover:text-white transition-all shadow-xl shadow-secondary/20 glow-secondary">
+                    <LogoGOS className="h-12 w-12" />
                   </div>
                   <h3 className="text-3xl font-black mb-3 text-foreground tracking-tight">Soy Postulante</h3>
                   <p className="text-muted-foreground font-semibold mb-8">Busco mi próximo desafío en gastronomía u hotelería</p>
@@ -94,8 +94,8 @@ export default async function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity" />
 
                 <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="p-5 rounded-3xl bg-primary/20 text-primary mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-xl shadow-primary/20 glow-primary">
-                    <LogoGOS className="h-10 w-10" />
+                  <div className="p-6 rounded-3xl bg-primary/10 text-primary mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-xl shadow-primary/20 glow-primary">
+                    <LogoGOS className="h-12 w-12" />
                   </div>
                   <h3 className="text-3xl font-black mb-3 text-foreground tracking-tight">Soy Emprendedor</h3>
                   <p className="text-muted-foreground font-semibold mb-8">Busco el mejor talento para elevar mi equipo</p>

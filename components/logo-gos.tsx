@@ -5,8 +5,8 @@ export const LogoGOS = ({ className }: { className?: string }) => (
     className={className}
     /* El secreto de la nitidez: */
     style={{ 
-      shapeRendering: 'geometricPrecision',
-      overflow: 'visible' 
+      shapeRendering: 'auto',
+      overflow: 'visible'
     }}
   >
     <g 

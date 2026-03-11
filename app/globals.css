@@ -89,7 +89,6 @@
 }
 
 html {
-  overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
 }
@@ -101,6 +100,8 @@ html {
   body {
     @apply bg-background text-foreground overflow-x-hidden;
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 }
 

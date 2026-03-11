@@ -32,7 +32,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen relative bg-mesh overflow-x-hidden">
+    <div className="relative w-full bg-mesh">
       <RoleRedirector />
       
       {/* Decorative Orbs - Using brand colors for "Intensity" */}
@@ -49,20 +49,20 @@ export default async function Home() {
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-foreground drop-shadow-sm leading-[1.1]">
                 Bienvenidos a <br />
-                <span className="text-transparent bg-clip-text animate-brand-flash pr-4">GOS</span>
+                <span className="text-primary">GOS</span>
               </h1>
               
               {/* Badge */}
-              <div className="inline-flex items-center rounded-full border border-secondary/40 bg-secondary/20 px-6 py-2 text-sm font-bold text-secondary shadow-lg shadow-secondary/10 animate-in slide-in-from-top-4 duration-700 mx-auto">
+              <div className="inline-flex items-center rounded-full border border-primary/40 bg-primary/20 px-6 py-2 text-sm font-bold text-primary shadow-lg shadow-primary/10 animate-in slide-in-from-top-4 duration-700 mx-auto">
                 <span className="relative flex h-2.5 w-2.5 mr-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
                 </span>
                 LA BOLSA DE TRABAJO #1 
               </div>
 
               <p className="mx-auto max-w-[800px] text-muted-foreground text-xl md:text-2xl font-semibold leading-relaxed">
-                La Comunidad Hotelero Gastronomica <br className="hidden md:block"/> mas grande de Argentina
+                La Comunidad Hotelero Gastronomica de Argentina
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl pt-8">

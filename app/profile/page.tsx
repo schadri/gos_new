@@ -162,9 +162,12 @@ export default async function TalentProfile() {
           <div className="flex-1 space-y-2">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{fullName}</h1>
-              <p className="text-muted-foreground font-medium mt-0.5 flex items-center justify-center sm:justify-start">
-                <MapPin className="h-4 w-4 mr-1 text-primary" /> {location}
-              </p>
+              <div className="text-muted-foreground font-medium mt-1 flex items-start justify-center sm:justify-start gap-1.5">
+                <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                <span className="max-w-[280px] sm:max-w-none text-sm sm:text-base leading-tight">
+                  {location}
+                </span>
+              </div>
             </div>
             
             <div className="pt-1">

@@ -44,6 +44,14 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer, isP
   }, [initialIsPaused])
 
   React.useEffect(() => {
+    const clearNotifs = async () => {
+      const { markChatNotificationsAsRead } = await import('@/app/actions/notifications')
+      await markChatNotificationsAsRead(chatId)
+    }
+    clearNotifs()
+  }, [chatId])
+
+  React.useEffect(() => {
     // Subscribe to chat status changes
     const chatChannel = supabase
       .channel(`chat_status_${chatId}`)

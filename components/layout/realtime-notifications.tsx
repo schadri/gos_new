@@ -21,9 +21,17 @@ export function RealtimeNotifications({ userId }: { userId: string }) {
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${userId}`
-      }, (payload) => {
+      }, async (payload) => {
         const notif = payload.new
         
+        // If user is already on the page the notification links to (e.g. active chat)
+        // skip the toast and just mark it as read immediately
+        if (pathname === notif.link_url) {
+          const { markAsRead } = await import('@/app/actions/notifications')
+          await markAsRead(notif.id)
+          return
+        }
+
         toast(notif.title, {
           description: notif.description,
           action: notif.link_url ? {

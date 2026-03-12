@@ -126,6 +126,26 @@ export async function markAsRead(notificationId: string) {
     return { success: true }
 }
 
+export async function markChatNotificationsAsRead(chatId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false }
+
+    const chatUrl = `/chat/${chatId}`
+
+    await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('type', 'message')
+        .eq('link_url', chatUrl)
+        .eq('is_read', false)
+
+    revalidatePath('/notifications')
+    return { success: true }
+}
+
 export async function markAllAsRead() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

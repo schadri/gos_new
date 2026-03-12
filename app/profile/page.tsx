@@ -137,7 +137,7 @@ export default async function TalentProfile() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column - Profile Summary */}
         <div className="md:col-span-1 space-y-6">
-          <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm text-center relative">
+          <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm relative overflow-hidden">
             <EditProfileModal 
               initialName={fullName}
               initialPhoto={photoPath}
@@ -151,27 +151,33 @@ export default async function TalentProfile() {
               initialIsActive={profile?.is_active ?? true}
             />
             
-            <div className="w-28 h-28 mx-auto bg-muted rounded-full border-4 border-background shadow-lg mb-6 flex items-center justify-center overflow-hidden">
-              <Avatar className="w-full h-full">
-                <AvatarImage src={photoUrl || ''} alt="Profile" className="object-cover" />
-                <AvatarFallback className="bg-muted">
-                  <User className="h-12 w-12 text-muted-foreground/50" />
-                </AvatarFallback>
-              </Avatar>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6 text-center sm:text-left relative z-10">
+              <div className="w-28 h-28 shrink-0 bg-muted rounded-full border-4 border-background shadow-lg flex items-center justify-center overflow-hidden">
+                <Avatar className="w-full h-full">
+                  <AvatarImage src={photoUrl || ''} alt="Profile" className="object-cover" />
+                  <AvatarFallback className="bg-muted">
+                    <User className="h-12 w-12 text-muted-foreground/50" />
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              
+              <div className="flex-1 space-y-3 pt-2">
+                <div>
+                  <h1 className="text-2xl font-extrabold tracking-tight">{fullName}</h1>
+                  <p className="text-muted-foreground font-medium mt-1 flex items-center justify-center sm:justify-start">
+                    <MapPin className="h-4 w-4 mr-1 text-primary" /> {location}
+                  </p>
+                </div>
+                
+                {profile?.is_active !== false ? (
+                  <Badge variant="secondary" className="px-3 py-1 bg-primary/10 text-primary border-transparent font-bold">Activamente buscando</Badge>
+                ) : (
+                  <Badge variant="secondary" className="px-3 py-1 bg-muted/50 text-muted-foreground border-transparent font-bold">No buscando empleo</Badge>
+                )}
+              </div>
             </div>
             
-            <h1 className="text-2xl font-extrabold tracking-tight">{fullName}</h1>
-            <p className="text-muted-foreground font-medium mt-1 mb-4 flex items-center justify-center">
-              <MapPin className="h-4 w-4 mr-1 text-primary" /> {location}
-            </p>
-            
-            {profile?.is_active !== false ? (
-              <Badge variant="secondary" className="px-3 py-1 bg-primary/10 text-primary border-transparent font-bold">Activamente buscando</Badge>
-            ) : (
-              <Badge variant="secondary" className="px-3 py-1 bg-muted/50 text-muted-foreground border-transparent font-bold">No buscando empleo</Badge>
-            )}
-            
-            <div className="mt-8 pt-6 border-t border-border/50 text-left">
+            <div className="pt-6 border-t border-border/50 text-left relative z-10">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-bold">Perfil completado</span>
                 <span className="text-sm font-bold text-primary">{completion}%</span>

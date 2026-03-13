@@ -28,29 +28,15 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { triggerMatchesForJob } from '@/app/actions/auto-match'
+import { POSITIONS } from '@/lib/constants/positions'
 
-const CATEGORY_ROLES: Record<string, string[]> = {
-  cocina: [
-     "Chef Ejecutivo", "Chef de Cocina", "Sous Chef",
-            "Cocinero", "Sushiman", "Pizzero", "Parrillero", "Pastelero",
-            "Panadero", "Ayudante de Cocina", "Bachero",
-  ],
-  salon: [
-    "Maitre","Sommelier", "Bartender", "Barman", "Barista", "Camarero",
-    "Mozo", "Capitán de Meseros", "Host/Hostess",
-    "Ayudante de Camarero", "Adicionista", "Room Service", "Banquetes"
-  ],
-  hotel: [
-    "Gerente de Hotel", "Recepcionista", "Recepcionista de Hotel",
-    "Recepcionista de Restaurant", "Jefe de Recepción", "Conserje", "Botones",
-    "Valet Parking", "Ama de Llaves", "Supervisor de Limpieza", "Limpieza de Restaurant"
-  ],
-  gerencia: [
-    "Gerente General", "Gerente de Restaurant", "Gerente de Restaurante",
-    "Gerente de Operaciones", "Gerente de Alimentos y Bebidas",
-    "Gerente Administrativo", "Subgerente", "Encargado de Almacén",
-    "Comprador", "Jefe de Mantenimiento", "Encargado de Mantenimiento", "Coordinador de Eventos"
-  ]
+const LEGACY_CATEGORY_MAP: Record<string, string> = {
+  'cocina': 'Cocina',
+  'salon': 'Servicio y Bebidas',
+  'hotel': 'Hotelería',
+  'gerencia': 'Gestión',
+  'limpieza': 'Limpieza y Mantenimiento',
+  'eventos': 'Eventos'
 }
 
 function PostJobForm() {
@@ -85,14 +71,15 @@ function PostJobForm() {
         if (data && !error) {
           const expValue = data.experience_required ? (data.experience_required.includes('años') ? data.experience_required : `${data.experience_required} años`) : ''
           
+          const dataAny = data as any;
           const loadedData = {
-            title: data.title || '',
-            description: data.description || '',
-            category: data.category || '',
-            contractType: data.contract_type || '',
+            title: dataAny.title || '',
+            description: dataAny.description || '',
+            category: LEGACY_CATEGORY_MAP[dataAny.category as string] || dataAny.category || '',
+            contractType: dataAny.contract_type || '',
             experience: expValue,
-            location: data.location || '',
-            keywords: data.keywords || []
+            location: dataAny.location || '',
+            keywords: dataAny.keywords || []
           }
           
           setTitle(loadedData.title)
@@ -314,10 +301,9 @@ function PostJobForm() {
                     <SelectValue placeholder="Seleccionar sector..." />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="cocina">Cocina</SelectItem>
-                    <SelectItem value="salon">Salón y Barras</SelectItem>
-                    <SelectItem value="hotel">Hotelería y Recepción</SelectItem>
-                    <SelectItem value="gerencia">Gerencia y Administración</SelectItem>
+                    {POSITIONS.map((group) => (
+                      <SelectItem key={group.category} value={group.category}>{group.category}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -329,7 +315,7 @@ function PostJobForm() {
                     <SelectValue placeholder={category ? "Seleccionar puesto..." : "Selecciona un sector primero"} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl max-h-80">
-                    {category && CATEGORY_ROLES[category]?.map(role => (
+                    {category && POSITIONS.find((p) => p.category === category)?.items.map((role) => (
                       <SelectItem key={role} value={role}>{role}</SelectItem>
                     ))}
                   </SelectContent>

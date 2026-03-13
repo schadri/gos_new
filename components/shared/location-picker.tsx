@@ -315,7 +315,7 @@ export function LocationPicker({
           <Slider
             value={[radius]}
             min={2}
-            max={25}
+            max={50}
             step={1}
             onValueChange={(vals) => onRadiusChange(vals[0])}
             showTooltip
@@ -323,7 +323,7 @@ export function LocationPicker({
           />
           <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
             <span>2 km</span>
-            <span>25 km</span>
+            <span>50 km</span>
           </div>
         </div>
       )}

@@ -48,7 +48,12 @@ export async function GET(request: Request) {
 
             if (profile) {
                 console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
-                finalRedirect = (profile as any).user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                // If we are in a recovery flow, let 'next' take precedence
+                if (next.includes('/reset-password')) {
+                    finalRedirect = next
+                } else {
+                    finalRedirect = (profile as any).user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                }
             } else {
                 console.log('Auth Callback: No profile found. Handling registration flow...')
                 if (next.includes('/employer/register')) {

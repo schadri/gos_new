@@ -113,6 +113,17 @@ export default function TalentRegistration() {
               max={2}
             />
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Foto de Perfil</Label>
+              <FileUpload value={photoUrl} onChange={setPhotoUrl} label="Subir foto de perfil" />
+            </div>
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Currículum Vitae</Label>
+              <FileUpload value={cvUrl} onChange={setCvUrl} accept=".pdf,.doc,.docx" label="Subir CV" />
+              <span className="text-sm text-muted-foreground italic">Recomendaciones: Formato PDF de 1 sola página.</span>
+            </div>
+          </div>
 
           <div className="grid gap-3 w-full">
             <LocationPicker 
@@ -144,17 +155,7 @@ export default function TalentRegistration() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Foto de Perfil</Label>
-              <FileUpload value={photoUrl} onChange={setPhotoUrl} label="Subir foto de perfil" />
-            </div>
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Currículum Vitae</Label>
-              <FileUpload value={cvUrl} onChange={setCvUrl} accept=".pdf,.doc,.docx" label="Subir CV" />
-              <span className="text-sm text-muted-foreground italic">Recomendaciones: Formato PDF de 1 sola página.</span>
-            </div>
-          </div>
+          
 
           <Button 
             onClick={handleSaveProfile} 

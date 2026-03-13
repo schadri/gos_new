@@ -31,13 +31,13 @@ import { triggerMatchesForJob } from '@/app/actions/auto-match'
 
 const CATEGORY_ROLES: Record<string, string[]> = {
   cocina: [
-    "Chef Ejecutivo", "Chef de Cocina", "Sous Chef", "Chef de Partie",
-    "Cocinero", "Sushiman", "Pizzero", "Parrillero", "Pastelero",
-    "Panadero", "Ayudante de Cocina", "Bachero", "Steward", "Lavaplatos"
+     "Chef Ejecutivo", "Chef de Cocina", "Sous Chef",
+            "Cocinero", "Sushiman", "Pizzero", "Parrillero", "Pastelero",
+            "Panadero", "Ayudante de Cocina", "Bachero",
   ],
   salon: [
-    "Sommelier", "Bartender", "Barman", "Barista", "Camarero",
-    "Mozo", "Capitán de Meseros", "Maitre", "Host/Hostess",
+    "Maitre","Sommelier", "Bartender", "Barman", "Barista", "Camarero",
+    "Mozo", "Capitán de Meseros", "Host/Hostess",
     "Ayudante de Camarero", "Adicionista", "Room Service", "Banquetes"
   ],
   hotel: [

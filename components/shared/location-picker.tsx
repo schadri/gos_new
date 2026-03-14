@@ -127,6 +127,37 @@ export function LocationPicker({
     }
   }
 
+  const parseAddressAndUpdate = (addr: any, lat: number, lon: number) => {
+    if (onCoordinatesChange) {
+      onCoordinatesChange(lat, lon)
+    }
+
+    const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || ""
+    const city = addr.city || addr.town || addr.village || ""
+    const province = addr.state || ""
+    
+    let matchedProvince = ""
+    if (province) {
+      if (province.includes("Autónoma de Buenos Aires") || province.includes("Capital Federal")) {
+        matchedProvince = "Capital Federal (CABA)"
+      } else {
+        matchedProvince = PROVINCES.find(p => 
+          province.toLowerCase().includes(p.toLowerCase()) || 
+          p.toLowerCase().includes(province.toLowerCase())
+        ) || ""
+      }
+    }
+    
+    let detailParts = [neighborhood, city].filter(Boolean)
+    if (matchedProvince) {
+       const cleanProvince = matchedProvince.split('(')[0].trim().toLowerCase()
+       detailParts = detailParts.filter(p => !p.toLowerCase().includes(cleanProvince))
+    }
+
+    const detailedAddr = detailParts.join(", ")
+    updateLocation(matchedProvince || selectedProvince, detailedAddr)
+  }
+
   // Function to get current location
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -137,16 +168,11 @@ export function LocationPicker({
     setIsLocating(true)
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords
+        const { latitude: lat, longitude: lon } = position.coords
         
-        if (onCoordinatesChange) {
-          onCoordinatesChange(latitude, longitude)
-        }
-
         try {
-          // Reverse geocoding using Nominatim (OSM) - Free and no key required
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
             {
               headers: {
                 'Accept-Language': 'es'
@@ -156,41 +182,15 @@ export function LocationPicker({
           const data = await response.json()
           
           if (data && data.address) {
-            const addr = data.address
-            // Potential location components in order of preference
-            const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || ""
-            const city = addr.city || addr.town || addr.village || ""
-            const province = addr.state || ""
-            
-            let matchedProvince = ""
-            if (province) {
-              // Special mapping for CABA and general province mapping
-              if (province.includes("Autónoma de Buenos Aires") || province.includes("Capital Federal")) {
-                matchedProvince = "Capital Federal (CABA)"
-              } else {
-                matchedProvince = PROVINCES.find(p => 
-                  province.toLowerCase().includes(p.toLowerCase()) || 
-                  p.toLowerCase().includes(province.toLowerCase())
-                ) || ""
-              }
-              
-              if (matchedProvince) setSelectedProvince(matchedProvince)
-            }
-            
-            // Build detail parts: Focus on Neighborhood and City, avoid redundant province names
-            let detailParts = [neighborhood, city].filter(Boolean)
-            
-            if (matchedProvince) {
-               const cleanProvince = matchedProvince.split('(')[0].trim().toLowerCase()
-               detailParts = detailParts.filter(p => !p.toLowerCase().includes(cleanProvince))
-            }
-
-            const detailedAddr = detailParts.join(", ")
-            updateLocation(matchedProvince || selectedProvince, detailedAddr)
+            parseAddressAndUpdate(data.address, lat, lon)
+          } else {
+            if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+            updateLocation(selectedProvince, `${lat.toFixed(4)}, ${lon.toFixed(4)}`)
           }
         } catch (error) {
           console.error("Error reverse geocoding:", error)
-          updateLocation(selectedProvince, `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+          if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+          updateLocation(selectedProvince, `${lat.toFixed(4)}, ${lon.toFixed(4)}`)
         } finally {
           setIsLocating(false)
         }
@@ -204,26 +204,45 @@ export function LocationPicker({
     )
   }
 
+  const handleSearchLocation = async () => {
+    if (!detail && !selectedProvince) return;
+    
+    setIsLocating(true)
+    try {
+      const queryParams = [detail, selectedProvince, "Argentina"].filter(Boolean).join(", ")
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryParams)}&limit=1&addressdetails=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      )
+      const data = await response.json()
+      
+      if (data && data.length > 0) {
+        const item = data[0]
+        const lat = parseFloat(item.lat)
+        const lon = parseFloat(item.lon)
+        if (item.address) {
+          parseAddressAndUpdate(item.address, lat, lon)
+        } else {
+          updateLocation(selectedProvince, detail)
+          if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+        }
+      } else {
+        alert("No se encontró la ubicación ingresada en el mapa. Intenta ser más específico.")
+      }
+    } catch (error) {
+      console.error("Error validando ubicación:", error)
+      alert("Error al validar la ubicación.")
+    } finally {
+      setIsLocating(false)
+    }
+  }
+
   // We removed the automatic effect that calls onChange to avoid loops.
   // Instead, we use updateLocation in the handlers.
   
-  // However, we still need to handle changes to the Input detail field
-  // We'll use a separate effect for that OR just handle it in the onChange of the Input.
-  // Let's use an effect but with a check against the prop value to avoid the loop.
-  React.useEffect(() => {
-    // Sanitize detail before combining
-    const cleanDetail = detail 
-      ? detail.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').trim() 
-      : ''
-      
-    const combined = [cleanDetail, selectedProvince]
-      .filter(Boolean)
-      .join(', ')
-    
-    if (combined !== value) {
-      onChange(combined)
-    }
-  }, [selectedProvince, detail])
+  // Note: We removed the auto-sync useEffect on [selectedProvince, detail].
+  // Now, the user MUST press Enter (or select province) to trigger updateLocation, 
+  // ensuring the typed text is validated against the map before being saved.
 
   return (
     <div className="space-y-4 w-full">
@@ -255,7 +274,8 @@ export function LocationPicker({
                         key={province}
                         value={province}
                         onSelect={(currentValue) => {
-                          setSelectedProvince(currentValue === selectedProvince ? "" : currentValue)
+                          const newProv = currentValue === selectedProvince ? "" : province
+                          updateLocation(newProv, detail)
                           setOpen(false)
                         }}
                       >
@@ -280,12 +300,29 @@ export function LocationPicker({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Localidad / Barrio" 
+                placeholder="Localidad / Barrio (Ej: Belgrano)" 
                 className="pl-9 h-12 bg-muted/40 border-muted text-md"
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSearchLocation()
+                  }
+                }}
               />
             </div>
+            <Button 
+              type="button" 
+              variant="default" 
+              size="icon" 
+              className="h-12 w-12 shrink-0 shadow-sm"
+              onClick={handleSearchLocation}
+              disabled={isLocating}
+              title="Buscar ubicación"
+            >
+              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+            </Button>
             <Button 
               type="button" 
               variant="outline" 
@@ -295,7 +332,7 @@ export function LocationPicker({
               disabled={isLocating}
               title="Obtener ubicación actual"
             >
-              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <MapPin className="h-5 w-5" />}
+              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
             </Button>
           </div>
         </div>

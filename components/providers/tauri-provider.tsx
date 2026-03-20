@@ -5,6 +5,8 @@ import { isTauri } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 
 export function TauriProvider({ children }: { children: React.ReactNode }) {
+  const handledUrlRef = React.useRef<string | null>(null)
+
   React.useEffect(() => {
     if (!isTauri()) return
 
@@ -26,12 +28,23 @@ export function TauriProvider({ children }: { children: React.ReactNode }) {
       }
 
       const handleUrl = (url: string) => {
+        // Debounce: Avoid handling the exact same URL twice (e.g., from multiple listeners)
+        if (handledUrlRef.current === url) return
+        
         if (url.startsWith('gos://auth/callback')) {
+          // If already on the callback page, do not redirect again to avoid loop
+          if (window.location.pathname.startsWith('/auth/callback')) {
+            console.log('[Tauri] Already on callback page, ignoring deep link to avoid reload loop.')
+            return
+          }
+
+          console.log('[Tauri] Debounced Redirect to auth callback:', url)
+          handledUrlRef.current = url
           window.location.href = `/auth/callback-client${new URL(url).search}`
         }
       }
 
-      // 0. Custom Event Listener (Backup from Rust emit)
+      // 0. Custom Event Listener (Backup from Rust emit in single-instance)
       const unlistenEvent = listen<string[]>('deep-link-received', (event) => {
         console.log('[Tauri] Custom Deep Link Event received:', event.payload)
         event.payload.forEach(handleUrl)

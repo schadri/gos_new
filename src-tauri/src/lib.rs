@@ -12,7 +12,20 @@ pub fn run() {
     .plugin(tauri_plugin_opener::init())
     .plugin(tauri_plugin_deep_link::init())
     .plugin(tauri_plugin_notification::init())
-    .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
+    .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+        // Forward any gos:// URL from args to the frontend
+        for arg in &args {
+            if arg.starts_with("gos://") {
+                println!("Single instance: forwarding URL to frontend: {}", arg);
+                let _ = app.emit("deep-link-received", vec![arg.clone()]);
+            }
+        }
+        // Show the existing window
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.show();
+            let _ = window.set_focus();
+        }
+    }))
     .setup(|app| {
       #[cfg(desktop)]
       {

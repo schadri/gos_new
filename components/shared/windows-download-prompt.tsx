@@ -33,7 +33,7 @@ export function WindowsDownloadPrompt() {
     sessionStorage.setItem('dismiss-windows-download', 'true')
   }
 
-  const downloadUrl = '/gos_0.1.0_x64-setup.exe' // ACTUALIZADO CON LINK REAL
+  const downloadUrl = '/GOS_0.1.0_x64-setup.exe' // ACTUALIZADO CON LINK REAL
 
   return (
     <AnimatePresence>

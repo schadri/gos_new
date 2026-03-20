@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2 } from 'lucide-react'
@@ -10,6 +10,8 @@ export default function AuthCallbackClientPage() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const hasExchanged = useRef(false)
 
   useEffect(() => {
     const exchangeCode = async () => {
@@ -21,6 +23,13 @@ export default function AuthCallbackClientPage() {
         setErrorMessage('No code found in URL')
         return
       }
+
+      if (hasExchanged.current) {
+        console.log('[AuthCallback] Exchange already in progress or completed, skipping...')
+        return
+      }
+      
+      hasExchanged.current = true
 
       const supabase = createClient()
       

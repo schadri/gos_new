@@ -1,11 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "gos",
-  "version": "0.1.0",
+  "productName": "GOS",
+  "version": "1.0.0",
   "identifier": "com.gos.app",
   "build": {
     "frontendDist": "https://www.goscentral.online",
-    "devUrl": "http://localhost:3000",
+    "devUrl": "https://www.goscentral.online",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": ""
   },
@@ -17,7 +17,7 @@
         "width": 800,
         "height": 600,
         "resizable": true,
-        "fullscreen": true
+        "fullscreen": false
       }
     ],
     "security": {

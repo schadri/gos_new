@@ -122,7 +122,7 @@ export function FileUpload({
               <span className="text-xs font-semibold text-muted-foreground">DOC</span>
             )}
           </div>
-          <div className="flex-1 truncate text-sm font-medium">Archivo cargado exitosamente</div>
+          <div className="flex-1 truncate text-sm font-medium min-w-0">Archivo cargado exitosamente</div>
           {isImageAccept && (
             <Button
               variant="ghost"

@@ -119,7 +119,7 @@ export function EditProfileModal({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="absolute top-4 right-4 hover:bg-muted font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
+          className="absolute top-4 right-4 hover:bg-muted z-20 font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
           title="Editar Perfil"
         >
           <Settings className="h-4 w-4" />
@@ -128,7 +128,7 @@ export function EditProfileModal({
       </DialogTrigger>
       
       <DialogContent 
-        className={viewingCv ? "w-[95vw] max-w-[95vw] sm:max-w-[800px] sm:w-full h-[80vh] flex flex-col overflow-x-hidden p-4 sm:p-6" : "w-[95vw] max-w-[95vw] sm:max-w-[500px] sm:w-full overflow-x-hidden p-4 sm:p-6"}
+        className={viewingCv ? "w-[calc(100%-1rem)] sm:w-full sm:max-w-[800px] h-[80vh] flex flex-col p-4 sm:p-6" : "w-[calc(100%-1rem)] sm:w-full sm:max-w-[500px] p-4 sm:p-6"}
       >
         <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         {viewingCv ? (
@@ -180,7 +180,7 @@ export function EditProfileModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 md:px-4 custom-scrollbar">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto overflow-x-hidden px-2 md:px-4 custom-scrollbar">
               <div className="grid gap-2">
                 <Label htmlFor="fullName" className="font-semibold">Nombre Completo</Label>
                 <Input 
@@ -257,7 +257,7 @@ export function EditProfileModal({
               <div className="flex items-center justify-between border rounded-2xl p-4 bg-muted/30 mt-2">
                 <div className="space-y-0.5">
                   <Label className="font-bold text-sm">Búsqueda Activa</Label>
-                  <p className="text-[12px] text-muted-foreground leading-tight mr-4">
+                  <p className="text-[12px] text-muted-foreground leading-tight mr-4 min-w-0 break-words">
                     Permite que las ofertas de empleo ajustadas a tu perfil te hagan "Match" automáticamente.
                   </p>
                 </div>
@@ -269,9 +269,20 @@ export function EditProfileModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 px-2">
-              <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={isSubmitting} className="font-bold">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 px-2 pt-2 sm:pt-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setOpen(false)} 
+                disabled={isSubmitting}
+                className="w-full sm:w-auto font-semibold"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={isSubmitting} 
+                className="w-full sm:w-auto font-bold"
+              >
                 {isSubmitting ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>
                 ) : "Guardar Cambios"}

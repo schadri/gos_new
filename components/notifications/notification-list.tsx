@@ -9,13 +9,24 @@ import { toast } from 'sonner'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 
 import { useAuth } from '@/components/providers/auth-provider'
+import { markAllAsRead } from '@/app/actions/notifications'
+import { useEffect } from 'react'
 
 export function NotificationList({ initialNotifications }: { initialNotifications: any[] }) {
   const [notifications, setNotifications] = useState(initialNotifications)
   const supabase = createClient()
   const { user } = useAuth()
-
   const hasUnread = notifications?.some(n => !n.is_read)
+
+  useEffect(() => {
+    if (user && hasUnread) {
+      // Optimistic state update: clear unread locally
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+      
+      // Persist to server
+      markAllAsRead()
+    }
+  }, [user, hasUnread]) // Only runs if unread status changes or user changes
 
   const getIconForType = (type: string) => {
     switch (type) {

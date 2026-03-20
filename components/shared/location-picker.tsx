@@ -51,7 +51,8 @@ export function LocationPicker({
   onCoordinatesChange?: (lat: number, lng: number) => void;
 }) {
   const [open, setOpen] = React.useState(false)
-  const [isLocating, setIsLocating] = React.useState(false)
+  const [isSearching, setIsSearching] = React.useState(false)
+  const [isGettingLocation, setIsGettingLocation] = React.useState(false)
   
   // Default center if nothing is selected (Buenos Aires approximately)
   const defaultCenter: [number, number] = [-34.6037, -58.3816]
@@ -165,7 +166,7 @@ export function LocationPicker({
       return
     }
 
-    setIsLocating(true)
+    setIsGettingLocation(true)
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude: lat, longitude: lon } = position.coords
@@ -192,12 +193,12 @@ export function LocationPicker({
           if (onCoordinatesChange) onCoordinatesChange(lat, lon)
           updateLocation(selectedProvince, `${lat.toFixed(4)}, ${lon.toFixed(4)}`)
         } finally {
-          setIsLocating(false)
+          setIsGettingLocation(false)
         }
       },
       (error) => {
         console.error("Error getting location:", error)
-        setIsLocating(false)
+        setIsGettingLocation(false)
         alert("No se pudo obtener tu ubicación actual. Revisa los permisos de tu navegador.")
       },
       { enableHighAccuracy: true }
@@ -207,7 +208,7 @@ export function LocationPicker({
   const handleSearchLocation = async () => {
     if (!detail && !selectedProvince) return;
     
-    setIsLocating(true)
+    setIsSearching(true)
     try {
       const queryParams = [detail, selectedProvince, "Argentina"].filter(Boolean).join(", ")
       const response = await fetch(
@@ -233,7 +234,7 @@ export function LocationPicker({
       console.error("Error validando ubicación:", error)
       alert("Error al validar la ubicación.")
     } finally {
-      setIsLocating(false)
+      setIsSearching(false)
     }
   }
 
@@ -248,7 +249,6 @@ export function LocationPicker({
     <div className="space-y-4 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          
           <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
               <Button
@@ -295,47 +295,49 @@ export function LocationPicker({
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Localidad / Barrio (Ej: Belgrano)" 
-                className="pl-9 h-12 bg-muted/40 border-muted text-md"
-                value={detail}
-                onChange={(e) => setDetail(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleSearchLocation()
-                  }
-                }}
-              />
-            </div>
-            <Button 
-              type="button" 
-              variant="default" 
-              size="icon" 
-              className="h-12 w-12 shrink-0 shadow-sm"
-              onClick={handleSearchLocation}
-              disabled={isLocating}
-              title="Buscar ubicación"
-            >
-              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon" 
-              className="h-12 w-12 shrink-0 bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
-              onClick={handleGetCurrentLocation}
-              disabled={isLocating}
-              title="Obtener ubicación actual"
-            >
-              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
-            </Button>
-          </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder={selectedProvince ? "Localidad / Barrio (Ej: Belgrano)" : "Selecciona primero una provincia..."} 
+            className="pl-9 h-12 bg-muted/40 border-muted text-md disabled:opacity-50"
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            disabled={!selectedProvince || isSearching || isGettingLocation}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSearchLocation()
+              }
+            }}
+          />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Button 
+          type="button" 
+          variant="default" 
+          className="h-11 flex items-center justify-center gap-2 shadow-sm font-bold"
+          onClick={handleSearchLocation}
+          disabled={!selectedProvince || isSearching || isGettingLocation}
+        >
+          {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          <span className="text-sm">Buscar en mapa</span>
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="h-11 flex items-center justify-center gap-2 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 font-bold"
+          onClick={handleGetCurrentLocation}
+          disabled={isSearching || isGettingLocation}
+        >
+          {isGettingLocation ? (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          ) : (
+            <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" />
+          )}
+          <span className="text-sm">Ubicación actual</span>
+        </Button>
       </div>
 
       {onRadiusChange && (

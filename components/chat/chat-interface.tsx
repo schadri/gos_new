@@ -29,11 +29,15 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer, isP
   const [newMessage, setNewMessage] = React.useState('')
   const [isSending, setIsSending] = React.useState(false)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const inputRef = React.useRef<HTMLInputElement>(null)
   const [supabase] = React.useState(() => createClient())
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToBottom = React.useCallback(() => {
+    // Use block: 'end' with preventScroll-safe approach to avoid stealing focus from input on mobile
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    })
+  }, [])
 
   React.useEffect(() => {
     scrollToBottom()
@@ -110,6 +114,8 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer, isP
     
     setMessages(prev => [...prev, optimisticMessage])
     setNewMessage('')
+    // Re-focus input after sending
+    requestAnimationFrame(() => inputRef.current?.focus())
     setIsSending(true)
 
     try {
@@ -187,12 +193,14 @@ export function ChatUI({ chatId, currentUserId, initialMessages, isEmployer, isP
         ) : (
           <form onSubmit={handleSend} className="max-w-4xl mx-auto flex gap-2 sm:gap-3 items-end relative">
             <Input 
+              ref={inputRef}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={!isEmployer && messages.length === 0 ? "Espera el primer mensaje..." : "Escribe un mensaje..."} 
               className="h-14 bg-card rounded-2xl pr-14 pl-5 shadow-sm border-border/50 text-[15px] resize-none focus-visible:ring-1 disabled:opacity-60"
               disabled={isSending || (!isEmployer && messages.length === 0)}
               autoComplete="off"
+              autoFocus
             />
             <Button 
               type="submit" 

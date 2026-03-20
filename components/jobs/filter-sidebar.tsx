@@ -4,7 +4,6 @@ import * as React from 'react'
 import { Filter, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { POSITIONS } from '@/lib/constants/positions'
-import { PROVINCES } from '@/lib/constants/locations'
 
 interface FilterSidebarProps {
   clearFilters: () => void
@@ -79,27 +78,6 @@ export function FilterSidebar({
                       ))}
                     </div>
                   )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="w-full h-px bg-border/60"></div>
-
-          {/* Location Filter */}
-          <div className="space-y-4">
-            <h4 className="font-bold text-sm text-foreground">Ubicación</h4>
-            <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-              {PROVINCES.map(province => (
-                <div key={province} className="flex items-center gap-3 group">
-                  <input 
-                    type="checkbox" 
-                    id={`loc-${province}`} 
-                    checked={selectedLocations.includes(province)}
-                    onChange={() => handleLocationChange(province)}
-                    className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                  />
-                  <label htmlFor={`loc-${province}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{province}</label>
                 </div>
               ))}
             </div>

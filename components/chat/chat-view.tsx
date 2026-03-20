@@ -53,6 +53,19 @@ export function ChatView({
   const [loading, setLoading] = React.useState(false)
   const [isPaused, setIsPaused] = React.useState(initialIsPaused)
 
+  const chatHeader = React.useMemo(() => (
+    <div className="flex items-center gap-3 min-w-0">
+      <Avatar className="h-10 w-10 border border-border">
+        <AvatarImage src={displayAvatar || ''} />
+        <AvatarFallback className="bg-primary/10 text-primary font-bold">{displayName.charAt(0)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <h2 className="font-bold truncate text-base">{displayName}</h2>
+        <p className="text-xs text-muted-foreground truncate">{chat.job?.title} en {chat.job?.company}</p>
+      </div>
+    </div>
+  ), [displayAvatar, displayName, chat.job?.title, chat.job?.company])
+
   const handleDelete = async () => {
     setLoading(true)
     try {
@@ -91,16 +104,7 @@ export function ChatView({
             >
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <div className="flex items-center gap-3 min-w-0">
-              <Avatar className="h-10 w-10 border border-border">
-                <AvatarImage src={displayAvatar || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">{displayName.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <h2 className="font-bold truncate text-base">{displayName}</h2>
-                <p className="text-xs text-muted-foreground truncate">{chat.job?.title} en {chat.job?.company}</p>
-              </div>
-            </div>
+            {chatHeader}
           </div>
 
           {isEmployer && (

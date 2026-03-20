@@ -30,7 +30,7 @@ export default function EmployerRegistration() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await supabase.from('profiles').upsert({
+        await (supabase.from('profiles') as any).upsert({
           id: user.id,
           user_type: 'BUSINESS'
         })
@@ -60,7 +60,7 @@ export default function EmployerRegistration() {
         return
       }
 
-      const { error } = await supabase.from('profiles').upsert({
+      const { error } = await (supabase.from('profiles') as any).upsert({
         id: session.user.id,
         user_type: 'BUSINESS',
         company_name: companyName,
@@ -97,7 +97,7 @@ export default function EmployerRegistration() {
         <div className="grid gap-8 p-6 md:p-8 border rounded-2xl bg-card shadow-sm">
           <div className="grid gap-3">
             <Label htmlFor="companyName" className="text-base font-semibold">Nombre del Emprendimiento / Empresa</Label>
-            <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Ej: La Esquina de San Juan" className="h-12 text-md bg-muted/40" />
+            <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Nombre de tu empresa" className="h-12 text-md bg-muted/40" />
           </div>
 
           <div className="grid gap-3 w-full">
@@ -121,7 +121,7 @@ export default function EmployerRegistration() {
               id="description" 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Restaurante de comida de autor en el centro..."
+              placeholder="Describe qué hace tu negocio, su propuesta o historia..."
               rows={5}
               className="resize-none bg-muted/40 text-md p-4"
             />

@@ -76,7 +76,7 @@ export function Navbar() {
                   </Link>
                   <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                   {isWindows && (
-                    <Link href="#" download className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
+                    <Link href="/gos_0.1.0_x64-setup.exe" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
                       <Monitor className="h-3.5 w-3.5" />
                       Descargar App
                     </Link>
@@ -95,7 +95,7 @@ export function Navbar() {
                   </Link>
                   <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                   {isWindows && (
-                    <Link href="#" download className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
+                    <Link href="/gos_0.1.0_x64-setup.exe" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
                       <Monitor className="h-3.5 w-3.5" />
                       Descargar App
                     </Link>
@@ -210,8 +210,7 @@ export function Navbar() {
                     {isWindows && (
                       <div className="px-6 mb-6">
                         <Link 
-                          href="#" 
-                          download
+                          href="/gos_0.1.0_x64-setup.exe" 
                           className="flex items-center justify-center gap-3 w-full py-4 rounded-3xl bg-primary text-primary-foreground font-black shadow-lg shadow-primary/20 animate-pulse"
                         >
                           <Monitor className="h-5 w-5" />

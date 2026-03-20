@@ -104,7 +104,7 @@ export async function sendMessage(chatId: string, content: string, messageId: st
                 ? (profile.company_name || profile.full_name || 'Empresa')
                 : (profile?.full_name || 'Candidato')
 
-            await createMessageNotification(recipientId, chatId, senderName)
+            await createMessageNotification(recipientId, chatId, senderName, user.id)
         }
     } catch (notifErr) {
         console.error('Failed to dispatch message notification', notifErr)

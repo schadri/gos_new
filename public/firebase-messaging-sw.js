@@ -31,8 +31,6 @@ const initializeMessaging = (config) => {
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     data: payload.data,
-                    tag: 'gos-notification', // Consistent tag
-                    renotify: true
                 };
                 self.registration.showNotification(title, notificationOptions);
             }
@@ -58,8 +56,6 @@ self.addEventListener('message', (event) => {
                 icon: '/apple-icon.png',
                 badge: '/apple-icon.png',
                 data: options.data,
-                tag: 'gos-notification', // Consistent tag
-                renotify: true
             })
         );
     }

@@ -40,7 +40,7 @@ export async function createMatchNotification(applicantId: string, jobId: string
 }
 
 // Called when someone sends a message
-export async function createMessageNotification(recipientId: string, chatId: string, senderName: string) {
+export async function createMessageNotification(recipientId: string, chatId: string, senderName: string, senderId: string) {
     const supabase = await createClient()
 
     // Ensure they don't get spammed if they already have an unread message notification for this chat
@@ -59,6 +59,7 @@ export async function createMessageNotification(recipientId: string, chatId: str
         .from('notifications')
         .insert({
             user_id: recipientId,
+            sender_id: senderId, // Store who sent it
             type: 'message',
             title: 'Nuevo mensaje recibido',
             description: `Tienes un nuevo mensaje de ${senderName}.`,
@@ -76,7 +77,11 @@ export async function createMessageNotification(recipientId: string, chatId: str
         userId: recipientId,
         title: 'Nuevo mensaje recibido',
         body: `Tienes un nuevo mensaje de ${senderName}.`,
-        link: `/chat/${chatId}`
+        link: `/chat/${chatId}`,
+        data: {
+            sender_id: senderId,
+            chat_id: chatId
+        }
     })
 
     revalidatePath('/notifications')

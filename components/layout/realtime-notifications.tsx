@@ -24,9 +24,12 @@ export function RealtimeNotifications({ userId }: { userId: string }) {
       }, async (payload) => {
         const notif = payload.new
         
-        // If user is already on the page the notification links to (e.g. active chat)
-        // skip the toast and just mark it as read immediately
-        if (pathname === notif.link_url) {
+        // Normalize paths for comparison
+        const normalizedPath = pathname?.replace(/\/$/, '');
+        const normalizedLink = notif.link_url?.replace(/\/$/, '');
+        
+        // If user is already on the page or is the sender (if we have sender_id)
+        if (normalizedPath === normalizedLink || (notif.sender_id && notif.sender_id === userId)) {
           const { markAsRead } = await import('@/app/actions/notifications')
           await markAsRead(notif.id)
           return

@@ -76,8 +76,10 @@ function LoginContent() {
     if (flow === 'employer') nextRoute = '/employer/register'
 
     const redirectUrl = isTauri() 
-      ? `gos://auth/callback?next=${encodeURIComponent(nextRoute)}`
+      ? `gos://auth/callback`
       : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
+
+    console.log(`Login: redirectUrl targeted = ${redirectUrl}`)
 
     console.log(`Login: Starting Google OAuth with next=${nextRoute}`)
     const { data, error } = await supabase.auth.signInWithOAuth({

@@ -1,15 +1,31 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
+    Emitter,
     Manager,
 };
+use tauri_plugin_deep_link::DeepLinkExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_opener::init())
     .plugin(tauri_plugin_deep_link::init())
+    .plugin(tauri_plugin_notification::init())
+    .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
     .setup(|app| {
+      #[cfg(desktop)]
+      {
+        use tauri_plugin_deep_link::DeepLinkExt;
+        let _ = app.deep_link().register("gos");
+        let handle = app.handle().clone();
+        app.deep_link().on_open_url(move |event| {
+            let urls = event.urls();
+            println!("Rust Deep Link received: {:?}", urls);
+            let _ = handle.emit("deep-link-received", urls);
+        });
+      }
+
       let quit_i = MenuItem::with_id(app, "quit", "Cerrar por completo", true, None::<&str>)?;
       let show_i = MenuItem::with_id(app, "show", "Mostrar GOS", true, None::<&str>)?;
       let menu = Menu::with_items(app, &[&show_i, &quit_i])?;

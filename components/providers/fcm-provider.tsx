@@ -5,12 +5,18 @@ import { createClient } from '@/lib/supabase/client'
 import { fetchToken, onMessageListener } from '@/lib/firebase'
 import { toast } from 'sonner'
 import { usePathname } from 'next/navigation'
+import { isTauri } from '@tauri-apps/api/core'
 
 export function FCMProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
   const pathname = usePathname()
 
   useEffect(() => {
+    if (isTauri()) {
+        console.log('[FCMProvider] Running in Tauri, skipping web push registration.')
+        return;
+    }
+
     // 1. Service Worker registration and config injection
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const config = {

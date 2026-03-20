@@ -8,6 +8,7 @@ import { FCMProvider } from "@/components/providers/fcm-provider"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { InstallPWA } from "@/components/shared/install-pwa"
 import { NotificationPermissionPrompt } from "@/components/notifications/notification-permission-prompt"
+import { TauriProvider } from "@/components/providers/tauri-provider"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -18,12 +19,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <AuthProvider>
-        <FCMProvider>
-          {children}
-          <InstallPWA />
-          <NotificationPermissionPrompt />
-          <Toaster position="top-center" />
-        </FCMProvider>
+        <TauriProvider>
+          <FCMProvider>
+            {children}
+            <InstallPWA />
+            <NotificationPermissionPrompt />
+            <Toaster position="top-center" />
+          </FCMProvider>
+        </TauriProvider>
       </AuthProvider>
     </NextThemesProvider>
   )

@@ -39,10 +39,10 @@ export default async function AdminDashboard() {
         <p className="text-muted-foreground mt-2 text-lg font-medium">Resumen global de la actividad en GOS.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, i) => (
           <Card key={i} className="border-none shadow-sm bg-card hover:shadow-md transition-shadow rounded-3xl overflow-hidden">
-            <CardContent className="p-8">
+            <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2">{stat.label}</p>

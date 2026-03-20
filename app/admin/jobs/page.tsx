@@ -16,12 +16,12 @@ export default async function AdminJobsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight">Gestión de Empleos</h1>
-          <p className="text-muted-foreground mt-1 font-medium">Vigila y administra todas las publicaciones de la plataforma.</p>
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight">Gestión de Empleos</h1>
+          <p className="text-muted-foreground mt-1 font-medium text-sm md:text-base">Vigila y administra todas las publicaciones de la plataforma.</p>
         </div>
-        <Badge variant="outline" className="px-4 py-2 bg-primary/5 border-primary/20 text-primary font-bold">
+        <Badge variant="outline" className="px-4 py-2 bg-primary/5 border-primary/20 text-primary font-bold whitespace-nowrap">
           {jobs?.length || 0} Ofertas Totales
         </Badge>
       </div>

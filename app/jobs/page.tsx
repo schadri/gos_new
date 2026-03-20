@@ -7,7 +7,7 @@ import { getAvatarUrl } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles } from 'lucide-react'
+import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Popover,
@@ -246,12 +246,18 @@ export default function JobBoard() {
 
       return matchSearch && matchBarLocation && matchCity && matchSidebarLocation && matchPosition
     }).sort((a, b) => {
+      // 1. Priority: Urgent jobs first
+      const aUrgent = (a as any).is_urgent ? 1 : 0
+      const bUrgent = (b as any).is_urgent ? 1 : 0
+      if (aUrgent !== bUrgent) return bUrgent - aUrgent
+
+      // 2. Sorting selection
       if (sortBy === 'Más recientes') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
       return 0
     })
-  }, [jobs, searchQuery, locationQuery, selectedPositions, selectedLocations, sortBy])
+  }, [jobs, searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
 
   // Map internal database values to display labels
   const getContractLabel = (type: string | null) => {
@@ -270,14 +276,16 @@ export default function JobBoard() {
     return exp.includes('años') ? exp : `${exp} años`
   }
 
-  // Ensure company logos use the avatar mapper
-  const jobsWithUrlFixed = jobs?.map(job => ({
-    ...job,
-    profiles: job.profiles ? {
-      ...job.profiles,
-      company_logo: getAvatarUrl(job.profiles.company_logo)
-    } : null
-  })) as JobWithProfile[] || []
+  // Ensure company logos use the avatar mapper and memoize it to prevent flickering on every render
+  const jobsWithUrlFixed = React.useMemo(() => {
+    return filteredJobs.map(job => ({
+      ...job,
+      profiles: job.profiles ? {
+        ...job.profiles,
+        company_logo: getAvatarUrl(job.profiles.company_logo)
+      } : null
+    })) as JobWithProfile[]
+  }, [filteredJobs])
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-7xl animate-in fade-in duration-500">
@@ -481,13 +489,25 @@ export default function JobBoard() {
                 </Button>
               </div>
             ) : (
-              filteredJobs.slice(0, visibleCount).map((job) => (
+              filteredJobs.slice(0, visibleCount).map((job) => {
+                const isUrgent = (job as any).is_urgent
+                return (
                 <Link href={`/jobs/${job.id}`} key={job.id} className="block group">
                   <div className={`p-6 sm:p-8 rounded-3xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative bg-card ${
-                    job.is_featured ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' : 'border-border/50 hover:border-border'
+                    isUrgent 
+                      ? 'border-orange-500/40 bg-orange-500/[0.03] shadow-orange-500/5 hover:border-orange-500/60 shadow-md ring-1 ring-orange-500/20' 
+                      : job.is_featured 
+                        ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' 
+                        : 'border-border/50 hover:border-border'
                   }`}>
                     
-                    {job.is_featured && (
+                    {isUrgent && (
+                      <div className="absolute top-0 right-4 translate-y-[-50%] bg-gradient-to-r from-orange-600 to-red-600 text-white text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-white/20 animate-pulse">
+                        <Zap className="h-3 w-3 fill-white" /> ¡URGENCIA LAST MINUTE!
+                      </div>
+                    )}
+
+                    {job.is_featured && !isUrgent && (
                       <div className="absolute top-0 right-8 translate-y-[-50%] bg-gradient-to-r from-primary to-orange-500 text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
                         DESTACADO
                       </div>
@@ -520,7 +540,7 @@ export default function JobBoard() {
                         
                         <div className="flex flex-wrap items-center gap-3 mt-5 text-sm">
                           <span className="flex items-center bg-background border px-3 py-1.5 rounded-lg font-medium text-foreground">
-                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" /> 
+                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />        
                             {getContractLabel(job.contract_type)}
                           </span>
                           <span className="flex items-center bg-background border px-3 py-1.5 rounded-lg font-medium text-foreground">
@@ -550,7 +570,8 @@ export default function JobBoard() {
                     </div>
                   </div>
                 </Link>
-              ))
+                )
+              })
             )}
           </div>
           

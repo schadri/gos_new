@@ -143,7 +143,7 @@ export function EditEmployerProfileModal({
               id="companyName" 
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Ej: La Esquina de San Juan" 
+              placeholder="Nombre del emprendimiento" 
             />
           </div>
 
@@ -173,7 +173,7 @@ export function EditEmployerProfileModal({
               id="companyDescription" 
               value={companyDescription}
               onChange={(e) => setCompanyDescription(e.target.value)}
-              placeholder="Breve historia, tipo de comida, etc."
+              placeholder="Cuéntanos un poco sobre tu negocio..."
               rows={4}
               className="resize-none"
             />

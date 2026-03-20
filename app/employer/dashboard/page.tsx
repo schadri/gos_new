@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight } from 'lucide-react'
+import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { JobActionsMenu } from '@/components/employer/job-actions-menu'
 
@@ -72,9 +72,14 @@ export default async function EmployerDashboard() {
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Panel de Control: {companyName}</h1>
           <p className="text-muted-foreground mt-2 font-medium">Gestiona tus ofertas y evalúa los matches de talento.</p>
         </div>
-        <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>
-          <Link href="/employer/post-job"><PlusCircle className="h-5 w-5" /> Nueva Oferta</Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button size="lg" variant="outline" className="rounded-xl h-12 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all font-bold gap-2 shadow-sm shadow-orange-500/5" asChild>
+            <Link href="/employer/post-job?urgent=true"><Zap className="h-4 w-4 fill-orange-500" /> Búsqueda Urgente</Link>
+          </Button>
+          <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>
+            <Link href="/employer/post-job"><PlusCircle className="h-5 w-5" /> Nueva Oferta</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12">
@@ -121,6 +126,11 @@ export default async function EmployerDashboard() {
                           <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border-transparent">Activa</Badge>
                         ) : (
                           <Badge variant="secondary" className="bg-muted text-muted-foreground">Borrador</Badge>
+                        )}
+                        {job.is_urgent && (
+                          <Badge className="bg-orange-600 text-white border-transparent gap-1 animate-pulse">
+                            <Zap className="h-3 w-3 fill-white" /> URGENTE
+                          </Badge>
                         )}
                       </div>
                       <p className="text-sm font-medium text-muted-foreground">

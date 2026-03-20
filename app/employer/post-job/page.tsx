@@ -23,34 +23,22 @@ import {
   AlertDialogHeader, 
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog'
-import { Briefcase, Sparkles, AlertCircle, Loader2, MapPin, ArrowLeft } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Briefcase, Sparkles, AlertCircle, Loader2, MapPin, ArrowLeft, Zap } from 'lucide-react'
+import { cn, getAvatarUrl } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { triggerMatchesForJob } from '@/app/actions/auto-match'
+import { POSITIONS } from '@/lib/constants/positions'
 
-const CATEGORY_ROLES: Record<string, string[]> = {
-  cocina: [
-    "Chef Ejecutivo", "Chef de Cocina", "Sous Chef", "Chef de Partie",
-    "Cocinero", "Sushiman", "Pizzero", "Parrillero", "Pastelero",
-    "Panadero", "Ayudante de Cocina", "Bachero", "Steward", "Lavaplatos"
-  ],
-  salon: [
-    "Sommelier", "Bartender", "Barman", "Barista", "Camarero",
-    "Mozo", "Capitán de Meseros", "Maitre", "Host/Hostess",
-    "Ayudante de Camarero", "Adicionista", "Room Service", "Banquetes"
-  ],
-  hotel: [
-    "Gerente de Hotel", "Recepcionista", "Recepcionista de Hotel",
-    "Recepcionista de Restaurant", "Jefe de Recepción", "Conserje", "Botones",
-    "Valet Parking", "Ama de Llaves", "Supervisor de Limpieza", "Limpieza de Restaurant"
-  ],
-  gerencia: [
-    "Gerente General", "Gerente de Restaurant", "Gerente de Restaurante",
-    "Gerente de Operaciones", "Gerente de Alimentos y Bebidas",
-    "Gerente Administrativo", "Subgerente", "Encargado de Almacén",
-    "Comprador", "Jefe de Mantenimiento", "Encargado de Mantenimiento", "Coordinador de Eventos"
-  ]
+const LEGACY_CATEGORY_MAP: Record<string, string> = {
+  'cocina': 'Cocina',
+  'salon': 'Servicio y Bebidas',
+  'hotel': 'Hotelería',
+  'gerencia': 'Gestión',
+  'limpieza': 'Limpieza y Mantenimiento',
+  'eventos': 'Eventos'
 }
 
 function PostJobForm() {
@@ -73,26 +61,28 @@ function PostJobForm() {
   const [latitude, setLatitude] = React.useState<number | null>(null)
   const [longitude, setLongitude] = React.useState<number | null>(null)
   const [radius, setRadius] = React.useState<number>(5)
+  const [isUrgent, setIsUrgent] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isSavingDraft, setIsSavingDraft] = React.useState(false)
 
-  // Load existing job if in edit mode
+  // Load existing job if in edit mode or handle urgent param for new jobs
   React.useEffect(() => {
     if (editId) {
       const fetchJob = async () => {
         const supabase = createClient()
         const { data, error } = await supabase.from('jobs').select('*').eq('id', editId).single()
         if (data && !error) {
-          const expValue = data.experience_required ? (data.experience_required.includes('años') ? data.experience_required : `${data.experience_required} años`) : ''
+          const dataAny = data as any;
+          const expValue = dataAny.experience_required ? (dataAny.experience_required.includes('años') ? dataAny.experience_required : `${dataAny.experience_required} años`) : ''
           
           const loadedData = {
-            title: data.title || '',
-            description: data.description || '',
-            category: data.category || '',
-            contractType: data.contract_type || '',
+            title: dataAny.title || '',
+            description: dataAny.description || '',
+            category: LEGACY_CATEGORY_MAP[dataAny.category as string] || dataAny.category || '',
+            contractType: dataAny.contract_type || '',
             experience: expValue,
-            location: data.location || '',
-            keywords: data.keywords || []
+            location: dataAny.location || '',
+            keywords: dataAny.keywords || []
           }
           
           setTitle(loadedData.title)
@@ -102,15 +92,22 @@ function PostJobForm() {
           setExperience(loadedData.experience)
           setLocation(loadedData.location)
           setKeywords(loadedData.keywords)
-          setLatitude(data.latitude)
-          setLongitude(data.longitude)
-          setRadius(data.search_radius || 5)
+          setLatitude(dataAny.latitude)
+          setLongitude(dataAny.longitude)
+          setRadius(dataAny.search_radius || 5)
+          setIsUrgent(!!dataAny.is_urgent)
           setInitialData(loadedData)
         }
       }
       fetchJob()
     } else {
-      // For new jobs, initial data is empty
+      // For new jobs, check if urgent param is present
+      const isUrgentParam = searchParams.get('urgent') === 'true'
+      if (isUrgentParam) {
+        setIsUrgent(true)
+      }
+
+      // Initial data is empty
       setInitialData({
         title: '',
         description: '',
@@ -121,7 +118,7 @@ function PostJobForm() {
         keywords: []
       })
     }
-  }, [editId])
+  }, [editId, searchParams])
 
   const isDirty = React.useMemo(() => {
     if (!initialData) return false
@@ -152,8 +149,9 @@ function PostJobForm() {
       if (session?.user) {
         const { data } = await supabase.from('profiles').select('location, company_name').eq('id', session.user.id).single()
         if (data) {
-          if (data.location) setProfileLocation(data.location)
-          if (data.company_name) setCompanyName(data.company_name)
+          const dataAny = data as any;
+          if (dataAny.location) setProfileLocation(dataAny.location)
+          if (dataAny.company_name) setCompanyName(dataAny.company_name)
         }
       }
     }
@@ -190,6 +188,7 @@ function PostJobForm() {
         longitude: longitude,
         search_radius: radius,
         keywords: keywords,
+        is_urgent: isUrgent,
         status: 'active'
       }
 
@@ -248,6 +247,7 @@ function PostJobForm() {
         longitude: longitude,
         search_radius: radius,
         keywords: keywords,
+        is_urgent: isUrgent,
         status: 'draft'
       }
 
@@ -300,6 +300,26 @@ function PostJobForm() {
       </div>
 
       <div className="space-y-10">
+        {/* Urgency Section - Moved to top */}
+        {(searchParams.get('urgent') === 'true' || isUrgent) && (
+          <div className="bg-orange-500 border border-orange-600 rounded-3xl p-6 md:p-8 shadow-lg relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -z-10 group-hover:bg-white/20 transition-colors"></div>
+            <div className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-2xl">
+                  <Zap className="h-6 w-6 text-white fill-white" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-white">Publicación Urgente (Last Minute)</h3>
+                  <p className="text-sm text-orange-50 font-medium">Esta búsqueda será resaltada y priorizada en la bolsa de empleo.</p>
+                </div>
+              </div>
+              {/* No switch for urgent flow, just a static badge or keep it for edit mode only? 
+                  User said "no tenga un switch de activado", so I'll hide it. 
+                  If they are editing an urgent job, it stays urgent. */}
+            </div>
+          </div>
+        )}
         {/* Basic Info */}
         <div className="bg-card border border-border/60 rounded-3xl p-6 md:p-10 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
@@ -314,10 +334,9 @@ function PostJobForm() {
                     <SelectValue placeholder="Seleccionar sector..." />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="cocina">Cocina</SelectItem>
-                    <SelectItem value="salon">Salón y Barras</SelectItem>
-                    <SelectItem value="hotel">Hotelería y Recepción</SelectItem>
-                    <SelectItem value="gerencia">Gerencia y Administración</SelectItem>
+                    {POSITIONS.map((group) => (
+                      <SelectItem key={group.category} value={group.category}>{group.category}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -329,7 +348,7 @@ function PostJobForm() {
                     <SelectValue placeholder={category ? "Seleccionar puesto..." : "Selecciona un sector primero"} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl max-h-80">
-                    {category && CATEGORY_ROLES[category]?.map(role => (
+                    {category && POSITIONS.find((p) => p.category === category)?.items.map((role) => (
                       <SelectItem key={role} value={role}>{role}</SelectItem>
                     ))}
                   </SelectContent>

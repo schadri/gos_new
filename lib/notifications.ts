@@ -33,10 +33,6 @@ export async function sendPushNotification({
 
         const message: any = {
             token: profile.fcm_token,
-            notification: {
-                title,
-                body,
-            },
             data: {
                 ...data,
                 title,
@@ -45,21 +41,10 @@ export async function sendPushNotification({
             },
             android: {
                 priority: 'high',
-                notification: {
-                    channelId: 'default',
-                    priority: 'high',
-                },
             },
             webpush: {
                 headers: {
                     Urgency: 'high',
-                },
-                notification: {
-                    title,
-                    body,
-                    icon: '/apple-icon.png',
-                    badge: '/apple-icon.png',
-                    requireInteraction: true,
                 },
                 fcm_options: {
                     link,

@@ -222,6 +222,18 @@ export function Navbar() {
                           <SheetClose asChild><Link href="/support" className={`text-lg transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Soporte</Link></SheetClose>
                         </>
                       )}
+                      
+                      {isAdmin && (
+                        <SheetClose asChild>
+                          <Link 
+                            href="/admin" 
+                            className="text-lg transition-colors text-primary font-bold flex items-center gap-2 py-2 px-4 bg-primary/10 rounded-xl"
+                          >
+                            <ShieldCheck className="h-5 w-5" />
+                            Panel Admin
+                          </Link>
+                        </SheetClose>
+                      )}
                     </nav>
                     <div className="mt-auto pt-4 border-t">
                       <SheetClose asChild>

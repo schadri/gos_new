@@ -115,10 +115,13 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
             return;
         }
 
-        // Show UI Toast
+        /* 
+        // We skip the toast here because RealtimeNotifications also listens 
+        // to the database insert and shows a more complete toast with buttons.
         toast(msg.notification?.title || 'Nueva Notificación', {
           description: msg.notification?.body,
         })
+        */
       }
     })
 

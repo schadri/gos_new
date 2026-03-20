@@ -26,3 +26,6 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Force npm (not pnpm) for Vercel build
+pnpm-lock.yaml

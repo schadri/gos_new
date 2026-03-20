@@ -4,92 +4,21 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Search, Briefcase, Bell, User } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/providers/auth-provider'
 
 export function BottomNav() {
   const pathname = usePathname()
-  const [user, setUser] = useState<any>(null)
-  const [role, setRole] = useState<string | null>(null)
+  const { role, unreadCount } = useAuth()
   const [hasUnread, setHasUnread] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
 
   // Auto-clear the dot when the user visits /notifications
   useEffect(() => {
     if (pathname?.startsWith('/notifications')) {
       setHasUnread(false)
+    } else {
+      setHasUnread(unreadCount > 0)
     }
-  }, [pathname])
-
-  useEffect(() => {
-    const supabase = createClient()
-
-    const checkUnread = async (uid: string) => {
-      const { data } = await supabase
-        .from('notifications')
-        .select('id')
-        .eq('user_id', uid)
-        .eq('is_read', false)
-        .limit(1)
-      setHasUnread(data !== null && data.length > 0)
-    }
-
-    const fetchUserAndRole = async (sessionUser: any) => {
-      setUser(sessionUser)
-      if (sessionUser) {
-        setUserId(sessionUser.id)
-        let currentRole = sessionUser.user_metadata?.role
-        const { data: profile } = await supabase.from('profiles').select('user_type').eq('id', sessionUser.id).single()
-        if (profile?.user_type === 'BUSINESS') {
-          currentRole = 'employer'
-        }
-        setRole(currentRole)
-        await checkUnread(sessionUser.id)
-      } else {
-        setRole(null)
-        setUserId(null)
-        setHasUnread(false)
-      }
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      fetchUserAndRole(session?.user || null)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      fetchUserAndRole(session?.user || null)
-    })
-
-    // Escuchar nuevas notificaciones en tiempo real
-    const channel = supabase
-      .channel('bottom-nav-notifs')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications' 
-      }, async () => {
-        // Re-check unread count on any new notification
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          checkUnread(session.user.id)
-        }
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'notifications'
-      }, async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.user) {
-          checkUnread(session.user.id)
-        }
-      })
-      .subscribe()
-
-    return () => {
-      subscription.unsubscribe()
-      supabase.removeChannel(channel)
-    }
-  }, [])
+  }, [pathname, unreadCount])
   
   // Simple check for unauthenticated/public routes
   const isPublicRoute = pathname === '/' || pathname === '/login' || pathname?.includes('/register')

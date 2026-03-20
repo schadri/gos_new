@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight } from 'lucide-react'
+import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { JobActionsMenu } from '@/components/employer/job-actions-menu'
 
@@ -18,22 +18,22 @@ export default async function EmployerDashboard() {
   }
 
   // Fetch real profile data
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: profile } = await (supabase
+    .from('profiles') as any)
     .select('*')
     .eq('id', user.id)
-    .single()
+    .single() as any
 
   const companyName = profile?.company_name || 'Mi Emprendimiento'
 
   // Fetch real jobs created by this employer
-  const { data: jobs } = await supabase
+  const { data: jobsData } = await supabase
     .from('jobs')
     .select('*')
     .eq('created_by', user.id)
     .order('created_at', { ascending: false })
 
-  const activeJobs = jobs || []
+  const activeJobs = (jobsData || []) as any[]
 
   const totalActiveJobs = activeJobs.filter(j => j.status === 'active').length
   const totalViews = activeJobs.reduce((acc, job) => acc + (job.views_count || 0), 0)
@@ -72,14 +72,19 @@ export default async function EmployerDashboard() {
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Panel de Control: {companyName}</h1>
           <p className="text-muted-foreground mt-2 font-medium">Gestiona tus ofertas y evalúa los matches de talento.</p>
         </div>
-        <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>
-          <Link href="/employer/post-job"><PlusCircle className="h-5 w-5" /> Nueva Oferta</Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button size="lg" variant="outline" className="rounded-xl h-12 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all font-bold gap-2 shadow-sm shadow-orange-500/5" asChild>
+            <Link href="/employer/post-job?urgent=true"><Zap className="h-4 w-4 fill-orange-500" /> Búsqueda Urgente</Link>
+          </Button>
+          <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>
+            <Link href="/employer/post-job"><PlusCircle className="h-5 w-5" /> Nueva Oferta</Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12">
         {dynamicMetrics.map((item, i) => (
-          <div key={i} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+          <div key={i} className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm dark:shadow-none hover:shadow-md hover:-translate-y-1 transition-all">
             <div className={`p-3 rounded-2xl w-fit ${item.bg} mb-4`}>
               <item.icon className={`h-6 w-6 ${item.color}`} />
             </div>
@@ -107,7 +112,7 @@ export default async function EmployerDashboard() {
               </div>
             ) : (
               activeJobs.map(job => (
-                <div key={job.id} className="group relative bg-card p-6 rounded-3xl border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all overflow-hidden">
+                <div key={job.id} className="group relative bg-card p-6 rounded-3xl border border-border/50 shadow-sm dark:shadow-none hover:shadow-md hover:border-primary/30 transition-all overflow-hidden">
                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -121,6 +126,11 @@ export default async function EmployerDashboard() {
                           <Badge className="bg-green-500/15 text-green-700 dark:text-green-400 border-transparent">Activa</Badge>
                         ) : (
                           <Badge variant="secondary" className="bg-muted text-muted-foreground">Borrador</Badge>
+                        )}
+                        {job.is_urgent && (
+                          <Badge className="bg-orange-600 text-white border-transparent gap-1 animate-pulse">
+                            <Zap className="h-3 w-3 fill-white" /> URGENTE
+                          </Badge>
                         )}
                       </div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -157,17 +167,6 @@ export default async function EmployerDashboard() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-primary/5 p-8 rounded-3xl border border-primary/15 shadow-sm text-center">
-            <div className="mx-auto w-16 h-16 bg-background rounded-full flex items-center justify-center shadow-lg border border-primary/20 mb-6">
-              <TrendingUp className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-bold mb-3">Impulsa tus ofertas</h3>
-            <p className="text-muted-foreground font-medium mb-6 text-sm">
-              Destaca tus publicaciones para aparecer primero en las búsquedas y notificar a los mejores candidatos al instante.
-            </p>
-            <Button className="w-full h-12 rounded-xl font-bold shadow-md hover:shadow-lg transition-shadow">Destacar una Oferta</Button>
-          </div>
-
           <div className="bg-card p-8 rounded-3xl border border-border/50 shadow-sm">
             <h3 className="text-lg font-bold mb-4">Actividad Reciente</h3>
             <div className="space-y-4">

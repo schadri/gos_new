@@ -4,9 +4,11 @@ import React, { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { fetchToken, onMessageListener } from '@/lib/firebase'
 import { toast } from 'sonner'
+import { usePathname } from 'next/navigation'
 
 export function FCMProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
+  const pathname = usePathname()
 
   useEffect(() => {
     // 1. Service Worker registration and config injection
@@ -66,11 +68,8 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         const token = await fetchToken(registration)
         
         if (token) {
-          console.log('FCM Token:', token)
-          
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
-            // Update fcm_token in profiles table
             const { error } = await (supabase as any)
               .from('profiles')
               .update({ fcm_token: token })
@@ -88,7 +87,6 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
 
     setupFCM()
     
-    // 3. Listen for auth changes to save token when user logs in
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
         setupFCM()
@@ -96,40 +94,31 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
     })
     
     // Foreground message listener
-    onMessageListener((msg: any) => {
+    onMessageListener(async (msg: any) => {
       if (msg) {
-        // 1. Show UI Toast (current behavior)
+        // 1. Intelligent suppression
+        const linkUrl = msg.data?.click_action || msg.fcm_options?.link;
+        const senderId = msg.data?.sender_id;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Skip if sender is this user
+        if (senderId && user?.id === senderId) {
+            return;
+        }
+
+        // Skip if user is already on the page (Normalize trailing slashes)
+        const normalizedPath = pathname?.replace(/\/$/, '');
+        const normalizedLink = linkUrl?.replace(/\/$/, '');
+        
+        if (normalizedLink && normalizedPath === normalizedLink) {
+            return;
+        }
+
+        // Show UI Toast
         toast(msg.notification?.title || 'Nueva Notificación', {
           description: msg.notification?.body,
         })
-
-        // 2. Force System Notification via Service Worker
-        if ('serviceWorker' in navigator) {
-            console.log('FCMProvider: Attempting to force system notification...');
-            
-            const triggerSW = (worker: ServiceWorker) => {
-                console.log('FCMProvider: Sending SHOW_SYSTEM_NOTIFICATION to SW');
-                worker.postMessage({
-                    type: 'SHOW_SYSTEM_NOTIFICATION',
-                    title: msg.notification?.title || msg.data?.title || 'Nueva Notificación',
-                    options: {
-                        body: msg.notification?.body || msg.data?.body,
-                        data: msg.data
-                    }
-                });
-            }
-
-            if (navigator.serviceWorker.controller) {
-                triggerSW(navigator.serviceWorker.controller);
-            } else {
-                // Aggressive fallback to find any worker
-                navigator.serviceWorker.getRegistration().then(reg => {
-                    const worker = reg?.active || reg?.waiting || reg?.installing;
-                    if (worker) triggerSW(worker);
-                    else console.warn('FCMProvider: No Service Worker found at all');
-                });
-            }
-        }
       }
     })
 
@@ -137,7 +126,7 @@ export function FCMProvider({ children }: { children: React.ReactNode }) {
         subscription.unsubscribe()
     }
 
-  }, [supabase])
+  }, [supabase, pathname])
 
   return <>{children}</>
 }

@@ -92,6 +92,8 @@ export type Database = {
                     cv_url: string | null
                     updated_at: string | null
                     fcm_token: string | null
+                    is_active: boolean | null
+                    is_admin: boolean | null
                 }
                 Insert: {
                     id: string
@@ -109,6 +111,8 @@ export type Database = {
                     cv_url?: string | null
                     updated_at?: string | null
                     fcm_token?: string | null
+                    is_active?: boolean | null
+                    is_admin?: boolean | null
                 }
                 Update: {
                     id?: string
@@ -126,6 +130,8 @@ export type Database = {
                     cv_url?: string | null
                     updated_at?: string | null
                     fcm_token?: string | null
+                    is_active?: boolean | null
+                    is_admin?: boolean | null
                 }
                 Relationships: []
             }

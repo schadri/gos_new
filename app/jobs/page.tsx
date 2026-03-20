@@ -4,8 +4,10 @@ import * as React from 'react'
 import Link from 'next/link'
 import { Database } from '@/types/supabase'
 import { getAvatarUrl } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles } from 'lucide-react'
+import { Search, MapPin, Briefcase, Clock, Filter, SlidersHorizontal, ChevronRight, Loader2, Check, ChevronsUpDown, Sparkles, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Popover,
@@ -30,6 +32,15 @@ import {
 } from "@/components/ui/avatar"
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from '@/components/ui/sheet'
+import { FilterSidebar } from '@/components/jobs/filter-sidebar'
 
 type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
   profiles: {
@@ -41,12 +52,39 @@ type JobWithProfile = Database['public']['Tables']['jobs']['Row'] & {
 
 
 export default function JobBoard() {
+  const router = useRouter()
   const [jobs, setJobs] = React.useState<JobWithProfile[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [visibleCount, setVisibleCount] = React.useState(5)
   
   // Search & Filter State
   const [searchQuery, setSearchQuery] = React.useState('')
   const [locationQuery, setLocationQuery] = React.useState('')
+  const [cityQuery, setCityQuery] = React.useState('')
+  const [isProvinceOpen, setIsProvinceOpen] = React.useState(false)
+  const [isCityOpen, setIsCityOpen] = React.useState(false)
+  
+  // Extract unique available cities from active jobs based on selected province
+  const availableCities = React.useMemo(() => {
+    if (!locationQuery) return []
+    const cities = new Set<string>()
+    jobs.forEach(job => {
+      if (!job.location) return
+      
+      if (locationQuery && !job.location.includes(locationQuery)) return
+      
+      const foundProvince = PROVINCES.find(p => job.location!.includes(p))
+      let cityPart = job.location
+      if (foundProvince) {
+        cityPart = job.location.replace(foundProvince, '').replace(/^[,\s]+|[,\s]+$/g, '').trim()
+      } else {
+        cityPart = job.location.split(',')[0].trim()
+      }
+      
+      if (cityPart) cities.add(cityPart)
+    })
+    return Array.from(cities).sort()
+  }, [jobs, locationQuery])
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
   const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
@@ -60,6 +98,39 @@ export default function JobBoard() {
       try {
         const supabase = createClient()
         if (!supabase) return
+
+        // 0. Check User Type and Profile Completeness
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (user) {
+          const { data: profile } = await (supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle() as any)
+
+          // If user is TALENT, check for completeness
+          if (profile?.user_type === 'TALENT') {
+            const isIncomplete = !profile.full_name || 
+                                 !profile.location || 
+                                 !profile.profile_photo || 
+                                 !profile.cv_url || 
+                                 (!profile.position || profile.position.length === 0)
+
+            if (isIncomplete) {
+              console.log('JobBoard: Profile incomplete, redirecting to registration...')
+              toast.info('Completa tu perfil para acceder a la bolsa de empleo', {
+                description: 'Necesitamos tu nombre, ubicación, foto, CV y puestos de interés.',
+                duration: 5000
+              })
+              router.push('/talent/register')
+              return
+            }
+          } else if (profile?.user_type === 'BUSINESS') {
+             // Employers shouldn't be browsing /jobs either, they should be in dashboard but we let them for now 
+             // unless user asked otherwise.
+          }
+        }
 
         // 1. Fetch active jobs
         const { data: jobsData, error: jobsError } = await (supabase
@@ -86,7 +157,6 @@ export default function JobBoard() {
         }
 
         // 3. Fetch current user's applications
-        const { data: { user } } = await supabase.auth.getUser()
         let userApplications: any[] = []
         if (user) {
           const { data: appsData } = await supabase
@@ -134,10 +204,17 @@ export default function JobBoard() {
   const clearFilters = () => {
     setSearchQuery('')
     setLocationQuery('')
+    setCityQuery('')
     setSelectedPositions([])
     setSelectedLocations([])
     setExpandedCategory(null)
+    setVisibleCount(5)
   }
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setVisibleCount(5)
+  }, [searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
 
   // Filter Jobs
   const filteredJobs = React.useMemo(() => {
@@ -149,6 +226,9 @@ export default function JobBoard() {
       
       // 2. Bar Search (Input Province)
       const matchBarLocation = !locationQuery || (job.location?.toLowerCase() || '').includes(locationQuery.toLowerCase())
+      
+      // 2.b Bar Search (Input City)
+      const matchCity = !cityQuery || (job.location?.toLowerCase() || '').includes(cityQuery.toLowerCase())
       
       // 3. Sidebar Multi-Location
       const matchSidebarLocation = selectedLocations.length === 0 || 
@@ -164,14 +244,20 @@ export default function JobBoard() {
                               return jobTitle.includes(lowerPos) || jobKeywords.includes(lowerPos)
                             })
 
-      return matchSearch && matchBarLocation && matchSidebarLocation && matchPosition
+      return matchSearch && matchBarLocation && matchCity && matchSidebarLocation && matchPosition
     }).sort((a, b) => {
+      // 1. Priority: Urgent jobs first
+      const aUrgent = (a as any).is_urgent ? 1 : 0
+      const bUrgent = (b as any).is_urgent ? 1 : 0
+      if (aUrgent !== bUrgent) return bUrgent - aUrgent
+
+      // 2. Sorting selection
       if (sortBy === 'Más recientes') {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
       return 0
     })
-  }, [jobs, searchQuery, locationQuery, selectedPositions, selectedLocations, sortBy])
+  }, [jobs, searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
 
   // Map internal database values to display labels
   const getContractLabel = (type: string | null) => {
@@ -190,14 +276,16 @@ export default function JobBoard() {
     return exp.includes('años') ? exp : `${exp} años`
   }
 
-  // Ensure company logos use the avatar mapper
-  const jobsWithUrlFixed = jobs?.map(job => ({
-    ...job,
-    profiles: job.profiles ? {
-      ...job.profiles,
-      company_logo: getAvatarUrl(job.profiles.company_logo)
-    } : null
-  })) as JobWithProfile[] || []
+  // Ensure company logos use the avatar mapper and memoize it to prevent flickering on every render
+  const jobsWithUrlFixed = React.useMemo(() => {
+    return filteredJobs.map(job => ({
+      ...job,
+      profiles: job.profiles ? {
+        ...job.profiles,
+        company_logo: getAvatarUrl(job.profiles.company_logo)
+      } : null
+    })) as JobWithProfile[]
+  }, [filteredJobs])
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-7xl animate-in fade-in duration-500">
@@ -209,21 +297,14 @@ export default function JobBoard() {
         </div>
         
         <div className="bg-card border border-border/60 p-4 rounded-3xl flex flex-col md:flex-row gap-3 shadow-lg shadow-background/5">
+          
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <Search className="absolute left-4 h-5 w-5 text-muted-foreground" />
-            <Input 
-              placeholder="Puesto, habilidades o empresa..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-14 shadow-none rounded-2xl bg-transparent font-medium text-base"
-            />
-          </div>
-          <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
-            <Popover>
+            <Popover open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   role="combobox"
+                  aria-expanded={isProvinceOpen}
                   className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
                 >
                   <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
@@ -240,7 +321,11 @@ export default function JobBoard() {
                     <CommandEmpty>No se encontró la provincia.</CommandEmpty>
                     <CommandGroup>
                       <CommandItem
-                        onSelect={() => setLocationQuery('')}
+                        onSelect={() => {
+                          setLocationQuery('')
+                          setCityQuery('')
+                          setIsProvinceOpen(false)
+                        }}
                         className="font-bold text-primary"
                       >
                         <Check
@@ -257,6 +342,7 @@ export default function JobBoard() {
                           value={province}
                           onSelect={(currentValue) => {
                             setLocationQuery(currentValue === locationQuery ? "" : currentValue)
+                            setIsProvinceOpen(false)
                           }}
                         >
                           <Check
@@ -274,9 +360,92 @@ export default function JobBoard() {
               </PopoverContent>
             </Popover>
           </div>
-          <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
-            <SlidersHorizontal className="h-4 w-4" /> Filtros
-          </Button>
+          <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
+            <Popover open={isCityOpen} onOpenChange={setIsCityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  role="combobox"
+                  aria-expanded={isCityOpen}
+                  className="w-full h-14 justify-start pl-4 pr-4 bg-transparent hover:bg-transparent text-foreground font-medium text-base rounded-2xl"
+                  disabled={!locationQuery || availableCities.length === 0}
+                >
+                  <MapPin className="mr-3 h-5 w-5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {cityQuery || (availableCities.length === 0 && locationQuery ? "No hay ciudades" : "Ciudad...")}
+                  </span>
+                  <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar ciudad..." />
+                  <CommandList>
+                    <CommandEmpty>No se encontró la ciudad.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        onSelect={() => {
+                          setCityQuery('')
+                          setIsCityOpen(false)
+                        }}
+                        className="font-bold text-primary"
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            cityQuery === '' ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        Todas las ciudades
+                      </CommandItem>
+                      {availableCities.map((city) => (
+                        <CommandItem
+                          key={city}
+                          value={city}
+                          onSelect={(currentValue) => {
+                            setCityQuery(currentValue === cityQuery ? "" : currentValue)
+                            setIsCityOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              cityQuery === city ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {city}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
+                <SlidersHorizontal className="h-4 w-4" /> Filtros
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0 border-none">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Filtros</SheetTitle>
+                <SheetDescription>Ajusta los filtros para encontrar tu empleo ideal.</SheetDescription>
+              </SheetHeader>
+              <div className="h-full overflow-y-auto p-4 pt-10">
+                <FilterSidebar 
+                  clearFilters={clearFilters}
+                  selectedPositions={selectedPositions}
+                  handlePositionChange={handlePositionChange}
+                  expandedCategory={expandedCategory}
+                  setExpandedCategory={setExpandedCategory}
+                  selectedLocations={selectedLocations}
+                  handleLocationChange={handleLocationChange}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
           <Button className="h-14 px-10 rounded-2xl font-bold text-md shadow-md shadow-primary/20">
             Buscar
           </Button>
@@ -288,81 +457,15 @@ export default function JobBoard() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
         {/* Sidebar Filters */}
         <div className="hidden lg:block space-y-10">
-          <div className="bg-card border border-border/50 rounded-3xl p-6 shadow-sm sticky top-24">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-lg flex items-center gap-2"><Filter className="h-5 w-5 text-primary" /> Filtros</h3>
-              <button 
-                onClick={clearFilters}
-                className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors"
-              >
-                Limpiar
-              </button>
-            </div>
-            
-            <div className="space-y-8">
-              {/* Position Filter */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Puesto</h4>
-                <div className="space-y-2">
-                  {POSITIONS.map(group => (
-                    <div key={group.category} className="space-y-2">
-                      <button 
-                        onClick={() => setExpandedCategory(expandedCategory === group.category ? null : group.category)}
-                        className={cn(
-                          "w-full flex items-center justify-between text-sm font-semibold p-2 rounded-xl transition-colors",
-                          expandedCategory === group.category ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50"
-                        )}
-                      >
-                        {group.category}
-                        <ChevronRight className={cn(
-                          "h-4 w-4 transition-transform",
-                          expandedCategory === group.category && "rotate-90"
-                        )} />
-                      </button>
-                      
-                      {expandedCategory === group.category && (
-                        <div className="pl-4 space-y-3 pt-2 pb-2 animate-in slide-in-from-top-2 duration-200">
-                          {group.items.map(item => (
-                            <div key={item} className="flex items-center gap-3 group">
-                              <input 
-                                type="checkbox" 
-                                id={`pos-${item}`} 
-                                checked={selectedPositions.includes(item)}
-                                onChange={() => handlePositionChange(item)}
-                                className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                              />
-                              <label htmlFor={`pos-${item}`} className="text-xs cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item}</label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="w-full h-px bg-border/60"></div>
-
-              {/* Location Filter */}
-              <div className="space-y-4">
-                <h4 className="font-bold text-sm text-foreground">Ubicación</h4>
-                <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-                  {PROVINCES.map(province => (
-                    <div key={province} className="flex items-center gap-3 group">
-                      <input 
-                        type="checkbox" 
-                        id={`loc-${province}`} 
-                        checked={selectedLocations.includes(province)}
-                        onChange={() => handleLocationChange(province)}
-                        className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                      />
-                      <label htmlFor={`loc-${province}`} className="text-sm cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{province}</label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          <FilterSidebar 
+            clearFilters={clearFilters}
+            selectedPositions={selectedPositions}
+            handlePositionChange={handlePositionChange}
+            expandedCategory={expandedCategory}
+            setExpandedCategory={setExpandedCategory}
+            selectedLocations={selectedLocations}
+            handleLocationChange={handleLocationChange}
+          />
         </div>
 
         {/* Job Listings */}
@@ -386,13 +489,25 @@ export default function JobBoard() {
                 </Button>
               </div>
             ) : (
-              filteredJobs.map((job) => (
+              filteredJobs.slice(0, visibleCount).map((job) => {
+                const isUrgent = (job as any).is_urgent
+                return (
                 <Link href={`/jobs/${job.id}`} key={job.id} className="block group">
                   <div className={`p-6 sm:p-8 rounded-3xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 relative bg-card ${
-                    job.is_featured ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' : 'border-border/50 hover:border-border'
+                    isUrgent 
+                      ? 'border-orange-500/40 bg-orange-500/[0.03] shadow-orange-500/5 hover:border-orange-500/60 shadow-md ring-1 ring-orange-500/20' 
+                      : job.is_featured 
+                        ? 'border-primary/30 bg-primary/[0.02] shadow-primary/5 hover:border-primary/50' 
+                        : 'border-border/50 hover:border-border'
                   }`}>
                     
-                    {job.is_featured && (
+                    {isUrgent && (
+                      <div className="absolute top-0 right-4 translate-y-[-50%] bg-gradient-to-r from-orange-600 to-red-600 text-white text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-white/20 animate-pulse">
+                        <Zap className="h-3 w-3 fill-white" /> ¡URGENCIA LAST MINUTE!
+                      </div>
+                    )}
+
+                    {job.is_featured && !isUrgent && (
                       <div className="absolute top-0 right-8 translate-y-[-50%] bg-gradient-to-r from-primary to-orange-500 text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-md">
                         DESTACADO
                       </div>
@@ -425,7 +540,7 @@ export default function JobBoard() {
                         
                         <div className="flex flex-wrap items-center gap-3 mt-5 text-sm">
                           <span className="flex items-center bg-background border px-3 py-1.5 rounded-lg font-medium text-foreground">
-                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" /> 
+                            <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />        
                             {getContractLabel(job.contract_type)}
                           </span>
                           <span className="flex items-center bg-background border px-3 py-1.5 rounded-lg font-medium text-foreground">
@@ -455,14 +570,20 @@ export default function JobBoard() {
                     </div>
                   </div>
                 </Link>
-              ))
+                )
+              })
             )}
           </div>
           
-          {!loading && filteredJobs.length >= 5 && (
+          {!loading && filteredJobs.length > visibleCount && (
             <div className="pt-10 flex justify-center">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted">
-                Cargar más resultados
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={() => setVisibleCount(prev => prev + 5)}
+                className="w-full sm:w-auto rounded-xl border-border bg-card shadow-sm font-bold h-14 px-8 text-foreground hover:bg-muted"
+              >
+                Cargar más resultados ({filteredJobs.length - visibleCount} restantes)
               </Button>
             </div>
           )}

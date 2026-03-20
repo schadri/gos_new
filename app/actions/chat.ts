@@ -1,14 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { createMessageNotification } from '@/app/actions/notifications'
 
-export async function getOrCreateChat(jobId: string, applicantId: string) {
-    const supabase = await createClient()
+export async function getOrCreateChat(jobId: string, applicantId: string, forceEmployerId?: string) {
+    const supabase = (forceEmployerId ? getSupabaseAdmin() : await createClient()) as any
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('No user found')
+    let userId = forceEmployerId
+    if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('No user found')
+        userId = user.id
+    }
 
     // Check if chat already exists
     const { data: existingChat, error: findError } = await supabase
@@ -64,13 +69,12 @@ export async function sendMessage(chatId: string, content: string, messageId: st
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'No user found' }
 
-    const { data: chatInfo } = await supabase.from('chats').select('is_paused').eq('id', chatId).single()
+    const { data: chatInfo } = await (supabase.from('chats') as any).select('is_paused').eq('id', chatId).single()
     if (chatInfo?.is_paused) {
         return { success: false, error: 'El chat ha sido pausado por el empleador' }
     }
 
-    const { error } = await supabase
-        .from('messages')
+    const { error } = await (supabase.from('messages') as any)
         .insert({
             id: messageId,
             chat_id: chatId,
@@ -85,23 +89,22 @@ export async function sendMessage(chatId: string, content: string, messageId: st
     }
 
     // Update chat's updated_at timestamp
-    await supabase
-        .from('chats')
+    await (supabase.from('chats') as any)
         .update({ updated_at: new Date().toISOString() })
         .eq('id', chatId)
 
     // Send push notification to the recipient
     try {
-        const { data: chat } = await supabase.from('chats').select('employer_id, applicant_id').eq('id', chatId).single()
+        const { data: chat } = await (supabase.from('chats') as any).select('employer_id, applicant_id').eq('id', chatId).single()
         if (chat) {
             const recipientId = user.id === chat.employer_id ? chat.applicant_id : chat.employer_id
-            const { data: profile } = await supabase.from('profiles').select('full_name, company_name, user_type').eq('id', user.id).single()
+            const { data: profile } = await (supabase.from('profiles') as any).select('full_name, company_name, user_type').eq('id', user.id).single()
 
             const senderName = profile?.user_type === 'BUSINESS'
                 ? (profile.company_name || profile.full_name || 'Empresa')
                 : (profile?.full_name || 'Candidato')
 
-            await createMessageNotification(recipientId, chatId, senderName)
+            await createMessageNotification(recipientId, chatId, senderName, user.id)
         }
     } catch (notifErr) {
         console.error('Failed to dispatch message notification', notifErr)
@@ -118,8 +121,7 @@ export async function deleteChat(chatId: string) {
 
     // Only allow employer to delete for now, or both? 
     // Usually "Undo match" is an employer action in this context
-    const { data: chat } = await supabase
-        .from('chats')
+    const { data: chat } = await (supabase.from('chats') as any)
         .select('employer_id, applicant_id, job_id')
         .eq('id', chatId)
         .single()
@@ -130,8 +132,7 @@ export async function deleteChat(chatId: string) {
 
     // Attempt to also delete the job application to completely undo the match
     if (chat.job_id && chat.applicant_id) {
-        const { error: appError } = await supabase
-            .from('job_applications')
+        const { error: appError } = await (supabase.from('job_applications') as any)
             .delete()
             .eq('job_id', chat.job_id)
             .eq('applicant_id', chat.applicant_id)
@@ -141,22 +142,19 @@ export async function deleteChat(chatId: string) {
         }
 
         // Decrement contacted count in jobs table
-        const { data: jobData } = await supabase
-            .from('jobs')
+        const { data: jobData } = await (supabase.from('jobs') as any)
             .select('contacted_count')
             .eq('id', chat.job_id)
             .single() as any
 
         if (jobData && jobData.contacted_count > 0) {
-            await supabase
-                .from('jobs')
+            await (supabase.from('jobs') as any)
                 .update({ contacted_count: jobData.contacted_count - 1 })
                 .eq('id', chat.job_id)
         }
     }
 
-    const { data: deletedChats, error } = await supabase
-        .from('chats')
+    const { data: deletedChats, error } = await (supabase.from('chats') as any)
         .delete()
         .eq('id', chatId)
         .select('id') as any
@@ -181,8 +179,7 @@ export async function togglePauseChat(chatId: string, isPaused: boolean) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('No user found')
 
-    const { data: chat } = await supabase
-        .from('chats')
+    const { data: chat } = await (supabase.from('chats') as any)
         .select('employer_id')
         .eq('id', chatId)
         .single()
@@ -191,8 +188,7 @@ export async function togglePauseChat(chatId: string, isPaused: boolean) {
         throw new Error('No tienes permiso para pausar este chat')
     }
 
-    const { data: updatedChats, error } = await supabase
-        .from('chats')
+    const { data: updatedChats, error } = await (supabase.from('chats') as any)
         .update({ is_paused: isPaused })
         .eq('id', chatId)
         .select('id')

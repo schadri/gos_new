@@ -34,17 +34,10 @@ export default async function RootLayout({
   try {
     const supabase = await createClient()
     
-    // Add a timeout to prevent infinite hangs in local development
-    const withTimeout = (promise: Promise<any>, ms: number) => {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), ms))
-      ])
-    }
-
-    const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
+    // We use getUser() to avoid Next.js warnings and ensure fresh auth data on Server Side Render
+    const { data: { user: authUser }, error: userError } = await supabase.auth.getUser()
     
-    if (authUser && !authError) {
+    if (authUser && !userError) {
       user = authUser
       const { data: profile, error: profileError } = await (supabase
         .from('profiles') as any)
@@ -56,13 +49,26 @@ export default async function RootLayout({
         isTalent = profile?.user_type === 'TALENT' || user.user_metadata?.role === 'talent'
       }
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Do not swallow Next.js internal dynamic rendering or redirect errors
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const digest = error && typeof error === 'object' && 'digest' in error ? String(error.digest) : ''
+    
+    if (
+      errMsg.includes('Dynamic server usage') ||
+      errMsg.includes('NEXT_REDIRECT') ||
+      digest.includes('DYNAMIC_SERVER_USAGE') ||
+      digest.includes('NEXT_') ||
+      error?.name === 'DynamicServerError'
+    ) {
+      throw error // Let Next.js handle its own internal errors to avoid build failure
+    }
     console.warn('RootLayout: Auth/Profile fetch stalled or failed:', error)
   }
 
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background ${isTalent ? 'talent-theme' : ''}`}>
+      <body className={`${font.className} flex min-h-screen flex-col antialiased bg-background custom-scrollbar ${isTalent ? 'talent-theme' : ''}`}>
         <Providers>
           {user && <RealtimeNotifications userId={user.id} />}
           <Navbar />

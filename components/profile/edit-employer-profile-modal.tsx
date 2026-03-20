@@ -109,7 +109,7 @@ export function EditEmployerProfileModal({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="absolute top-4 right-4 hover:bg-muted z-10 font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
+          className="absolute top-4 right-4 hover:bg-muted z-20 font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
           title="Editar Perfil"
         >
           <Settings className="h-4 w-4" />
@@ -117,7 +117,10 @@ export function EditEmployerProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent 
+        className="w-[calc(100%-1rem)] sm:w-full sm:max-w-[500px] p-4 sm:p-6"
+      >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Editar Perfil de Empresa</DialogTitle>
           <DialogDescription>
@@ -125,7 +128,7 @@ export function EditEmployerProfileModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-1">
+        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto overflow-x-hidden px-2 md:px-4 custom-scrollbar">
           <div className="w-32 h-32 bg-muted rounded-2xl border border-border shadow-sm mb-4 mx-auto flex items-center justify-center overflow-hidden">
             {companyLogo ? (
               <img src={getAvatarUrl(companyLogo) || undefined} alt="Logo Preview" className="w-full h-full object-cover" />
@@ -140,7 +143,7 @@ export function EditEmployerProfileModal({
               id="companyName" 
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Ej: La Esquina de San Juan" 
+              placeholder="Nombre del emprendimiento" 
             />
           </div>
 
@@ -170,16 +173,27 @@ export function EditEmployerProfileModal({
               id="companyDescription" 
               value={companyDescription}
               onChange={(e) => setCompanyDescription(e.target.value)}
-              placeholder="Breve historia, tipo de comida, etc."
+              placeholder="Cuéntanos un poco sobre tu negocio..."
               rows={4}
               className="resize-none"
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={isSubmitting} className="font-bold">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-4 sm:mt-6">
+          <Button 
+            variant="outline" 
+            onClick={() => setOpen(false)} 
+            disabled={isSubmitting}
+            className="w-full sm:w-auto font-semibold"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            disabled={isSubmitting} 
+            className="w-full sm:w-auto font-bold"
+          >
             {isSubmitting ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>
             ) : "Guardar Cambios"}

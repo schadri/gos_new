@@ -24,87 +24,15 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Menu, LogOut, Bell, LifeBuoy } from 'lucide-react'
+import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getAvatarUrl } from '@/lib/utils'
+import { useAuth } from '@/components/providers/auth-provider'
 
 export function Navbar() {
   const pathname = usePathname()
-  const [user, setUser] = React.useState<any>(null)
-  const [role, setRole] = React.useState<string | null>(null)
-  const [profile, setProfile] = React.useState<{ name?: string, avatar?: string } | null>(null)
-  
-  React.useEffect(() => {
-    const supabase = createClient()
-    
-    const fetchUserAndRole = async () => {
-      try {
-        const withTimeout = (promise: Promise<any>, ms: number) => {
-          return Promise.race([
-            promise,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Auth Timeout')), ms))
-          ])
-        }
-
-        // Authenticate the user securely
-        const { data: { user: authUser }, error: authError } = await withTimeout(supabase.auth.getUser(), 8000)
-        
-        if (authError || !authUser) {
-          setUser(null)
-          setRole(null)
-          setProfile(null)
-          return
-        }
-
-        setUser(authUser)
-        
-        // First check metadata for immediate role detection
-        let currentRole = authUser.user_metadata?.role
-        
-        // Then verify with the database and get profile info
-        const { data: profileData, error: profileError } = await (supabase
-          .from('profiles') as any)
-          .select('user_type, full_name, profile_photo, company_logo')
-          .eq('id', authUser.id)
-          .maybeSingle()
-          
-        if (profileData && !profileError) {
-          const profile = profileData as any
-          if (profile.user_type === 'BUSINESS') {
-            currentRole = 'employer'
-          } else if (profile.user_type === 'TALENT') {
-            currentRole = 'talent'
-          }
-          
-          setRole(currentRole)
-          setProfile({
-            name: profile.full_name,
-            avatar: getAvatarUrl(
-              profile.user_type === 'BUSINESS' ? profile.company_logo : profile.profile_photo
-            ) || undefined
-          })
-        } else {
-          setRole(currentRole)
-        }
-      } catch (err) {
-        console.error('Navbar: Error fetching user/role:', err)
-      }
-    }
-
-    // Initial fetch
-    fetchUserAndRole()
-
-    // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Navbar: Auth state changed:', event)
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
-        fetchUserAndRole()
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  const { user, profile, role, isAdmin, unreadCount } = useAuth()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -127,15 +55,29 @@ export function Navbar() {
               <ThemeToggle />
               {role === 'employer' ? (
                 <>
-                  <Link href="/employer/dashboard" className="transition-colors hover:text-foreground/80 text-foreground/60">Portal Emprendedor</Link>
-                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
-                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
+                  <Link href="/employer/dashboard" className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
+                  <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
+                    <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                 </>
               ) : (
                 <>
-                  <Link href="/jobs" className="transition-colors hover:text-foreground/80 text-foreground/60">Trabajos</Link>
-                  <Link href="/notifications" className="transition-colors hover:text-foreground/80 text-foreground/60">Notificaciones</Link>
-                  <Link href="/support" className="transition-colors hover:text-foreground/80 text-foreground/60">Soporte</Link>
+                  <Link href="/jobs" className={`transition-colors ${pathname?.startsWith('/jobs') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Trabajos</Link>
+                  <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
+                    <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-1 right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-background">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
                 </>
               )}
             </nav>
@@ -157,7 +99,7 @@ export function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden">
                       <Avatar className="h-full w-full border border-border shadow-sm transition-transform hover:scale-105">
-                        <AvatarImage src={getAvatarUrl(profile?.avatar) || ''} alt={profile?.name || 'User'} />
+                        <AvatarImage src={profile?.avatar || ''} alt={profile?.name || 'User'} />
                         <AvatarFallback className="bg-primary/10 text-primary font-bold">
                           {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -180,10 +122,23 @@ export function Navbar() {
                         <span>Mi Perfil</span>
                       </Link>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer font-bold text-primary">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          <span>Panel Admin</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
-                      <Link href="/notifications" className="cursor-pointer">
+                      <Link href="/notifications" className="cursor-pointer w-full flex items-center">
                         <Bell className="mr-2 h-4 w-4" />
                         <span>Notificaciones</span>
+                        {unreadCount > 0 && (
+                          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -215,7 +170,7 @@ export function Navbar() {
             <>
               <Link href="/profile" className="mr-4">
                  <Avatar className="h-8 w-8 border border-border transition-transform active:scale-95">
-                  <AvatarImage src={getAvatarUrl(profile?.avatar) || ''} alt={profile?.name || 'User'} />
+                  <AvatarImage src={profile?.avatar || ''} alt={profile?.name || 'User'} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                     {(profile?.name || user.email || 'U').charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -236,17 +191,35 @@ export function Navbar() {
                     <nav className="flex flex-col flex-1 items-center space-y-6">
                       {role === 'employer' ? (
                         <>
-                          <SheetClose asChild><Link href="/employer/dashboard" className="text-lg font-medium text-center">Portal Emprendedor</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
-                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
+                          <SheetClose asChild><Link href="/employer/dashboard" className={`text-lg transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Portal Emprendedor</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild>
+                            <Link href="/notifications" className={`text-lg transition-colors flex items-center justify-center gap-2 ${pathname?.startsWith('/notifications') ? 'text-primary font-bold bg-primary/10 px-4 py-1 rounded-full' : 'font-medium hover:text-primary/80'}`}>
+                              Notificaciones
+                              {unreadCount > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                                  {unreadCount}
+                                </span>
+                              )}
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild><Link href="/support" className={`text-lg transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Soporte</Link></SheetClose>
                         </>
                       ) : (
                         <>
-                          <SheetClose asChild><Link href="/jobs" className="text-lg font-medium text-center">Trabajos</Link></SheetClose>
-                          <SheetClose asChild><Link href="/profile" className="text-lg font-medium text-center">Mi Perfil</Link></SheetClose>
-                          <SheetClose asChild><Link href="/notifications" className="text-lg font-medium text-center">Notificaciones</Link></SheetClose>
-                          <SheetClose asChild><Link href="/support" className="text-lg font-medium text-center">Soporte</Link></SheetClose>
+                          <SheetClose asChild><Link href="/jobs" className={`text-lg transition-colors ${pathname?.startsWith('/jobs') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Trabajos</Link></SheetClose>
+                          <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>
+                          <SheetClose asChild>
+                            <Link href="/notifications" className={`text-lg transition-colors flex items-center justify-center gap-2 ${pathname?.startsWith('/notifications') ? 'text-primary font-bold bg-primary/10 px-4 py-1 rounded-full' : 'font-medium hover:text-primary/80'}`}>
+                              Notificaciones
+                              {unreadCount > 0 && (
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                                  {unreadCount}
+                                </span>
+                              )}
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild><Link href="/support" className={`text-lg transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Soporte</Link></SheetClose>
                         </>
                       )}
                     </nav>

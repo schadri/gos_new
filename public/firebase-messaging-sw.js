@@ -31,10 +31,32 @@ const initializeMessaging = (config) => {
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     data: payload.data,
-                    tag: 'gos-notification', // Consistent tag
-                    renotify: true
                 };
-                self.registration.showNotification(title, notificationOptions);
+
+                // Check if any client is focused
+                const promiseChain = clients.matchAll({
+                    type: 'window',
+                    includeUncontrolled: true
+                }).then((windowClients) => {
+                    let anyClientFocused = false;
+                    for (let i = 0; i < windowClients.length; i++) {
+                        if (windowClients[i].focused) {
+                            anyClientFocused = true;
+                            break;
+                        }
+                    }
+
+                    if (!anyClientFocused) {
+                        return self.registration.showNotification(title, notificationOptions);
+                    } else {
+                        console.log('[firebase-messaging-sw.js] App is focused, skipping system notification.');
+                    }
+                });
+
+                // In SW we should keep the worker alive until the promise finishes
+                // messaging.onBackgroundMessage implicitly handles event.waitUntil if it returns a promise 
+                // but compatibility layers varies. 
+                return promiseChain;
             }
         });
     }
@@ -58,8 +80,6 @@ self.addEventListener('message', (event) => {
                 icon: '/apple-icon.png',
                 badge: '/apple-icon.png',
                 data: options.data,
-                tag: 'gos-notification', // Consistent tag
-                renotify: true
             })
         );
     }

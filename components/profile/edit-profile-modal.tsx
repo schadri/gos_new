@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { FileUpload } from '@/components/shared/file-upload'
 import { KeywordInput } from '@/components/shared/keyword-input'
 import { PositionSelect } from '@/components/shared/position-select'
@@ -33,7 +34,8 @@ export function EditProfileModal({
   initialLocation,
   initialLatitude,
   initialLongitude,
-  initialRadius = 5
+  initialRadius = 5,
+  initialIsActive = true
 }: {
   initialName: string
   initialPhoto: string | null
@@ -44,6 +46,7 @@ export function EditProfileModal({
   initialLatitude?: number | null
   initialLongitude?: number | null
   initialRadius?: number
+  initialIsActive?: boolean
 }) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -57,6 +60,7 @@ export function EditProfileModal({
   const [latitude, setLatitude] = React.useState<number | null>(initialLatitude || null)
   const [longitude, setLongitude] = React.useState<number | null>(initialLongitude || null)
   const [radius, setRadius] = React.useState<number>(initialRadius)
+  const [isActive, setIsActive] = React.useState<boolean>(initialIsActive ?? true)
   
   const [mounted, setMounted] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
@@ -81,7 +85,7 @@ export function EditProfileModal({
 
       if (!user) throw new Error('No estás autenticado')
 
-      const { error } = await supabase.from('profiles').update({
+      const { error } = await (supabase.from('profiles') as any).update({
         full_name: fullName,
         profile_photo: photoUrl?.split('?')[0],
         cv_url: cvUrl?.split('?')[0],
@@ -91,14 +95,15 @@ export function EditProfileModal({
         latitude: latitude,
         longitude: longitude,
         search_radius: radius,
-      } as any).eq('id', user.id)
+        is_active: isActive,
+      }).eq('id', user.id)
 
       if (error) throw error
 
       toast.success('Perfil actualizado correctamente')
       
-      // Trigger auto-matching in the background
-      triggerMatchesForTalent(user.id).catch(console.error)
+      // Trigger auto-matching
+      await triggerMatchesForTalent(user.id).catch(console.error)
 
       setOpen(false)
       router.refresh() // Recarga la página para mostrar los nuevos datos en el Server Component
@@ -114,7 +119,7 @@ export function EditProfileModal({
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="absolute top-4 right-4 hover:bg-muted font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
+          className="absolute top-4 right-4 hover:bg-muted z-20 font-bold rounded-xl flex items-center gap-2 border-border/50 text-muted-foreground shadow-sm" 
           title="Editar Perfil"
         >
           <Settings className="h-4 w-4" />
@@ -122,10 +127,13 @@ export function EditProfileModal({
         </Button>
       </DialogTrigger>
       
-      <DialogContent className={viewingCv ? "sm:max-w-[800px] h-[80vh] flex flex-col" : "sm:max-w-[500px]"}>
+      <DialogContent 
+        className={viewingCv ? "w-[calc(100%-1rem)] sm:w-full sm:max-w-[800px] h-[80vh] flex flex-col p-4 sm:p-6" : "w-[calc(100%-1rem)] sm:w-full sm:max-w-[500px] p-4 sm:p-6"}
+      >
+        <button type="button" autoFocus className="sr-only" tabIndex={0}>Foco</button>
         {viewingCv ? (
           <>
-            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-6 border-b">
+            <DialogHeader className="flex flex-row flex-shrink-0 items-center gap-4 space-y-0 p-4 sm:p-6 border-b">
               <Button variant="ghost" size="icon" onClick={() => setViewingCv(false)} className="rounded-full hover:bg-primary/10 transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -172,7 +180,7 @@ export function EditProfileModal({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto px-2 custom-scrollbar">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto overflow-x-hidden px-2 md:px-4 custom-scrollbar">
               <div className="grid gap-2">
                 <Label htmlFor="fullName" className="font-semibold">Nombre Completo</Label>
                 <Input 
@@ -245,11 +253,36 @@ export function EditProfileModal({
                   }}
                 />
               </div>
+
+              <div className="flex items-center justify-between border rounded-2xl p-4 bg-muted/30 mt-2">
+                <div className="space-y-0.5">
+                  <Label className="font-bold text-sm">Búsqueda Activa</Label>
+                  <p className="text-[12px] text-muted-foreground leading-tight mr-4 min-w-0 break-words">
+                    Permite que las ofertas de empleo ajustadas a tu perfil te hagan "Match" automáticamente.
+                  </p>
+                </div>
+                <Switch 
+                  checked={isActive} 
+                  onCheckedChange={setIsActive} 
+                  className="data-[state=checked]:bg-primary scale-90"
+                />
+              </div>
             </div>
 
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={isSubmitting} className="font-bold">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 px-2 pt-2 sm:pt-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setOpen(false)} 
+                disabled={isSubmitting}
+                className="w-full sm:w-auto font-semibold"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={isSubmitting} 
+                className="w-full sm:w-auto font-bold"
+              >
                 {isSubmitting ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</>
                 ) : "Guardar Cambios"}

@@ -82,7 +82,7 @@ export function KeywordInput({
 
       {activeSuggestions.length > 0 && keywords.length < maxLimit && (
         <div className="pt-2">
-          <p className="text-xs text-muted-foreground mb-3 font-medium">✨ Selecciona tus habilidades principales:</p>
+          <p className="text-xs text-muted-foreground mb-3 font-medium">Selecciona tus habilidades principales:</p>
           <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-2 pb-2">
             {activeSuggestions.map((s, idx) => (
               <Badge 

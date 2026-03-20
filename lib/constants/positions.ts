@@ -7,16 +7,16 @@ export const POSITIONS: PositionDef[] = [
     {
         category: "Cocina",
         items: [
-            "Chef Ejecutivo", "Chef de Cocina", "Sous Chef", "Chef de Partie",
+            "Chef Ejecutivo", "Chef de Cocina", "Sous Chef",
             "Cocinero", "Sushiman", "Pizzero", "Parrillero", "Pastelero",
-            "Panadero", "Ayudante de Cocina", "Bachero"
+            "Panadero", "Ayudante de Cocina", "Bachero",
         ]
     },
     {
         category: "Servicio y Bebidas",
         items: [
-            "Sommelier", "Bartender", "Barman", "Barista", "Camarero",
-            "Mozo", "Capitán de Meseros", "Maitre", "Host/Hostess",
+            "Maitre", "Sommelier", "Bartender", "Barman", "Barista", "Camarero",
+            "Mozo", "Capitán de Meseros", "Host/Hostess",
             "Ayudante de Camarero", "Adicionista", "Recepcionista de Restaurant"
         ]
     },
@@ -24,8 +24,8 @@ export const POSITIONS: PositionDef[] = [
         category: "Hotelería",
         items: [
             "Gerente de Hotel", "Recepcionista", "Recepcionista de Hotel",
-            "Jefe de Recepción", "Conserje", "Botones", "Valet Parking",
-            "Room Service"
+            "Jefe de Recepción", "Conserje", "Gobernanta", "Botones", "Valet Parking",
+            "Empleada de Limpieza", "Camarera de Piso", "Room Service",
         ]
     },
     {
@@ -33,8 +33,8 @@ export const POSITIONS: PositionDef[] = [
         items: [
             "Gerente General", "Gerente de Restaurant", "Gerente de Restaurante",
             "Gerente de Operaciones", "Gerente de Alimentos y Bebidas",
-            "Gerente Administrativo", "Subgerente", "Encargado de Almacén",
-            "Comprador"
+            "Gerente Administrativo", "Subgerente", "Administrativo", "Encargado de Almacén",
+            "Encargado de Compras"
         ]
     },
     {

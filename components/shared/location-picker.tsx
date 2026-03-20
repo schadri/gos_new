@@ -51,7 +51,8 @@ export function LocationPicker({
   onCoordinatesChange?: (lat: number, lng: number) => void;
 }) {
   const [open, setOpen] = React.useState(false)
-  const [isLocating, setIsLocating] = React.useState(false)
+  const [isSearching, setIsSearching] = React.useState(false)
+  const [isGettingLocation, setIsGettingLocation] = React.useState(false)
   
   // Default center if nothing is selected (Buenos Aires approximately)
   const defaultCenter: [number, number] = [-34.6037, -58.3816]
@@ -66,11 +67,9 @@ export function LocationPicker({
   })
   const [detail, setDetail] = React.useState(() => {
     if (!value) return ""
-    if (!selectedProvince) return value
-    return value.replace(selectedProvince, "").replace(/^,?\s*/, "").trim()
+    if (!selectedProvince) return value.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim()
+    return value.replace(selectedProvince, "").replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim()
   })
-
-
 
   // Sync internal state with prop ONLY when it changes from the outside
   // to avoid infinite loops with the onChange callback.
@@ -82,9 +81,13 @@ export function LocationPicker({
     }
     
     // Check if the current internal state already represents the incoming 'value'
-    const currentCombined = detail && selectedProvince 
-      ? `${detail}, ${selectedProvince}` 
-      : detail || selectedProvince
+    const cleanDetailCheck = detail 
+      ? detail.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').trim() 
+      : ''
+      
+    const currentCombined = [cleanDetailCheck, selectedProvince]
+      .filter(Boolean)
+      .join(', ')
     
     if (currentCombined !== value) {
       const foundProvince = PROVINCES.find(p => value.includes(p)) || ""
@@ -92,11 +95,12 @@ export function LocationPicker({
       if (foundProvince) {
         const cleanDetail = value
           .replace(foundProvince, "")
+          .replace(/,,+/g, ',')
           .replace(/^[,\s]+|[,\s]+$/g, "")
           .trim()
         setDetail(cleanDetail)
       } else {
-        setDetail(value)
+        setDetail(value.replace(/,,+/g, ',').replace(/^[,\s]+|[,\s]+$/g, "").trim())
       }
     }
   }, [value]) // We only react to outside value changes
@@ -105,15 +109,54 @@ export function LocationPicker({
   // This reduces the number of separate state updates that can trigger effects
   const updateLocation = (newProvince: string, newDetail: string) => {
     setSelectedProvince(newProvince)
-    setDetail(newDetail)
     
-    const combined = newDetail && newProvince 
-      ? `${newDetail}, ${newProvince}` 
-      : newDetail || newProvince
+    // Clean up any double commas or stray commas from the newDetail string
+    const cleanDetail = newDetail
+      .replace(/,,+/g, ',')
+      .replace(/^[,\s]+|[,\s]+$/g, '')
+      .trim()
+      
+    setDetail(cleanDetail)
+    
+    // Combine detail and province carefully, avoiding ", ,"
+    const combined = [cleanDetail, newProvince]
+      .filter(Boolean)
+      .join(', ')
     
     if (combined !== value) {
       onChange(combined)
     }
+  }
+
+  const parseAddressAndUpdate = (addr: any, lat: number, lon: number) => {
+    if (onCoordinatesChange) {
+      onCoordinatesChange(lat, lon)
+    }
+
+    const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || ""
+    const city = addr.city || addr.town || addr.village || ""
+    const province = addr.state || ""
+    
+    let matchedProvince = ""
+    if (province) {
+      if (province.includes("Autónoma de Buenos Aires") || province.includes("Capital Federal")) {
+        matchedProvince = "Capital Federal (CABA)"
+      } else {
+        matchedProvince = PROVINCES.find(p => 
+          province.toLowerCase().includes(p.toLowerCase()) || 
+          p.toLowerCase().includes(province.toLowerCase())
+        ) || ""
+      }
+    }
+    
+    let detailParts = [neighborhood, city].filter(Boolean)
+    if (matchedProvince) {
+       const cleanProvince = matchedProvince.split('(')[0].trim().toLowerCase()
+       detailParts = detailParts.filter(p => !p.toLowerCase().includes(cleanProvince))
+    }
+
+    const detailedAddr = detailParts.join(", ")
+    updateLocation(matchedProvince || selectedProvince, detailedAddr)
   }
 
   // Function to get current location
@@ -123,19 +166,14 @@ export function LocationPicker({
       return
     }
 
-    setIsLocating(true)
+    setIsGettingLocation(true)
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords
+        const { latitude: lat, longitude: lon } = position.coords
         
-        if (onCoordinatesChange) {
-          onCoordinatesChange(latitude, longitude)
-        }
-
         try {
-          // Reverse geocoding using Nominatim (OSM) - Free and no key required
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
             {
               headers: {
                 'Accept-Language': 'es'
@@ -145,75 +183,72 @@ export function LocationPicker({
           const data = await response.json()
           
           if (data && data.address) {
-            const addr = data.address
-            // Potential location components in order of preference
-            const neighborhood = addr.suburb || addr.neighbourhood || addr.city_district || ""
-            const city = addr.city || addr.town || addr.village || ""
-            const province = addr.state || ""
-            
-            let matchedProvince = ""
-            if (province) {
-              // Special mapping for CABA and general province mapping
-              if (province.includes("Autónoma de Buenos Aires") || province.includes("Capital Federal")) {
-                matchedProvince = "Capital Federal (CABA)"
-              } else {
-                matchedProvince = PROVINCES.find(p => 
-                  province.toLowerCase().includes(p.toLowerCase()) || 
-                  p.toLowerCase().includes(province.toLowerCase())
-                ) || ""
-              }
-              
-              if (matchedProvince) setSelectedProvince(matchedProvince)
-            }
-            
-            // Build detail parts: Focus on Neighborhood and City, avoid redundant province names
-            let detailParts = [neighborhood, city].filter(Boolean)
-            
-            if (matchedProvince) {
-               const cleanProvince = matchedProvince.split('(')[0].trim().toLowerCase()
-               detailParts = detailParts.filter(p => !p.toLowerCase().includes(cleanProvince))
-            }
-
-            const detailedAddr = detailParts.join(", ")
-            updateLocation(matchedProvince || selectedProvince, detailedAddr)
+            parseAddressAndUpdate(data.address, lat, lon)
+          } else {
+            if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+            updateLocation(selectedProvince, `${lat.toFixed(4)}, ${lon.toFixed(4)}`)
           }
         } catch (error) {
           console.error("Error reverse geocoding:", error)
-          updateLocation(selectedProvince, `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`)
+          if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+          updateLocation(selectedProvince, `${lat.toFixed(4)}, ${lon.toFixed(4)}`)
         } finally {
-          setIsLocating(false)
+          setIsGettingLocation(false)
         }
       },
       (error) => {
         console.error("Error getting location:", error)
-        setIsLocating(false)
+        setIsGettingLocation(false)
         alert("No se pudo obtener tu ubicación actual. Revisa los permisos de tu navegador.")
       },
       { enableHighAccuracy: true }
     )
   }
 
+  const handleSearchLocation = async () => {
+    if (!detail && !selectedProvince) return;
+    
+    setIsSearching(true)
+    try {
+      const queryParams = [detail, selectedProvince, "Argentina"].filter(Boolean).join(", ")
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryParams)}&limit=1&addressdetails=1`,
+        { headers: { 'Accept-Language': 'es' } }
+      )
+      const data = await response.json()
+      
+      if (data && data.length > 0) {
+        const item = data[0]
+        const lat = parseFloat(item.lat)
+        const lon = parseFloat(item.lon)
+        if (item.address) {
+          parseAddressAndUpdate(item.address, lat, lon)
+        } else {
+          updateLocation(selectedProvince, detail)
+          if (onCoordinatesChange) onCoordinatesChange(lat, lon)
+        }
+      } else {
+        alert("No se encontró la ubicación ingresada en el mapa. Intenta ser más específico.")
+      }
+    } catch (error) {
+      console.error("Error validando ubicación:", error)
+      alert("Error al validar la ubicación.")
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
   // We removed the automatic effect that calls onChange to avoid loops.
   // Instead, we use updateLocation in the handlers.
   
-  // However, we still need to handle changes to the Input detail field
-  // We'll use a separate effect for that OR just handle it in the onChange of the Input.
-  // Let's use an effect but with a check against the prop value to avoid the loop.
-  React.useEffect(() => {
-    const combined = detail && selectedProvince 
-      ? `${detail}, ${selectedProvince}` 
-      : detail || selectedProvince
-    
-    if (combined !== value) {
-      onChange(combined)
-    }
-  }, [selectedProvince, detail])
+  // Note: We removed the auto-sync useEffect on [selectedProvince, detail].
+  // Now, the user MUST press Enter (or select province) to trigger updateLocation, 
+  // ensuring the typed text is validated against the map before being saved.
 
   return (
     <div className="space-y-4 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          
           <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
               <Button
@@ -239,7 +274,8 @@ export function LocationPicker({
                         key={province}
                         value={province}
                         onSelect={(currentValue) => {
-                          setSelectedProvince(currentValue === selectedProvince ? "" : currentValue)
+                          const newProv = currentValue === selectedProvince ? "" : province
+                          updateLocation(newProv, detail)
                           setOpen(false)
                         }}
                       >
@@ -259,30 +295,49 @@ export function LocationPicker({
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Localidad / Barrio" 
-                className="pl-9 h-12 bg-muted/40 border-muted text-md"
-                value={detail}
-                onChange={(e) => setDetail(e.target.value)}
-              />
-            </div>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon" 
-              className="h-12 w-12 shrink-0 bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
-              onClick={handleGetCurrentLocation}
-              disabled={isLocating}
-              title="Obtener ubicación actual"
-            >
-              {isLocating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
-            </Button>
-          </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-4 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder={selectedProvince ? "Localidad / Barrio (Ej: Belgrano)" : "Selecciona primero una provincia..."} 
+            className="pl-9 h-12 bg-muted/40 border-muted text-md disabled:opacity-50"
+            value={detail}
+            onChange={(e) => setDetail(e.target.value)}
+            disabled={!selectedProvince || isSearching || isGettingLocation}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSearchLocation()
+              }
+            }}
+          />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Button 
+          type="button" 
+          variant="default" 
+          className="h-11 flex items-center justify-center gap-2 shadow-sm font-bold"
+          onClick={handleSearchLocation}
+          disabled={!selectedProvince || isSearching || isGettingLocation}
+        >
+          {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          <span className="text-sm">Buscar en mapa</span>
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="h-11 flex items-center justify-center gap-2 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10 font-bold"
+          onClick={handleGetCurrentLocation}
+          disabled={isSearching || isGettingLocation}
+        >
+          {isGettingLocation ? (
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          ) : (
+            <MapPin className="h-3.5 w-3.5 mr-1.5 text-primary" />
+          )}
+          <span className="text-sm">Ubicación actual</span>
+        </Button>
       </div>
 
       {onRadiusChange && (
@@ -299,7 +354,7 @@ export function LocationPicker({
           <Slider
             value={[radius]}
             min={2}
-            max={25}
+            max={50}
             step={1}
             onValueChange={(vals) => onRadiusChange(vals[0])}
             showTooltip
@@ -307,7 +362,7 @@ export function LocationPicker({
           />
           <div className="flex justify-between text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
             <span>2 km</span>
-            <span>25 km</span>
+            <span>50 km</span>
           </div>
         </div>
       )}

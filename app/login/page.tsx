@@ -9,18 +9,56 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Briefcase } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { isTauri } from '@tauri-apps/api/core'
 import { toast } from 'sonner'
+import { openUrl } from '@tauri-apps/plugin-opener'
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const flow = searchParams?.get('flow')
-  const isTalentFlow = flow === 'talent'
+  const isTauriFlow = flow === 'talent'
+
+  React.useEffect(() => {
+    console.log("Login Mounted. isTauri() =", isTauri())
+  }, [])
 
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+
+  // Wait for deep link when clicking Google Login
+  React.useEffect(() => {
+    let unlisten: () => void;
+    
+    const setupDeepLink = async () => {
+      try {
+        if (isTauri()) {
+          unlisten = await onOpenUrl((urls: string[]) => {
+            console.log('Deep link received:', urls);
+            if (urls.length > 0) {
+              const url = urls[0];
+              // El callback de Supabase vuelve con el fragmento #access_token=... o ?code=...
+              // Extraer ruta relativa asumiendo que empieza con gos://
+              if (url.startsWith('gos://')) {
+                const relativePath = url.replace('gos://', '/');
+                router.push(relativePath);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to setup deep link listener:', err);
+      }
+    };
+
+    setupDeepLink();
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, [router]);
 
   const handleGoogleLogin = async () => {
     const supabase = createClient()
@@ -37,22 +75,37 @@ function LoginContent() {
     if (flow === 'talent') nextRoute = '/talent/register'
     if (flow === 'employer') nextRoute = '/employer/register'
 
-    const redirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
+    const redirectUrl = isTauri() 
+      ? `gos://auth/callback?next=${encodeURIComponent(nextRoute)}`
+      : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
     console.log(`Login: Starting Google OAuth with next=${nextRoute}`)
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
         redirectTo: redirectUrl,
         queryParams: {
           prompt: 'select_account',
-        }
+        },
+        skipBrowserRedirect: isTauri(),
       },
     })
 
     if (error) {
       console.error('Login: Google OAuth Error:', error)
       toast.error(`Error al conectar con Google: ${error.message}`)
+      return;
+    }
+
+    if (isTauri() && data?.url) {
+      // Abre en el navegador por defecto del sistema
+      try {
+        console.log("Login: Tauri detected, opening external browser", data.url)
+        await openUrl(data.url);
+      } catch (err) {
+        console.error('Failed to open external browser:', err);
+        toast.error('No se pudo abrir el navegador externo');
+      }
     }
   }
 
@@ -111,7 +164,7 @@ function LoginContent() {
   }
 
   return (
-    <div className={`container mx-auto flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center ${isTalentFlow ? 'talent-theme' : ''}`}>
+    <div className={`container mx-auto flex min-h-[calc(100vh-8rem)] w-full flex-col items-center justify-center ${isTauriFlow ? 'talent-theme' : ''}`}>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[400px] p-8 border rounded-2xl bg-card shadow-sm">
         <div className="flex flex-col space-y-2 text-center">
           <div className="p-3 bg-primary/10 rounded-full w-fit mx-auto mb-2 text-primary">
@@ -139,7 +192,17 @@ function LoginContent() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Contraseña</Label>
+              {!flow && (
+                <Link
+                  href="/login/forgot-password"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              )}
+            </div>
             <Input
               id="password"
               value={password}

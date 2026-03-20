@@ -1,4 +1,3 @@
-import { adminMessaging } from './firebase-admin'
 import { createClient } from './supabase/server'
 
 interface PushNotificationParams {
@@ -49,7 +48,6 @@ export async function sendPushNotification({
                 notification: {
                     channelId: 'default',
                     priority: 'high',
-                    tag: 'gos-notification', // Deduplication tag
                 },
             },
             webpush: {
@@ -62,7 +60,6 @@ export async function sendPushNotification({
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     requireInteraction: true,
-                    tag: 'gos-notification', // Deduplication tag
                 },
                 fcm_options: {
                     link,
@@ -70,6 +67,8 @@ export async function sendPushNotification({
             },
         }
 
+        // Import dynamically to prevent heavy NodeJS modules from breaking SSR compile times
+        const { adminMessaging } = await import('./firebase-admin')
         const response = await adminMessaging.send(message)
         console.log(`Successfully sent push notification to user ${userId}:`, response)
         return response

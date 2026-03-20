@@ -40,7 +40,7 @@ export async function createMatchNotification(applicantId: string, jobId: string
 }
 
 // Called when someone sends a message
-export async function createMessageNotification(recipientId: string, chatId: string, senderName: string) {
+export async function createMessageNotification(recipientId: string, chatId: string, senderName: string, senderId: string) {
     const supabase = await createClient()
 
     // Ensure they don't get spammed if they already have an unread message notification for this chat
@@ -59,6 +59,7 @@ export async function createMessageNotification(recipientId: string, chatId: str
         .from('notifications')
         .insert({
             user_id: recipientId,
+            sender_id: senderId, // Store who sent it
             type: 'message',
             title: 'Nuevo mensaje recibido',
             description: `Tienes un nuevo mensaje de ${senderName}.`,
@@ -76,7 +77,11 @@ export async function createMessageNotification(recipientId: string, chatId: str
         userId: recipientId,
         title: 'Nuevo mensaje recibido',
         body: `Tienes un nuevo mensaje de ${senderName}.`,
-        link: `/chat/${chatId}`
+        link: `/chat/${chatId}`,
+        data: {
+            sender_id: senderId,
+            chat_id: chatId
+        }
     })
 
     revalidatePath('/notifications')
@@ -121,6 +126,26 @@ export async function markAsRead(notificationId: string) {
         .from('notifications')
         .update({ is_read: true })
         .eq('id', notificationId)
+
+    revalidatePath('/notifications')
+    return { success: true }
+}
+
+export async function markChatNotificationsAsRead(chatId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false }
+
+    const chatUrl = `/chat/${chatId}`
+
+    await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('type', 'message')
+        .eq('link_url', chatUrl)
+        .eq('is_read', false)
 
     revalidatePath('/notifications')
     return { success: true }
@@ -175,7 +200,7 @@ export async function sendNotification({
 
     // Send Push Notification
     try {
-        const { sendPushNotification: pushLib } = require('@/lib/notifications')
+        const { sendPushNotification: pushLib } = await import('@/lib/notifications')
         await pushLib({
             userId,
             title,

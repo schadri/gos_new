@@ -7,17 +7,14 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Converts a Supabase Storage path (e.g. "avatars/user-id/avatar.jpg")
- * into a public URL with a cache-busting timestamp.
+ * into a public URL. Optional cache-busting timestamp can be added.
  * If passed a full URL already, returns it as-is.
  */
-export function getAvatarUrl(path: string | null | undefined): string | null {
+export function getAvatarUrl(path: string | null | undefined, withTimestamp = false): string | null {
   if (!path) return null
 
   // If it's already a full URL, return it as-is
   if (path.startsWith('http')) return path
-
-  // Use a granular cache-buster (every second)
-  const timestamp = Math.floor(Date.now() / 1000)
 
   // Clean the path: remove leading slash if it exists
   const cleanPath = path.startsWith('/') ? path.substring(1) : path
@@ -41,5 +38,11 @@ export function getAvatarUrl(path: string | null | undefined): string | null {
   const baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl
 
   const publicUrl = `${baseUrl}/storage/v1/object/public/${bucketName}/${filePath}`
-  return `${publicUrl}?t=${timestamp}`
+  
+  if (withTimestamp) {
+    const timestamp = Math.floor(Date.now() / 1000)
+    return `${publicUrl}?t=${timestamp}`
+  }
+
+  return publicUrl
 }

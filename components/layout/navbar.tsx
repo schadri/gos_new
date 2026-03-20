@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck } from 'lucide-react'
+import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck, Monitor } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getAvatarUrl } from '@/lib/utils'
@@ -33,6 +33,16 @@ import { useAuth } from '@/components/providers/auth-provider'
 export function Navbar() {
   const pathname = usePathname()
   const { user, profile, role, isAdmin, unreadCount } = useAuth()
+  const [isWindows, setIsWindows] = React.useState(false)
+
+  React.useEffect(() => {
+    // Check if Windows and NOT already in Tauri
+    const win = window.navigator.userAgent.includes('Win')
+    const tauri = (window as any).__TAURI_METADATA__ || (window as any).__TAURI_INTERNALS__
+    if (win && !tauri) {
+      setIsWindows(true)
+    }
+  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -65,6 +75,12 @@ export function Navbar() {
                     )}
                   </Link>
                   <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
+                  {isWindows && (
+                    <Link href="#" download className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
+                      <Monitor className="h-3.5 w-3.5" />
+                      Descargar App
+                    </Link>
+                  )}
                 </>
               ) : (
                 <>
@@ -78,6 +94,12 @@ export function Navbar() {
                     )}
                   </Link>
                   <Link href="/support" className={`transition-colors ${pathname?.startsWith('/support') ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Soporte</Link>
+                  {isWindows && (
+                    <Link href="#" download className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20">
+                      <Monitor className="h-3.5 w-3.5" />
+                      Descargar App
+                    </Link>
+                  )}
                 </>
               )}
             </nav>
@@ -179,12 +201,24 @@ export function Navbar() {
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
-                    <Menu className="h-5 w-5" />
+                  <Menu className="h-5 w-5" />
                     <span className="sr-only">Menú</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-background/100 backdrop-blur-md">
                   <div className="flex flex-col h-full mt-14 pb-8">
+                    {isWindows && (
+                      <div className="px-6 mb-6">
+                        <Link 
+                          href="#" 
+                          download
+                          className="flex items-center justify-center gap-3 w-full py-4 rounded-3xl bg-primary text-primary-foreground font-black shadow-lg shadow-primary/20 animate-pulse"
+                        >
+                          <Monitor className="h-5 w-5" />
+                          DESCARGAR PARA PC
+                        </Link>
+                      </div>
+                    )}
                     <div className="flex w-full justify-center pb-6">
                       <ThemeToggle />
                     </div>

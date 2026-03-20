@@ -41,25 +41,13 @@ export async function createMatchNotification(applicantId: string, jobId: string
 
 // Called when someone sends a message
 export async function createMessageNotification(recipientId: string, chatId: string, senderName: string, senderId: string) {
+    console.log(`NOTIF: Trigerring notification for ${recipientId} from ${senderId} in chat ${chatId}`);
     const supabase = await createClient()
-
-    // Ensure they don't get spammed if they already have an unread message notification for this chat
-    const { data: existing } = await supabase
-        .from('notifications')
-        .select('id')
-        .eq('user_id', recipientId)
-        .eq('type', 'message')
-        .eq('link_url', `/chat/${chatId}`)
-        .eq('is_read', false)
-        .maybeSingle()
-
-    if (existing) return
 
     const { error } = await supabase
         .from('notifications')
         .insert({
             user_id: recipientId,
-            sender_id: senderId, // Store who sent it
             type: 'message',
             title: 'Nuevo mensaje recibido',
             description: `Tienes un nuevo mensaje de ${senderName}.`,
@@ -71,6 +59,8 @@ export async function createMessageNotification(recipientId: string, chatId: str
         console.error('MESSAGE NOTIF ERROR:', error)
         throw new Error('No se pudo crear la notificacion de mensaje: ' + error.message)
     }
+    
+    console.log(`NOTIF: Successfully created notification row in DB.`);
 
     // Send Push Notification
     await sendPushNotification({
@@ -83,6 +73,8 @@ export async function createMessageNotification(recipientId: string, chatId: str
             chat_id: chatId
         }
     })
+    
+    console.log(`NOTIF: Triggered push via FCM.`);
 
     revalidatePath('/notifications')
 }

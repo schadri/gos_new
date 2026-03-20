@@ -48,7 +48,6 @@ export async function sendPushNotification({
                 notification: {
                     channelId: 'default',
                     priority: 'high',
-                    tag: 'gos-notification', // Deduplication tag
                 },
             },
             webpush: {
@@ -61,7 +60,6 @@ export async function sendPushNotification({
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     requireInteraction: true,
-                    tag: 'gos-notification', // Deduplication tag
                 },
                 fcm_options: {
                     link,

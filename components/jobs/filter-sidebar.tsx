@@ -35,7 +35,7 @@ export function FilterSidebar({
           </h3>
           <button 
             onClick={clearFilters}
-            className="text-xs text-muted-foreground hover:text-primary font-medium transition-colors"
+            className="text-[10px] bg-primary/10 text-primary px-2 py-1.5 rounded-md hover:bg-primary/20 transition-colors uppercase tracking-wider font-black flex items-center gap-1"
           >
             Limpiar
           </button>
@@ -44,42 +44,61 @@ export function FilterSidebar({
         <div className="space-y-8">
           {/* Position Filter */}
           <div className="space-y-4">
-            <h4 className="font-bold text-sm text-foreground">Puesto</h4>
+            <h4 className="font-bold text-sm text-foreground flex items-center gap-3">
+              {expandedCategory && (
+                <button 
+                  onClick={() => setExpandedCategory(null)}
+                  className="text-[10px] bg-primary/10 text-primary px-2 py-1.5 rounded-md hover:bg-primary/20 transition-colors uppercase tracking-wider font-black flex items-center gap-1"
+                >
+                  <ChevronRight className="h-3 w-3 rotate-180" /> Volver
+                </button>
+              )}
+              {!expandedCategory && <span>Puesto</span>}
+            </h4>
+            
             <div className="space-y-2">
-              {POSITIONS.map(group => (
-                <div key={group.category} className="space-y-2">
-                  <button 
-                    onClick={() => setExpandedCategory(expandedCategory === group.category ? null : group.category)}
-                    className={cn(
-                      "w-full flex items-center justify-between text-sm font-semibold p-2 rounded-xl transition-colors",
-                      expandedCategory === group.category ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    {group.category}
-                    <ChevronRight className={cn(
-                      "h-4 w-4 transition-transform",
-                      expandedCategory === group.category && "rotate-90"
-                    )} />
-                  </button>
-                  
-                  {expandedCategory === group.category && (
-                    <div className="pl-4 space-y-3 pt-2 pb-2 animate-in slide-in-from-top-2 duration-200">
-                      {group.items.map(item => (
-                        <div key={item} className="flex items-center gap-3 group">
-                          <input 
-                            type="checkbox" 
-                            id={`pos-${item}`} 
-                            checked={selectedPositions.includes(item)}
-                            onChange={() => handlePositionChange(item)}
-                            className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
-                          />
-                          <label htmlFor={`pos-${item}`} className="text-xs cursor-pointer text-muted-foreground font-medium group-hover:text-foreground transition-colors">{item}</label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              {!expandedCategory ? (
+                /* Category List View */
+                <div className="space-y-2 animate-in fade-in slide-in-from-left-2 duration-300">
+                  {POSITIONS.map(group => (
+                    <button 
+                      key={group.category}
+                      onClick={() => setExpandedCategory(group.category)}
+                      className="w-full flex items-center justify-center text-sm font-bold p-3.5 rounded-2xl transition-all bg-muted/30 hover:bg-primary/5 hover:text-primary border border-transparent hover:border-primary/20 group relative"
+                    >
+                      {group.category}
+                      <ChevronRight className="h-4 w-4 opacity-0 absolute right-4 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                    </button>
+                  ))}
                 </div>
-              ))}
+              ) : (
+                /* Subcategory View */
+                <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                  <div className="mb-4 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                    <p className="text-xs font-black text-primary uppercase tracking-widest text-center">{expandedCategory}</p>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {POSITIONS.find(g => g.category === expandedCategory)?.items.map(item => (
+                      <div key={item} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors group">
+                        <input 
+                          type="checkbox" 
+                          id={`pos-${item}`} 
+                          checked={selectedPositions.includes(item)}
+                          onChange={() => handlePositionChange(item)}
+                          className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                        />
+                        <label 
+                          htmlFor={`pos-${item}`} 
+                          className="text-xs cursor-pointer text-muted-foreground font-semibold group-hover:text-foreground transition-colors flex-1"
+                        >
+                          {item}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

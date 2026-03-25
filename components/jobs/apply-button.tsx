@@ -15,9 +15,10 @@ interface ApplyButtonProps {
   employerId?: string
   jobTitle?: string
   applicantName?: string
+  isWrongCategory?: boolean
 }
 
-export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialApplied, employerId, jobTitle, applicantName }: ApplyButtonProps) {
+export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialApplied, employerId, jobTitle, applicantName, isWrongCategory }: ApplyButtonProps) {
   const [isApplying, setIsApplying] = React.useState(false)
   const [hasApplied, setHasApplied] = React.useState(initialApplied)
 
@@ -95,6 +96,14 @@ export function ApplyButton({ jobId, userId, isEmployer, hasApplied: initialAppl
     return (
       <Button size="lg" disabled variant="secondary" className="w-full h-16 rounded-2xl text-xl font-bold bg-green-500/10 text-green-700 dark:text-green-500 hover:bg-green-500/10 opacity-100">
         Ya te has postulado
+      </Button>
+    )
+  }
+
+  if (isWrongCategory) {
+    return (
+      <Button size="lg" disabled variant="secondary" className="w-full h-16 rounded-2xl text-xl font-bold bg-destructive/10 text-destructive dark:text-destructive hover:bg-destructive/10 opacity-100 cursor-not-allowed">
+        Tu perfil no es del rubro
       </Button>
     )
   }

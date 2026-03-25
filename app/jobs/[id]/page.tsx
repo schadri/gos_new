@@ -6,6 +6,7 @@ import { ApplyButton } from '@/components/jobs/apply-button'
 import { ShareButton } from '@/components/jobs/share-button'
 import { MapPin, Briefcase, Clock, Calendar, CheckCircle2, Building, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { POSITIONS } from '@/lib/constants/positions'
 
 import {
   Avatar,
@@ -50,9 +51,10 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
   let isEmployer = false
   let applicantName = 'Un candidato'
   let hasApplied = false
+  let isWrongCategory = false
 
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('user_type, full_name').eq('id', user.id).maybeSingle()
+    const { data: profile } = await supabase.from('profiles').select('user_type, full_name, position').eq('id', user.id).maybeSingle()
     isEmployer = profile?.user_type === 'BUSINESS' || user.user_metadata?.role === 'employer'
     if (profile?.full_name) applicantName = profile.full_name
 
@@ -65,6 +67,17 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
         .maybeSingle()
       
       hasApplied = !!appData
+      
+      if (profile?.position && Array.isArray(profile.position)) {
+        const userCategories = profile.position.map((p: string) => {
+          const group = POSITIONS.find(g => g.items.includes(p))
+          return group ? group.category : null
+        }).filter(Boolean)
+        
+        if (job.category && userCategories.length > 0 && !userCategories.includes(job.category)) {
+          isWrongCategory = true
+        }
+      }
     }
   }
 
@@ -190,6 +203,7 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
                 employerId={job.created_by}
                 jobTitle={job.title}
                 applicantName={applicantName}
+                isWrongCategory={isWrongCategory}
               />
               <p className="text-xs text-center text-muted-foreground font-medium mt-4 leading-relaxed">
                 Al postularte, el creador de la oferta podrá ver tu perfil y CV publicado de manera inmediata.

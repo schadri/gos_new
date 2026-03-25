@@ -87,7 +87,6 @@ export default function JobBoard() {
   }, [jobs, locationQuery])
   
   const [selectedPositions, setSelectedPositions] = React.useState<string[]>([])
-  const [selectedLocations, setSelectedLocations] = React.useState<string[]>([])
   const [expandedCategory, setExpandedCategory] = React.useState<string | null>(null)
   const [sortBy, setSortBy] = React.useState('Mejor match')
  
@@ -195,18 +194,11 @@ export default function JobBoard() {
     )
   }
 
-  const handleLocationChange = (loc: string) => {
-    setSelectedLocations(prev => 
-      prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
-    )
-  }
-
   const clearFilters = () => {
     setSearchQuery('')
     setLocationQuery('')
     setCityQuery('')
     setSelectedPositions([])
-    setSelectedLocations([])
     setExpandedCategory(null)
     setVisibleCount(5)
   }
@@ -214,7 +206,7 @@ export default function JobBoard() {
   // Reset pagination when filters change
   React.useEffect(() => {
     setVisibleCount(5)
-  }, [searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
+  }, [searchQuery, locationQuery, cityQuery, selectedPositions, sortBy])
 
   // Filter Jobs
   const filteredJobs = React.useMemo(() => {
@@ -229,12 +221,8 @@ export default function JobBoard() {
       
       // 2.b Bar Search (Input City)
       const matchCity = !cityQuery || (job.location?.toLowerCase() || '').includes(cityQuery.toLowerCase())
-      
-      // 3. Sidebar Multi-Location
-      const matchSidebarLocation = selectedLocations.length === 0 || 
-                                   (job.location && selectedLocations.some(loc => job.location?.includes(loc)))
 
-      // 4. Sidebar Position Filter
+      // 3. Sidebar Position Filter
       const jobTitle = job.title?.toLowerCase() || ''
       const jobKeywords = (job.keywords || []).map((k: string) => k.toLowerCase())
       
@@ -244,7 +232,7 @@ export default function JobBoard() {
                               return jobTitle.includes(lowerPos) || jobKeywords.includes(lowerPos)
                             })
 
-      return matchSearch && matchBarLocation && matchCity && matchSidebarLocation && matchPosition
+      return matchSearch && matchBarLocation && matchCity && matchPosition
     }).sort((a, b) => {
       // 1. Priority: Urgent jobs first
       const aUrgent = (a as any).is_urgent ? 1 : 0
@@ -257,7 +245,7 @@ export default function JobBoard() {
       }
       return 0
     })
-  }, [jobs, searchQuery, locationQuery, cityQuery, selectedPositions, selectedLocations, sortBy])
+  }, [jobs, searchQuery, locationQuery, cityQuery, selectedPositions, sortBy])
 
   // Map internal database values to display labels
   const getContractLabel = (type: string | null) => {
@@ -440,8 +428,11 @@ export default function JobBoard() {
                   handlePositionChange={handlePositionChange}
                   expandedCategory={expandedCategory}
                   setExpandedCategory={setExpandedCategory}
-                  selectedLocations={selectedLocations}
-                  handleLocationChange={handleLocationChange}
+                  locationQuery={locationQuery}
+                  setLocationQuery={setLocationQuery}
+                  cityQuery={cityQuery}
+                  setCityQuery={setCityQuery}
+                  availableCities={availableCities}
                 />
               </div>
             </SheetContent>
@@ -463,8 +454,11 @@ export default function JobBoard() {
             handlePositionChange={handlePositionChange}
             expandedCategory={expandedCategory}
             setExpandedCategory={setExpandedCategory}
-            selectedLocations={selectedLocations}
-            handleLocationChange={handleLocationChange}
+            locationQuery={locationQuery}
+            setLocationQuery={setLocationQuery}
+            cityQuery={cityQuery}
+            setCityQuery={setCityQuery}
+            availableCities={availableCities}
           />
         </div>
 

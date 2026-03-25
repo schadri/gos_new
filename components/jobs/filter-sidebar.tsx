@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Filter, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { POSITIONS } from '@/lib/constants/positions'
+import { PROVINCES } from '@/lib/constants/locations'
 
 interface FilterSidebarProps {
   clearFilters: () => void
@@ -11,8 +12,11 @@ interface FilterSidebarProps {
   handlePositionChange: (pos: string) => void
   expandedCategory: string | null
   setExpandedCategory: (category: string | null) => void
-  selectedLocations: string[]
-  handleLocationChange: (loc: string) => void
+  locationQuery: string
+  setLocationQuery: (loc: string) => void
+  cityQuery: string
+  setCityQuery: (city: string) => void
+  availableCities: string[]
   className?: string
 }
 
@@ -22,8 +26,11 @@ export function FilterSidebar({
   handlePositionChange,
   expandedCategory,
   setExpandedCategory,
-  selectedLocations,
-  handleLocationChange,
+  locationQuery,
+  setLocationQuery,
+  cityQuery,
+  setCityQuery,
+  availableCities,
   className
 }: FilterSidebarProps) {
   return (
@@ -96,6 +103,73 @@ export function FilterSidebar({
                         </label>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Location Filter */}
+          <div className="space-y-4 pt-4 border-t border-border/50">
+            <h4 className="font-bold text-sm text-foreground flex items-center gap-3">
+              {locationQuery && (
+                <button 
+                  onClick={() => {
+                     setLocationQuery('')
+                     setCityQuery('')
+                  }}
+                  className="text-[10px] bg-primary/10 text-primary px-2 py-1.5 rounded-md hover:bg-primary/20 transition-colors uppercase tracking-wider font-black flex items-center gap-1"
+                >
+                  <ChevronRight className="h-3 w-3 rotate-180" /> Volver
+                </button>
+              )}
+              {!locationQuery && <span>Ubicación</span>}
+            </h4>
+            
+            <div className="space-y-2">
+              {!locationQuery ? (
+                /* Province List View */
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar animate-in fade-in slide-in-from-left-2 duration-300">
+                  {PROVINCES.map(prov => (
+                    <button 
+                      key={prov}
+                      onClick={() => setLocationQuery(prov)}
+                      className="w-full flex items-center justify-center text-sm font-bold p-3.5 rounded-2xl transition-all bg-muted/30 hover:bg-primary/5 hover:text-primary border border-transparent hover:border-primary/20 group relative"
+                    >
+                      {prov}
+                      <ChevronRight className="h-4 w-4 opacity-0 absolute right-4 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                /* Cities View */
+                <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                  <div className="mb-4 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                    <p className="text-xs font-black text-primary uppercase tracking-widest text-center">{locationQuery}</p>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {availableCities.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center p-4 font-semibold">No hay ciudades disponibles en esta provincia en este momento.</p>
+                    ) : (
+                      availableCities.map(city => (
+                        <div key={city} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors group">
+                          <input 
+                            type="checkbox" 
+                            id={`city-${city}`} 
+                            checked={cityQuery === city}
+                            onChange={() => setCityQuery(cityQuery === city ? "" : city)}
+                            className="rounded-md border-muted-foreground/30 text-primary focus:ring-primary focus:ring-offset-0 h-5 w-5 bg-muted/20 cursor-pointer" 
+                          />
+                          <label 
+                            htmlFor={`city-${city}`} 
+                            className="text-xs cursor-pointer text-muted-foreground font-semibold group-hover:text-foreground transition-colors flex-1"
+                          >
+                            {city}
+                          </label>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

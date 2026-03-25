@@ -20,7 +20,7 @@ export const POSITIONS: PositionDef[] = [
         ]
     },
     {
-        category: "Hotelería",
+        category: "Hotelería"
         items: [
             "Gerente de Hotel", "Recepcionista",
             "Conserje", "Gobernanta", "Valet Parking",

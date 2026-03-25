@@ -283,10 +283,36 @@ export default function JobBoard() {
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Bolsa de Empleo</h1>
           <p className="text-muted-foreground mt-3 text-lg font-medium">Encuentra {jobs.length > 0 ? `más de ${jobs.length}` : 'nuevas'} oportunidades activas en este momento.</p>
         </div>
-        
         <div className="bg-card border border-border/60 p-4 rounded-3xl flex flex-col md:flex-row gap-3 shadow-lg shadow-background/5">
-          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
+                <SlidersHorizontal className="h-4 w-4" /> Puestos
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0 border-none">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Filtros</SheetTitle>
+                <SheetDescription>Ajusta los filtros para encontrar tu empleo ideal.</SheetDescription>
+              </SheetHeader>
+              <div className="h-full overflow-y-auto p-4 pt-10">
+                <FilterSidebar 
+                  clearFilters={clearFilters}
+                  selectedPositions={selectedPositions}
+                  handlePositionChange={handlePositionChange}
+                  expandedCategory={expandedCategory}
+                  setExpandedCategory={setExpandedCategory}
+                  locationQuery={locationQuery}
+                  setLocationQuery={setLocationQuery}
+                  cityQuery={cityQuery}
+                  setCityQuery={setCityQuery}
+                  availableCities={availableCities}
+                />
+              </div>
+            </SheetContent>
+          </Sheet>
           <div className="flex-1 flex items-center relative w-full bg-muted/30 rounded-2xl border border-transparent focus-within:border-primary/30 focus-within:bg-background transition-colors">
+          
             <Popover open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -410,33 +436,7 @@ export default function JobBoard() {
               </PopoverContent>
             </Popover>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="h-14 px-6 rounded-2xl flex items-center gap-2 bg-background border-border shadow-sm font-semibold lg:hidden">
-                <SlidersHorizontal className="h-4 w-4" /> Filtros
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] sm:w-[400px] p-0 border-none">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Filtros</SheetTitle>
-                <SheetDescription>Ajusta los filtros para encontrar tu empleo ideal.</SheetDescription>
-              </SheetHeader>
-              <div className="h-full overflow-y-auto p-4 pt-10">
-                <FilterSidebar 
-                  clearFilters={clearFilters}
-                  selectedPositions={selectedPositions}
-                  handlePositionChange={handlePositionChange}
-                  expandedCategory={expandedCategory}
-                  setExpandedCategory={setExpandedCategory}
-                  locationQuery={locationQuery}
-                  setLocationQuery={setLocationQuery}
-                  cityQuery={cityQuery}
-                  setCityQuery={setCityQuery}
-                  availableCities={availableCities}
-                />
-              </div>
-            </SheetContent>
-          </Sheet>
+          
           <Button className="h-14 px-10 rounded-2xl font-bold text-md shadow-md shadow-primary/20">
             Buscar
           </Button>

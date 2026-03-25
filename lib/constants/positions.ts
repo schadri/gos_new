@@ -15,17 +15,16 @@ export const POSITIONS: PositionDef[] = [
     {
         category: "Servicio y Bebidas",
         items: [
-            "Maitre", "Sommelier", "Bartender", "Barman", "Barista", "Camarero",
-            "Mozo", "Capitán de Meseros", "Host/Hostess",
+            "Maitre", "Sommelier", "Bartender", "Barman", "Barista", "Host/Hostess", "Camarero",
             "Ayudante de Camarero", "Adicionista", "Recepcionista de Restaurant"
         ]
     },
     {
         category: "Hotelería",
         items: [
-            "Gerente de Hotel", "Recepcionista", "Recepcionista de Hotel",
-            "Jefe de Recepción", "Conserje", "Gobernanta", "Botones", "Valet Parking",
-            "Empleada de Limpieza", "Camarera de Piso", "Room Service",
+            "Gerente de Hotel", "Recepcionista",
+            "Conserje", "Gobernanta", "Valet Parking",
+            "Room Service",
         ]
     },
     {
@@ -40,14 +39,14 @@ export const POSITIONS: PositionDef[] = [
     {
         category: "Limpieza y Mantenimiento",
         items: [
-            "Ama de Llaves", "Supervisor de Limpieza", "Steward", "Lavaplatos",
+            "Ama de Llaves", "Supervisor de Limpieza", "Empleada de Limpieza", "Steward", "Lavaplatos",
             "Limpieza de Restaurant", "Jefe de Mantenimiento", "Encargado de Mantenimiento"
         ]
     },
     {
         category: "Eventos",
         items: [
-            "Coordinador de Eventos", "Banquetes"
+            "Coordinador de Eventos", "Banquetes", "Mozos de Eventos", "Bartender de Eventos"
         ]
     }
 ]

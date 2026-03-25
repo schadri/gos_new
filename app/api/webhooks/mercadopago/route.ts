@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     const xSignature = request.headers.get('x-signature')
     const xRequestId = request.headers.get('x-request-id')
     const secret = process.env.MP_WEBHOOK_SECRET
+    const bodyParams = new URLSearchParams(request.url.split('?')[1] || '')
 
     if (!secret) {
       console.log('[Webhook] ⚠️ Advertencia: MP_WEBHOOK_SECRET no está configurada, salteando validación de firma segura.')
@@ -36,7 +37,6 @@ export async function POST(request: Request) {
       const ts = tsPart ? tsPart.split('=')[1] : ''
       const hash = v1Part ? v1Part.split('=')[1] : ''
       
-      const bodyParams = new URLSearchParams(request.url.split('?')[1] || '')
       let dataId = bodyParams.get('data.id')
       if (!dataId) {
         try {
@@ -61,8 +61,8 @@ export async function POST(request: Request) {
     // Procesar Evento
     const json = JSON.parse(bodyText)
     
-    // MP envía action: "payment.created" o topic: "payment"
-    if ((json.action === 'payment.created' || json.topic === 'payment') && json.type === 'payment') {
+    // MP envía action: "payment.created" o "payment.updated" o topic: "payment"
+    if ((json.action === 'payment.created' || json.action === 'payment.updated' || json.topic === 'payment') && json.type === 'payment') {
       const paymentId = json.data?.id || bodyParams?.get('id')
       console.log(`[Webhook] 🔍 Buscando datos del pago ID: ${paymentId}`)
 

@@ -55,6 +55,7 @@
     "firebase-admin": "^12.6.0",
     "framer-motion": "^12.34.3",
     "input-otp": "1.4.2",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.564.0",
     "mercadopago": "^2.0.15",
     "next": "16.1.6",

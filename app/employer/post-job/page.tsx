@@ -175,6 +175,26 @@ function PostJobForm() {
         return
       }
 
+      // 1. Validar créditos antes de enviar la publicación
+      const isNewActive = !editId || (initialData?.status === 'draft')
+      
+      if (isNewActive) {
+        const { data } = await supabase.from('profiles').select('credits, free_until').eq('id', session.user.id).single()
+        const profile = data as any;
+        
+        let isFree = false;
+        if (profile?.free_until) {
+          isFree = new Date(profile.free_until) > new Date()
+        }
+
+        if (!isFree && (profile?.credits || 0) < 1) {
+          toast.error('No tienes créditos suficientes para publicar. Serás redirigido para cargar saldo.')
+          setTimeout(() => router.push('/employer/credits'), 2500)
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       const jobData = {
         created_by: session.user.id,
         title: title || 'Sin Título',
@@ -205,6 +225,16 @@ function PostJobForm() {
       }
 
       if (error) throw error
+
+      // 3. Descontar crédito (RPC) usando el ID final
+      if (finalId && isNewActive) {
+        const { error: rpcError } = await (supabase.rpc as any)('deduct_credit_for_job', { 
+          user_uid: session.user.id, 
+          job_uid: finalId,
+          amount: 1
+        })
+        if (rpcError) console.error('Error deduction credits:', rpcError)
+      }
 
       toast.success('¡Oferta publicada exitosamente!')
       setInitialData(null) // Reset dirty check

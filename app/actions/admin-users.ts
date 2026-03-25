@@ -116,3 +116,50 @@ export async function resetUserPasswordAction(userId: string) {
 
     return { success: true }
 }
+
+export async function updateUserCreditsAction(userId: string, credits: number, freeUntil: Date | null) {
+    const supabase = await createClient()
+
+    // 1. Verify caller is admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No autenticado')
+
+    const { data: profile } = await (supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single() as any) as { data: { is_admin: boolean } | null }
+
+    if (!profile?.is_admin) {
+        throw new Error('No tienes permisos de administrador')
+    }
+
+    const adminClient = getSupabaseAdmin()
+    
+    // Update profile
+    const { error: updateError } = await (adminClient
+        .from('profiles') as any)
+        .update({ 
+            credits: credits, 
+            free_until: freeUntil ? freeUntil.toISOString() : null 
+        })
+        .eq('id', userId)
+
+    if (updateError) {
+        console.error('Error updating credits:', updateError)
+        return { success: false, error: 'Error al actualizar créditos' }
+    }
+
+    // Insert transaction audit log
+    await (adminClient
+        .from('transactions') as any)
+        .insert({
+            user_id: userId,
+            type: 'admin_promo',
+            amount: credits,
+            description: `Actualización manual por administrador (${user.email})`
+        })
+
+    revalidatePath('/admin/users')
+    return { success: true }
+}

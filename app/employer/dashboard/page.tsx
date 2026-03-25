@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight, Zap } from 'lucide-react'
+import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle, Bell, Clock, Building2, MapPin, ExternalLink, Activity, ArrowUpRight, Zap, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { JobActionsMenu } from '@/components/employer/job-actions-menu'
 
@@ -70,14 +70,26 @@ export default async function EmployerDashboard() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 gap-4">
         <div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Panel de Control: {companyName}</h1>
-          <p className="text-muted-foreground mt-2 font-medium">Gestiona tus ofertas y evalúa los matches de talento.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
+            <p className="text-muted-foreground font-medium">Gestiona tus ofertas y evalúa los matches de talento.</p>
+            <div className="flex items-center gap-2">
+              {profile?.free_until && new Date(profile.free_until) > new Date() && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20 gap-1 hidden sm:flex"><Sparkles className="h-3 w-3" /> Prueba</Badge>
+              )}
+              <Link href="/employer/credits">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 cursor-pointer gap-1 transition-colors px-3 py-1">
+                  <CreditCard className="h-3.5 w-3.5" /> {(profile?.credits || 0)} Créditos
+                </Badge>
+              </Link>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button size="lg" variant="outline" className="rounded-xl h-12 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all font-bold gap-2 shadow-sm shadow-orange-500/5" asChild>
-            <Link href="/employer/post-job?urgent=true"><Zap className="h-4 w-4 fill-orange-500" /> Búsqueda Urgente</Link>
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          <Button size="lg" variant="outline" className="w-full sm:w-auto px-2 sm:px-6 rounded-xl h-12 border-orange-500/50 text-orange-600 hover:bg-orange-500/10 transition-all font-bold gap-1.5 sm:gap-2 shadow-sm shadow-orange-500/5 text-xs sm:text-base" asChild>
+            <Link href="/employer/post-job?urgent=true"><Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-orange-500 shrink-0" /> <span className="truncate">Búsqueda Urgente</span></Link>
           </Button>
-          <Button size="lg" className="rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-2" asChild>
-            <Link href="/employer/post-job"><PlusCircle className="h-5 w-5" /> Nueva Oferta</Link>
+          <Button size="lg" className="w-full sm:w-auto px-2 sm:px-6 rounded-xl h-12 shadow-md hover:shadow-lg transition-all font-bold gap-1.5 sm:gap-2 text-xs sm:text-base" asChild>
+            <Link href="/employer/post-job"><PlusCircle className="h-4 sm:h-5 w-4 sm:w-5 shrink-0" /> <span className="truncate">Nueva Oferta</span></Link>
           </Button>
         </div>
       </div>

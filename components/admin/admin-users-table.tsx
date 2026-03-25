@@ -14,11 +14,12 @@ import {
   Trash2,
   ExternalLink,
   ShieldAlert,
-  Fingerprint,
-  Loader2,
   UserX,
   UserCheck as UserCheckIcon,
-  Key
+  Key,
+  CreditCard,
+  Fingerprint,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -48,7 +49,7 @@ import { getAvatarUrl } from '@/lib/utils'
 import { Database } from '@/types/supabase'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { deleteUserAction, toggleUserBanAction, resetUserPasswordAction } from '@/app/actions/admin-users'
+import { deleteUserAction, toggleUserBanAction, resetUserPasswordAction, updateUserCreditsAction } from '@/app/actions/admin-users'
 
 type Profile = Database['public']['Tables']['profiles']['Row'] & { email?: string }
 
@@ -64,6 +65,9 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
   const [isBanDialogOpen, setIsBanDialogOpen] = React.useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+  const [isCreditsDialogOpen, setIsCreditsDialogOpen] = React.useState(false)
+  const [editCredits, setEditCredits] = React.useState<number>(0)
+  const [editFreeUntil, setEditFreeUntil] = React.useState<string>('')
   const [isLoading, setIsLoading] = React.useState(false)
 
   const filteredUsers = React.useMemo(() => {
@@ -165,6 +169,28 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
     } catch (err: any) {
       console.error('Error resetting password:', err)
       toast.error(err.message || 'Error al enviar el correo de recuperación')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUpdateCredits = async () => {
+    if (!selectedUser) return
+    setIsLoading(true)
+
+    try {
+      const freeUntilDate = editFreeUntil ? new Date(editFreeUntil) : null
+      const result = await updateUserCreditsAction(selectedUser.id, editCredits, freeUntilDate)
+      
+      if (!result.success) throw new Error(result.error)
+      
+      setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, credits: editCredits, free_until: freeUntilDate ? freeUntilDate.toISOString() : null } as any : u))
+      setSelectedUser(prev => prev ? { ...prev, credits: editCredits, free_until: freeUntilDate ? freeUntilDate.toISOString() : null } as any : null)
+      toast.success('Créditos actualizados correctamente')
+      setIsCreditsDialogOpen(false)
+    } catch (err: any) {
+      console.error('Error updating credits:', err)
+      toast.error(err.message || 'Error al actualizar créditos')
     } finally {
       setIsLoading(false)
     }
@@ -371,6 +397,22 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
                       Resetear Contraseña
                     </Button>
 
+                    {selectedUser.user_type === 'BUSINESS' && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditCredits((selectedUser as any).credits || 0)
+                          const free = (selectedUser as any).free_until
+                          setEditFreeUntil(free ? new Date(free).toISOString().split('T')[0] : '')
+                          setIsCreditsDialogOpen(true)
+                        }}
+                        className="w-full justify-start gap-3 rounded-2xl h-12 font-bold text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <CreditCard className="h-4 w-4" />
+                        Gestionar Créditos
+                      </Button>
+                    )}
+
                     
                     <Button 
                       variant="outline" 
@@ -460,6 +502,50 @@ export function AdminUsersTable({ initialUsers }: AdminUsersTableProps) {
               className="rounded-2xl font-bold h-12 px-8 bg-destructive hover:bg-destructive/90 text-white shadow-lg shadow-destructive/20"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Eliminar para siempre'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isCreditsDialogOpen} onOpenChange={setIsCreditsDialogOpen}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black tracking-tight">
+              Gestionar Créditos y Prueba
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-medium text-base">
+              Estás modificando la facturación de <span className="font-bold text-foreground">{selectedUser?.company_name || selectedUser?.full_name}</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-bold">Créditos Disponibles</label>
+              <Input 
+                type="number" 
+                value={editCredits} 
+                onChange={(e) => setEditCredits(parseInt(e.target.value) || 0)} 
+                className="h-12 rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold">Gratis Hasta (Fecha de fin de prueba)</label>
+              <Input 
+                type="date" 
+                value={editFreeUntil} 
+                onChange={(e) => setEditFreeUntil(e.target.value)} 
+                className="h-12 rounded-xl"
+              />
+              <p className="text-xs text-muted-foreground">Déjalo vacío para no dar periodo de prueba.</p>
+            </div>
+          </div>
+          <AlertDialogFooter className="gap-2 mt-4">
+            <AlertDialogCancel className="rounded-2xl font-bold h-12">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleUpdateCredits}
+              disabled={isLoading}
+              className="rounded-2xl font-bold h-12 px-8 bg-green-600 hover:bg-green-700"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Guardar Cambios'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

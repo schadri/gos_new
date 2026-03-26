@@ -86,8 +86,8 @@ export async function GET(request: Request) {
             // Re-create redirect to the FINAL destination, preserving the cookies already set
             const finalResponse = NextResponse.redirect(`${origin}${finalRedirect}`)
             // Sync cookies from the temporary response to the final response
-            response.cookies.getAll().forEach((cookie) => {
-                finalResponse.cookies.set(cookie.name, cookie.value)
+            response.headers.getSetCookie().forEach((cookieHeader) => {
+                finalResponse.headers.append('Set-Cookie', cookieHeader)
             })
 
             finalResponse.headers.set('Cache-Control', 'no-store, max-age=0')

@@ -179,7 +179,7 @@ function PostJobForm() {
       const isNewActive = !editId || (initialData?.status === 'draft')
       
       if (isNewActive) {
-        const { data } = await supabase.from('profiles').select('credits, free_until').eq('id', session.user.id).single()
+        const { data } = await supabase.from('profiles').select('credits, urgent_credits, free_until').eq('id', session.user.id).single()
         const profile = data as any;
         
         let isFree = false;
@@ -189,6 +189,13 @@ function PostJobForm() {
 
         if (!isFree && (profile?.credits || 0) < 1) {
           toast.error('No tienes créditos suficientes para publicar. Serás redirigido para cargar saldo.')
+          setTimeout(() => router.push('/employer/credits'), 2500)
+          setIsSubmitting(false)
+          return
+        }
+
+        if (isUrgent && (profile?.urgent_credits || 0) < 1) {
+          toast.error('No tienes Búsquedas Urgentes disponibles. Serás redirigido para cargar saldo.')
           setTimeout(() => router.push('/employer/credits'), 2500)
           setIsSubmitting(false)
           return
@@ -226,12 +233,11 @@ function PostJobForm() {
 
       if (error) throw error
 
-      // 3. Descontar crédito (RPC) usando el ID final
+      // 3. Descontar crédito (RPC)
       if (finalId && isNewActive) {
-        const { error: rpcError } = await (supabase.rpc as any)('deduct_credit_for_job', { 
-          user_uid: session.user.id, 
-          job_uid: finalId,
-          amount: 1
+        const { error: rpcError } = await (supabase.rpc as any)('deduct_credit_for_job_v2', { 
+          p_user_id: session.user.id, 
+          p_is_urgent: isUrgent
         })
         if (rpcError) console.error('Error deduction credits:', rpcError)
       }

@@ -76,9 +76,12 @@ export default async function EmployerDashboard() {
               {profile?.free_until && new Date(profile.free_until) > new Date() && (
                 <Badge variant="outline" className="bg-green-500/10 text-green-700 dark:text-green-500 border-green-500/20 gap-1 hidden sm:flex"><Sparkles className="h-3 w-3" /> Prueba</Badge>
               )}
-              <Link href="/employer/credits">
+              <Link href="/employer/credits" className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 cursor-pointer gap-1 transition-colors px-3 py-1">
                   <CreditCard className="h-3.5 w-3.5" /> {(profile?.credits || 0)} Créditos
+                </Badge>
+                <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 cursor-pointer gap-1 transition-colors px-3 py-1">
+                  <Zap className="h-3.5 w-3.5" /> {(profile?.urgent_credits || 0)} Urgentes
                 </Badge>
               </Link>
             </div>

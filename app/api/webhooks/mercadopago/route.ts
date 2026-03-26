@@ -79,26 +79,39 @@ export async function POST(request: Request) {
         console.log(`[Webhook] 👤 Usuario que pagó: ${userId}`)
 
         let creditsPurchased = 0
-        if (paymentData.additional_info?.items?.[0]?.title?.includes('10')) creditsPurchased = 10
-        else if (paymentData.additional_info?.items?.[0]?.title?.includes('5')) creditsPurchased = 5
-        else if (paymentData.additional_info?.items?.[0]?.title?.includes('15')) creditsPurchased = 15
-        else if (paymentData.additional_info?.items?.[0]?.title?.includes('20')) creditsPurchased = 20
+        let urgentCreditsPurchased = 0
 
+        // Si usamos metadatos en la preferencia (prioridad):
         if ((paymentData.metadata as any)?.credits) {
           creditsPurchased = Number((paymentData.metadata as any)?.credits)
         }
+        if ((paymentData.metadata as any)?.urgent_credits) {
+          urgentCreditsPurchased = Number((paymentData.metadata as any)?.urgent_credits)
+        }
 
-        console.log(`[Webhook] 💰 Créditos a sumar deducidos del paquete: ${creditsPurchased}`)
+        // Respaldo de urgentes si el titulo lo dice (para testing simulado)
+        if (creditsPurchased === 0) {
+            if (paymentData.additional_info?.items?.[0]?.title?.includes('10')) { creditsPurchased = 10; urgentCreditsPurchased = 5; }
+            else if (paymentData.additional_info?.items?.[0]?.title?.includes('5')) { creditsPurchased = 5; urgentCreditsPurchased = 2; }
+            else if (paymentData.additional_info?.items?.[0]?.title?.includes('15')) { creditsPurchased = 15; urgentCreditsPurchased = 10; }
+            else if (paymentData.additional_info?.items?.[0]?.title?.includes('20')) { creditsPurchased = 20; urgentCreditsPurchased = 15; }
+        }
+
+        console.log(`[Webhook] 💰 Créditos: ${creditsPurchased}, Urgentes: ${urgentCreditsPurchased}`)
 
         if (userId && creditsPurchased > 0) {
           const { data: existingTx } = await supabaseAdmin.from('transactions').select('id').eq('reference_id', paymentId.toString()).single()
 
           if (!existingTx) {
-            const { data: profile } = await supabaseAdmin.from('profiles').select('credits').eq('id', userId).single()
+            const { data: profile } = await supabaseAdmin.from('profiles').select('credits, urgent_credits').eq('id', userId).single()
             if (profile) {
               const newCredits = (profile.credits || 0) + creditsPurchased
+              const newUrgentCredits = (profile.urgent_credits || 0) + urgentCreditsPurchased
 
-              const resUpdate = await supabaseAdmin.from('profiles').update({ credits: newCredits }).eq('id', userId)
+              const resUpdate = await supabaseAdmin.from('profiles').update({ 
+                  credits: newCredits,
+                  urgent_credits: newUrgentCredits
+              }).eq('id', userId)
               if (resUpdate.error) console.error('[Webhook] Error Supabase Profile:', resUpdate.error)
 
               const resTx = await supabaseAdmin.from('transactions').insert({

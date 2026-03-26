@@ -17,6 +17,7 @@ export const config = {
     '/interviews/:path*',
     '/notifications/:path*',
     '/employer/:path*',
+    '/talent/:path*',
     '/jobs/:path*',
     '/auth/:path*',
     '/admin/:path*',

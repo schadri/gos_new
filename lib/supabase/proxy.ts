@@ -11,6 +11,9 @@ const protectedPaths = [
   '/interviews',
   '/notifications',
   '/admin',
+  '/jobs',
+  '/employer',
+  '/talent'
 ]
 
 export async function updateSession(request: NextRequest) {

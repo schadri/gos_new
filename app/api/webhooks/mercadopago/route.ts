@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const bodyText = await request.text()
     console.log('[Webhook] 📦 Payload:', bodyText.substring(0, 300) + '...')
-    
+
     // Validar Firma
     const xSignature = request.headers.get('x-signature')
     const xRequestId = request.headers.get('x-request-id')
@@ -36,13 +36,13 @@ export async function POST(request: Request) {
       const v1Part = parts.find(p => p.startsWith('v1='))
       const ts = tsPart ? tsPart.split('=')[1] : ''
       const hash = v1Part ? v1Part.split('=')[1] : ''
-      
+
       let dataId = bodyParams.get('data.id')
       if (!dataId) {
         try {
           const json = JSON.parse(bodyText)
           if (json.data && json.data.id) dataId = json.data.id
-        } catch(e) {}
+        } catch (e) { }
       }
 
       if (dataId) {
@@ -53,14 +53,14 @@ export async function POST(request: Request) {
           console.error('[Webhook] 🔴 ERROR: Firma inválida. Posible ataque o secreto incorrecto')
           // return new NextResponse('Unauthorized', { status: 401 }) -- quitado temporalmente para debugging
         } else {
-          console.log('[Webhook] 🟢 Firma validada exitosamente')
+          console.log('[Webhook ] 🟢 Firma validada exitosamente')
         }
       }
     }
 
     // Procesar Evento
     const json = JSON.parse(bodyText)
-    
+
     // MP envía action: "payment.created" o "payment.updated" o topic: "payment"
     if ((json.action === 'payment.created' || json.action === 'payment.updated' || json.topic === 'payment') && json.type === 'payment') {
       const paymentId = json.data?.id || bodyParams?.get('id')
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         else if (paymentData.additional_info?.items?.[0]?.title?.includes('5')) creditsPurchased = 5
         else if (paymentData.additional_info?.items?.[0]?.title?.includes('15')) creditsPurchased = 15
         else if (paymentData.additional_info?.items?.[0]?.title?.includes('20')) creditsPurchased = 20
-        
+
         if ((paymentData.metadata as any)?.credits) {
           creditsPurchased = Number((paymentData.metadata as any)?.credits)
         }
@@ -97,10 +97,10 @@ export async function POST(request: Request) {
             const { data: profile } = await supabaseAdmin.from('profiles').select('credits').eq('id', userId).single()
             if (profile) {
               const newCredits = (profile.credits || 0) + creditsPurchased
-              
+
               const resUpdate = await supabaseAdmin.from('profiles').update({ credits: newCredits }).eq('id', userId)
               if (resUpdate.error) console.error('[Webhook] Error Supabase Profile:', resUpdate.error)
-              
+
               const resTx = await supabaseAdmin.from('transactions').insert({
                 user_id: userId,
                 type: 'purchase',

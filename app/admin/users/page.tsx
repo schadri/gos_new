@@ -36,6 +36,11 @@ export default async function AdminUsersPage() {
     }
   })
 
+  // Check if at least one BUSINESS user has an active free_until date
+  const isPromoActive = (profiles || []).some(p => 
+    p.user_type === 'BUSINESS' && p.free_until && new Date(p.free_until) > new Date()
+  )
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -44,8 +49,7 @@ export default async function AdminUsersPage() {
           <p className="text-muted-foreground mt-1 font-medium text-sm md:text-base">Administra a todos los postulantes y emprendedores registrados.</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <DeactivatePromoButton />
-          <LaunchPromoButton />
+          {isPromoActive ? <DeactivatePromoButton /> : <LaunchPromoButton />}
           <Badge variant="outline" className="px-4 py-2 bg-primary/5 border-primary/20 text-primary font-bold whitespace-nowrap hidden lg:flex">
             {profiles?.length || 0} Usuarios Totales
           </Badge>

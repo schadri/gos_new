@@ -68,7 +68,7 @@ export function Navbar() {
               {role === 'employer' ? (
                 <>
                   <Link href="/employer/dashboard" className={`transition-colors flex-shrink-0 ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
-                  <Link href="/employer/credits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-all font-bold text-xs ring-1 ring-orange-500/20 whitespace-nowrap" title="Créditos estándar">
+                  <Link href="/employer/credits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20 whitespace-nowrap" title="Créditos estándar">
                     <Coins className="h-4 w-4" />
                     {profile?.credits || 0}
                   </Link>
@@ -236,7 +236,7 @@ export function Navbar() {
                         <>
                           <SheetClose asChild><Link href="/employer/dashboard" className={`text-lg transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Portal Emprendedor</Link></SheetClose>
                           <SheetClose asChild>
-                            <Link href="/employer/credits" className={`text-lg transition-colors flex items-center gap-2 ${pathname?.startsWith('/employer/credits') ? 'text-orange-500 font-bold' : 'font-medium text-orange-600/80 hover:text-orange-600'}`}>
+                            <Link href="/employer/credits" className={`text-lg transition-colors flex items-center gap-2 ${pathname?.startsWith('/employer/credits') ? 'text-primary font-bold' : 'font-medium text-primary/80 hover:text-primary'}`}>
                               <Coins className="h-5 w-5" /> Créditos: {profile?.credits || 0}
                             </Link>
                           </SheetClose>

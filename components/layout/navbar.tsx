@@ -68,14 +68,6 @@ export function Navbar() {
               {role === 'employer' ? (
                 <>
                   <Link href="/employer/dashboard" className={`transition-colors flex-shrink-0 ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
-                  <Link href="/employer/credits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all font-bold text-xs ring-1 ring-primary/20 whitespace-nowrap" title="Créditos estándar">
-                    <Coins className="h-4 w-4" />
-                    {profile?.credits || 0}
-                  </Link>
-                  <Link href="/employer/credits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-all font-bold text-xs ring-1 ring-red-500/20 whitespace-nowrap" title="Búsquedas Urgentes">
-                    <Zap className="h-4 w-4" />
-                    {profile?.urgent_credits || 0}
-                  </Link>
                   <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
                     <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
                     {unreadCount > 0 && (
@@ -148,6 +140,29 @@ export function Navbar() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    {role === 'employer' && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link href="/employer/credits" className="cursor-pointer font-bold text-primary flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              <Coins className="mr-2 h-4 w-4" />
+                              <span>Créditos</span>
+                            </div>
+                            <span className="bg-primary/10 px-2 py-0.5 rounded-full text-xs">{profile?.credits || 0}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/employer/credits" className="cursor-pointer font-bold text-red-600 flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              <Zap className="mr-2 h-4 w-4 fill-current" />
+                              <span>Urgentes</span>
+                            </div>
+                            <span className="bg-red-500/10 px-2 py-0.5 rounded-full text-xs">{profile?.urgent_credits || 0}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />

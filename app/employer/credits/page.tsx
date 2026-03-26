@@ -3,17 +3,17 @@ import * as React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle2, CreditCard, Sparkles, Loader2, ArrowLeft } from 'lucide-react'
+import { CheckCircle2, CreditCard, Sparkles, Loader2, ArrowLeft, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
 const PACKAGES = [
-  { id: 'pack-5', title: '5 Ofertas', price: 5000, credits: 5, popular: false },
-  { id: 'pack-10', title: '10 Ofertas', price: 9000, credits: 10, popular: true, overridePrice: 'AR$ 10.000' },
-  { id: 'pack-15', title: '15 Ofertas', price: 13000, credits: 15, popular: false },
-  { id: 'pack-20', title: '20 Ofertas', price: 16000, credits: 20, popular: false },
+  { id: 'pack-5', title: '5 Ofertas', price: 5000, credits: 5, urgentCredits: 2, popular: false },
+  { id: 'pack-10', title: '10 Ofertas', price: 9000, credits: 10, urgentCredits: 5, popular: true, overridePrice: 'AR$ 10.000' },
+  { id: 'pack-15', title: '15 Ofertas', price: 13000, credits: 15, urgentCredits: 10, popular: false },
+  { id: 'pack-20', title: '20 Ofertas', price: 16000, credits: 20, urgentCredits: 15, popular: false },
 ]
 
 export default function EmployerCreditsPage() {
@@ -157,7 +157,10 @@ export default function EmployerCreditsPage() {
                   <span className="text-4xl font-black">AR$ {pkg.price.toLocaleString('es-AR')}</span>
                 </div>
                 
-                <ul className="space-y-2 mt-6">
+                <ul className="space-y-3 mt-6">
+                  <li className="flex items-center gap-2 text-sm font-bold text-red-600 dark:text-red-500 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 w-fit">
+                    <Zap className="h-4 w-4 fill-current" /> {pkg.urgentCredits} Búsquedas Urgentes
+                  </li>
                   <li className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-green-500" /> Sin fecha de vencimiento</li>
                   <li className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-green-500" /> Soporte prioritario</li>
                   <li className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><CheckCircle2 className="h-4 w-4 text-green-500" /> Acceso a matching inteligente</li>

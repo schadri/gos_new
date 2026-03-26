@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin'
 import { Badge } from '@/components/ui/badge'
 import { Database } from '@/types/supabase'
 import { AdminUsersTable } from '@/components/admin/admin-users-table'
-import { LaunchPromoButton } from '@/components/admin/launch-promo-button'
+import { LaunchPromoButton, DeactivatePromoButton } from '@/components/admin/launch-promo-button'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 export type ProfileWithEmail = Profile & { email?: string }
@@ -43,9 +43,10 @@ export default async function AdminUsersPage() {
           <h1 className="text-2xl md:text-3xl font-black tracking-tight">Gestión de Usuarios</h1>
           <p className="text-muted-foreground mt-1 font-medium text-sm md:text-base">Administra a todos los postulantes y emprendedores registrados.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <DeactivatePromoButton />
           <LaunchPromoButton />
-          <Badge variant="outline" className="px-4 py-2 bg-primary/5 border-primary/20 text-primary font-bold whitespace-nowrap hidden sm:flex">
+          <Badge variant="outline" className="px-4 py-2 bg-primary/5 border-primary/20 text-primary font-bold whitespace-nowrap hidden lg:flex">
             {profiles?.length || 0} Usuarios Totales
           </Badge>
         </div>

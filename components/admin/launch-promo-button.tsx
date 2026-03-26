@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Rocket, Loader2 } from 'lucide-react'
-import { activateLaunchPromotionAction } from '@/app/actions/admin-users'
+import { Rocket, Loader2, XOctagon } from 'lucide-react'
+import { activateLaunchPromotionAction, deactivateLaunchPromotionAction } from '@/app/actions/admin-users'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,3 +70,59 @@ export function LaunchPromoButton() {
     </AlertDialog>
   )
 }
+
+export function DeactivatePromoButton() {
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  const handleDeactivate = async () => {
+    setLoading(true)
+    try {
+      const result = await deactivateLaunchPromotionAction()
+      if (result.success) {
+        setOpen(false)
+      } else {
+        alert(result.error)
+      }
+    } catch (error: any) {
+      alert(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" className="border-red-500/50 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold px-4 py-2 h-auto flex gap-2 items-center rounded-xl transition-all">
+          <XOctagon className="h-4 w-4" />
+          <span className="hidden sm:inline">Terminar Promo General</span>
+          <span className="sm:hidden">Cortar Promo</span>
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="sm:max-w-[500px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2 text-2xl font-black text-red-600">
+            <XOctagon className="h-6 w-6" />
+            Terminar Período de Prueba
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-base pt-2 text-foreground/80">
+            Esta acción <b>eliminará</b> la fecha de publicaciones gratuitas de TODAS las empresas al instante.
+            <br/><br/>
+            A partir de este momento, cualquier empresa que quiera publicar una oferta deberá consumir sus créditos pagos.
+            <br/><br/>
+            ¿Estás seguro de que deseas detener la promoción?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-4">
+          <AlertDialogCancel onClick={() => setOpen(false)}>Cancelar</AlertDialogCancel>
+          <Button onClick={handleDeactivate} disabled={loading} variant="destructive" className="font-bold">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Cerrar Promoción
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+

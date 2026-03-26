@@ -202,3 +202,49 @@ export async function activateLaunchPromotionAction() {
     revalidatePath('/admin/users')
     return { success: true }
 }
+
+export async function deactivateLaunchPromotionAction() {
+    const supabase = await createClient()
+
+    // 1. Verify caller is admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No autenticado')
+
+    const { data: profile } = await (supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single() as any) as { data: { is_admin: boolean } | null }
+
+    if (!profile?.is_admin) {
+        throw new Error('No tienes permisos de administrador')
+    }
+
+    const adminClient = getSupabaseAdmin()
+    
+    // Set free_until to null for all BUSINESS users
+    const { error: updateError } = await (adminClient
+        .from('profiles') as any)
+        .update({ 
+            free_until: null 
+        })
+        .eq('user_type', 'BUSINESS')
+
+    if (updateError) {
+        console.error('Error deactivating launch promo:', updateError)
+        return { success: false, error: 'Error al terminar promoción general' }
+    }
+
+    // Register a transaction log for the system action
+    await (adminClient
+        .from('transactions') as any)
+        .insert({
+            user_id: user.id, // we attribute it to the admin who triggered it just for tracking
+            type: 'admin_promo',
+            amount: 0,
+            description: `DESACTIVACIÓN GLOBAL: Fin de la Promoción general ejecutado por administrador (${user.email})`
+        })
+
+    revalidatePath('/admin/users')
+    return { success: true }
+}

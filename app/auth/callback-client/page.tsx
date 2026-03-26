@@ -57,7 +57,21 @@ export default function AuthCallbackClientPage() {
 
           let finalRedirect = next
           if (profile) {
-             finalRedirect = (profile as any).user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+            const existingRole = (profile as any).user_type
+
+            if (existingRole === 'TALENT' && next.includes('/employer/register')) {
+                console.log('[AuthCallback] Cross-role violation (TALENT -> BUSINESS)')
+                await supabase.auth.signOut()
+                router.push('/login?error=rol_invalido_emprendedor')
+                return
+            } else if (existingRole === 'BUSINESS' && next.includes('/talent/register')) {
+                console.log('[AuthCallback] Cross-role violation (BUSINESS -> TALENT)')
+                await supabase.auth.signOut()
+                router.push('/login?error=rol_invalido_postulante')
+                return
+            }
+
+            finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
           }
 
           router.push(finalRedirect)

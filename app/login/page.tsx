@@ -22,7 +22,15 @@ function LoginContent() {
 
   React.useEffect(() => {
     console.log("Login Mounted. isTauri() =", isTauri())
-  }, [])
+    
+    // Check for specific cross-role errors coming from OAuth callbacks
+    const errorParam = searchParams?.get('error')
+    if (errorParam === 'rol_invalido_emprendedor') {
+      toast.error('Ya tienes una cuenta registrada como postulante. Por favor, inicia sesión y elimina tu cuenta para registrarte como emprendedor.', { duration: 6000 })
+    } else if (errorParam === 'rol_invalido_postulante') {
+      toast.error('Ya tienes una cuenta registrada como emprendedor. Por favor, inicia sesión y elimina tu cuenta para registrarte como postulante.', { duration: 6000 })
+    }
+  }, [searchParams])
 
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')

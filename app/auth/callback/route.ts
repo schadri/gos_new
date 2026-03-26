@@ -48,11 +48,25 @@ export async function GET(request: Request) {
 
             if (profile) {
                 console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
+                const existingRole = (profile as any).user_type
+
+                // Bloquear registro cruzado: ya es postulante pero intenta ser emprendedor
+                if (existingRole === 'TALENT' && next.includes('/employer/register')) {
+                    console.log('Auth Callback: Cross-role violation (TALENT trying to register as BUSINESS). Signing out.')
+                    await supabase.auth.signOut()
+                    finalRedirect = '/login?error=rol_invalido_emprendedor'
+                }
+                // Bloquear registro cruzado: ya es emprendedor pero intenta ser postulante
+                else if (existingRole === 'BUSINESS' && next.includes('/talent/register')) {
+                    console.log('Auth Callback: Cross-role violation (BUSINESS trying to register as TALENT). Signing out.')
+                    await supabase.auth.signOut()
+                    finalRedirect = '/login?error=rol_invalido_postulante'
+                }
                 // If we are in a recovery flow, let 'next' take precedence
-                if (next.includes('/reset-password')) {
+                else if (next.includes('/reset-password')) {
                     finalRedirect = next
                 } else {
-                    finalRedirect = (profile as any).user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                    finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
                 }
             } else {
                 console.log('Auth Callback: No profile found. Handling registration flow...')

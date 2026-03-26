@@ -84,7 +84,7 @@ function LoginContent() {
     if (flow === 'employer') nextRoute = '/employer/register'
 
     const redirectUrl = isTauri() 
-      ? `gos://auth/callback`
+      ? `gos://auth/callback-client?next=${encodeURIComponent(nextRoute)}`
       : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
     console.log(`Login: redirectUrl targeted = ${redirectUrl}`)

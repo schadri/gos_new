@@ -58,20 +58,28 @@ export default function AuthCallbackClientPage() {
           let finalRedirect = next
           if (profile) {
             const existingRole = (profile as any).user_type
+            
+            // Fallback intent checking
+            const localIntent = typeof window !== 'undefined' ? localStorage.getItem('role_intent') : null;
+            const intendedRegisterEmployer = next.includes('/employer/register') || localIntent === 'employer';
+            const intendedRegisterTalent = next.includes('/talent/register') || localIntent === 'talent';
 
-            if (existingRole === 'TALENT' && next.includes('/employer/register')) {
+            if (existingRole === 'TALENT' && intendedRegisterEmployer) {
                 console.log('[AuthCallback] Cross-role violation (TALENT -> BUSINESS)')
                 await supabase.auth.signOut()
+                if (typeof window !== 'undefined') localStorage.removeItem('role_intent')
                 router.push('/login?error=rol_invalido_emprendedor')
                 return
-            } else if (existingRole === 'BUSINESS' && next.includes('/talent/register')) {
+            } else if (existingRole === 'BUSINESS' && intendedRegisterTalent) {
                 console.log('[AuthCallback] Cross-role violation (BUSINESS -> TALENT)')
                 await supabase.auth.signOut()
+                if (typeof window !== 'undefined') localStorage.removeItem('role_intent')
                 router.push('/login?error=rol_invalido_postulante')
                 return
             }
 
             finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+            if (typeof window !== 'undefined') localStorage.removeItem('role_intent')
           }
 
           router.push(finalRedirect)

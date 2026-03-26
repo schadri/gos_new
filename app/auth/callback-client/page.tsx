@@ -17,12 +17,6 @@ export default function AuthCallbackClientPage() {
     const exchangeCode = async () => {
       const code = searchParams.get('code')
       const next = searchParams.get('next') || '/'
-      
-      if (!code) {
-        setStatus('error')
-        setErrorMessage('No code found in URL')
-        return
-      }
 
       if (hasExchanged.current) {
         console.log('[AuthCallback] Exchange already in progress or completed, skipping...')
@@ -34,25 +28,50 @@ export default function AuthCallbackClientPage() {
       const supabase = createClient()
       
       try {
-        console.log('[AuthCallback] Exchanging code for session...')
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        let sessionUser = null;
+
+        console.log('[AuthCallback] Waiting for Supabase to auto-exchange the URL tokens...')
         
-        if (error) {
-          console.error('[AuthCallback] Exchange error:', error)
+        // Wait for Supabase's automatic URL parsing (PKCE network exchange or Implicit hash parse)
+        sessionUser = await new Promise<any>((resolve) => {
+          const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+              authListener.subscription.unsubscribe();
+              resolve(session.user);
+            }
+          });
+          
+          // Fallback: check immediately in case it finished before the listener attached
+          supabase.auth.getSession().then(({ data }) => {
+            if (data?.session) {
+              authListener.subscription.unsubscribe();
+              resolve(data.session.user);
+            }
+          });
+
+          // Global timeout of 10 seconds
+          setTimeout(() => {
+            authListener.subscription.unsubscribe();
+            resolve(null);
+          }, 10000);
+        });
+
+        if (!sessionUser) {
           setStatus('error')
-          setErrorMessage(error.message)
+          const currentHref = typeof window !== 'undefined' ? window.location.href : 'SSR';
+          setErrorMessage(`Supabase auto-exchange failed or timed out. Auth URL: ${currentHref}`)
           return
         }
 
-        if (data.session) {
-          console.log('[AuthCallback] Session established! User:', data.user?.email)
+        if (sessionUser) {
+          console.log('[AuthCallback] Session established! User:', sessionUser.email)
           setStatus('success')
           
           // Determine redirect based on user type (simplified logic)
           const { data: profile } = await supabase
             .from('profiles')
             .select('user_type')
-            .eq('id', data.user.id)
+            .eq('id', sessionUser.id)
             .maybeSingle()
 
           let finalRedirect = next

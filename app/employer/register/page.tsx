@@ -30,10 +30,10 @@ export default function EmployerRegistration() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        await (supabase.from('profiles') as any).upsert({
-          id: user.id,
-          user_type: 'BUSINESS'
-        })
+        // Safe update: don't use upsert to prevent wiping existing data
+        await (supabase.from('profiles') as any)
+          .update({ user_type: 'BUSINESS' })
+          .eq('id', user.id)
       }
     }
     claimRole()

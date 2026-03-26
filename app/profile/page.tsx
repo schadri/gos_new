@@ -11,6 +11,9 @@ import { EditEmployerProfileModal } from '@/components/profile/edit-employer-pro
 import { ApplicantChatButton } from '@/components/profile/applicant-chat-button'
 import { getAvatarUrl } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function TalentProfile() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,7 +23,7 @@ export default async function TalentProfile() {
   }
 
   // Fetch real profile data
-  const { data: profile } = await (supabase
+  const { data: profile, error } = await (supabase
     .from('profiles') as any)
     .select('*')
     .eq('id', user.id)

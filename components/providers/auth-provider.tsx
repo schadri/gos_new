@@ -4,6 +4,7 @@ import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { getAvatarUrl } from '@/lib/utils'
 import { User } from '@supabase/supabase-js'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface AuthProfile {
   name?: string
@@ -43,6 +44,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = React.useState(false)
   const [unreadCount, setUnreadCount] = React.useState(0)
   const [isLoading, setIsLoading] = React.useState(true)
+  
+  const pathname = usePathname()
+  const router = useRouter()
+
+  React.useEffect(() => {
+    if (!isLoading && !user && pathname) {
+      const protectedPrefixes = [
+        '/dashboard', '/profile', '/post-job', '/my-applications', '/matches',
+        '/chat', '/interviews', '/notifications', '/admin', '/jobs', '/employer', '/talent'
+      ]
+      const isProtected = protectedPrefixes.some(prefix => pathname.startsWith(prefix))
+      const isAuthCallback = pathname.startsWith('/auth')
+      
+      if (isProtected && !isAuthCallback) {
+        router.replace('/login')
+      }
+      
+      const isAuthPage = pathname === '/login' || pathname === '/register'
+      if (user && isAuthPage) {
+        if (role === 'employer') {
+          router.replace('/employer/dashboard')
+        } else if (role === 'talent') {
+          router.replace('/jobs')
+        }
+      }
+    }
+  }, [isLoading, user, role, pathname, router])
 
   const fetchUnreadCount = React.useCallback(async (userId: string) => {
     const supabase = createClient()

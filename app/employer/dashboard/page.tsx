@@ -7,6 +7,9 @@ import { Briefcase, Eye, Users, MessageSquare, TrendingUp, Sparkles, PlusCircle,
 import { createClient } from '@/lib/supabase/server'
 import { JobActionsMenu } from '@/components/employer/job-actions-menu'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 
 
 export default async function EmployerDashboard() {

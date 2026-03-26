@@ -13,18 +13,27 @@ export async function nodeHttpsFetch(urlStr: RequestInfo | URL, options?: Reques
             const isHttps = url.protocol === 'https:';
             const requestModule = isHttps ? https : http;
 
+            const parsedHeaders: Record<string, string> = {};
+            if (options?.headers) {
+                if (typeof (options.headers as any).forEach === 'function') {
+                    (options.headers as any).forEach((value: string, key: string) => {
+                        parsedHeaders[key] = value;
+                    });
+                } else {
+                    Object.assign(parsedHeaders, options.headers);
+                }
+            }
+
             const requestOptions: https.RequestOptions = {
                 method: options?.method || 'GET',
-                // Explicitly disable connection pooling/keep-alive to prevent
-                // Windows from trying to reuse a socket that Cloudflare just closed.
                 agent: isHttps ? new https.Agent({ keepAlive: false }) : new http.Agent({ keepAlive: false }),
-                headers: (options?.headers as Record<string, string>) || {},
+                headers: parsedHeaders,
                 family: 4,
                 timeout: 8000 // 8 second timeout per attempt
             };
 
             // Double enforce no keep-alive
-            requestOptions.headers['Connection'] = 'close';
+            parsedHeaders['Connection'] = 'close';
 
             const req = requestModule.request(url, requestOptions, (res) => {
                 const chunks: any[] = [];

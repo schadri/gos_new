@@ -52,7 +52,8 @@ function LoginContent() {
               // Extraer ruta relativa asumiendo que empieza con gos://
               if (url.startsWith('gos://')) {
                 const relativePath = url.replace('gos://', '/');
-                router.push(relativePath);
+                console.log('Deep link triggering full redirect to:', relativePath);
+                window.location.href = relativePath;
               }
             }
           });

@@ -5,7 +5,7 @@
   "identifier": "com.gos.app",
   "build": {
     "frontendDist": "https://www.goscentral.online",
-    "devUrl": "https://www.goscentral.online",
+    "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": ""
   },
@@ -42,6 +42,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "nsis": {
+        "installerIcon": "assets/32x32.ico",
+        "sidebarImage": "assets/image.bmp",
+        "languages": ["Spanish"]
+      }
+    }
   }
 }

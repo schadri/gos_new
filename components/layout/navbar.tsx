@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/avatar"
 import * as React from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck, Monitor } from 'lucide-react'
+import { User, Menu, LogOut, Bell, LifeBuoy, ShieldCheck, Monitor, Coins } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { getAvatarUrl } from '@/lib/utils'
@@ -67,7 +67,11 @@ export function Navbar() {
               <ThemeToggle />
               {role === 'employer' ? (
                 <>
-                  <Link href="/employer/dashboard" className={`transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
+                  <Link href="/employer/dashboard" className={`transition-colors flex-shrink-0 ${pathname === '/employer/dashboard' ? 'text-primary font-semibold' : 'hover:text-foreground/80 text-foreground/60'}`}>Portal Emprendedor</Link>
+                  <Link href="/employer/credits" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 transition-all font-bold text-xs ring-1 ring-orange-500/20 whitespace-nowrap" title="Tus créditos disponibles">
+                    <Coins className="h-4 w-4" />
+                    {profile?.credits || 0}
+                  </Link>
                   <Link href="/notifications" className={`relative p-2 rounded-full transition-colors flex items-center justify-center group ${pathname?.startsWith('/notifications') ? 'text-primary bg-primary/10' : 'hover:bg-muted'}`}>
                     <Bell className={`h-5 w-5 transition-colors ${pathname?.startsWith('/notifications') ? 'text-primary' : 'text-foreground/60 group-hover:text-foreground/80'}`} />
                     {unreadCount > 0 && (
@@ -227,6 +231,11 @@ export function Navbar() {
                       {role === 'employer' ? (
                         <>
                           <SheetClose asChild><Link href="/employer/dashboard" className={`text-lg transition-colors ${pathname === '/employer/dashboard' ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Portal Emprendedor</Link></SheetClose>
+                          <SheetClose asChild>
+                            <Link href="/employer/credits" className={`text-lg transition-colors flex items-center gap-2 ${pathname?.startsWith('/employer/credits') ? 'text-orange-500 font-bold' : 'font-medium text-orange-600/80 hover:text-orange-600'}`}>
+                              <Coins className="h-5 w-5" /> Créditos: {profile?.credits || 0}
+                            </Link>
+                          </SheetClose>
                           <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>
                           <SheetClose asChild>
                             <Link href="/notifications" className={`text-lg transition-colors flex items-center justify-center gap-2 ${pathname?.startsWith('/notifications') ? 'text-primary font-bold bg-primary/10 px-4 py-1 rounded-full' : 'font-medium hover:text-primary/80'}`}>

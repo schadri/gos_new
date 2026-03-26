@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           console.error('[Webhook] 🔴 ERROR: Firma inválida. Posible ataque o secreto incorrecto')
           // return new NextResponse('Unauthorized', { status: 401 }) -- quitado temporalmente para debugging
         } else {
-          console.log('[Webhook ] 🟢 Firma validada exitosamente')
+          console.log('[Webhook] 🟢 Firma validada exitosamente')
         }
       }
     }

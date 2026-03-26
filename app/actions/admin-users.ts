@@ -163,3 +163,42 @@ export async function updateUserCreditsAction(userId: string, credits: number, f
     revalidatePath('/admin/users')
     return { success: true }
 }
+
+export async function activateLaunchPromotionAction() {
+    const supabase = await createClient()
+
+    // 1. Verify caller is admin
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('No autenticado')
+
+    const { data: profile } = await (supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single() as any) as { data: { is_admin: boolean } | null }
+
+    if (!profile?.is_admin) {
+        throw new Error('No tienes permisos de administrador')
+    }
+
+    const adminClient = getSupabaseAdmin()
+    
+    // 30 days from now
+    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+    // Update all BUSINESS users
+    const { error: updateError } = await (adminClient
+        .from('profiles') as any)
+        .update({ 
+            free_until: thirtyDaysFromNow 
+        })
+        .eq('user_type', 'BUSINESS')
+
+    if (updateError) {
+        console.error('Error activating launch promo:', updateError)
+        return { success: false, error: 'Error al activar promoción general' }
+    }
+
+    revalidatePath('/admin/users')
+    return { success: true }
+}

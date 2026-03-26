@@ -9,6 +9,8 @@ interface AuthProfile {
   name?: string
   avatar?: string
   preferred_theme?: string
+  credits?: number
+  free_until?: string | null
 }
 
 interface AuthContextType {
@@ -89,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Verify with DB
         const { data: profileData, error: profileError } = await (supabase
           .from('profiles') as any)
-          .select('user_type, full_name, profile_photo, company_logo, preferred_theme, is_admin')
+          .select('user_type, full_name, profile_photo, company_logo, preferred_theme, is_admin, credits, free_until')
           .eq('id', authUser.id)
           .maybeSingle()
           
@@ -106,7 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               avatar: getAvatarUrl(
                 prof.user_type === 'BUSINESS' ? prof.company_logo : prof.profile_photo
               ) || undefined,
-              preferred_theme: prof.preferred_theme
+              preferred_theme: prof.preferred_theme,
+              credits: prof.credits,
+              free_until: prof.free_until
             })
           }
         } else {

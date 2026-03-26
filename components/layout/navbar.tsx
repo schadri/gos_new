@@ -152,12 +152,12 @@ export function Navbar() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/employer/credits" className="cursor-pointer font-bold text-red-600 flex items-center justify-between w-full">
+                          <Link href="/employer/credits" className="cursor-pointer font-bold text-orange-600 flex items-center justify-between w-full">
                             <div className="flex items-center">
-                              <Zap className="mr-2 h-4 w-4 fill-current" />
+                              <Zap className="mr-2 h-4 w-4 fill-current text-orange-500" />
                               <span>Urgentes</span>
                             </div>
-                            <span className="bg-red-500/10 px-2 py-0.5 rounded-full text-xs">{profile?.urgent_credits || 0}</span>
+                            <span className="bg-orange-500/10 px-2 py-0.5 rounded-full text-xs text-orange-600">{profile?.urgent_credits || 0}</span>
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -256,8 +256,8 @@ export function Navbar() {
                             </Link>
                           </SheetClose>
                           <SheetClose asChild>
-                            <Link href="/employer/credits" className={`text-lg transition-colors flex items-center gap-2 ${pathname?.startsWith('/employer/credits') ? 'text-red-500 font-bold' : 'font-medium text-red-600/80 hover:text-red-600'}`}>
-                              <Zap className="h-5 w-5" /> Urgentes: {profile?.urgent_credits || 0}
+                            <Link href="/employer/credits" className={`text-lg transition-colors flex items-center gap-2 ${pathname?.startsWith('/employer/credits') ? 'text-orange-500 font-bold' : 'font-medium text-orange-600/80 hover:text-orange-600'}`}>
+                              <Zap className="h-5 w-5 text-orange-500" /> Urgentes: {profile?.urgent_credits || 0}
                             </Link>
                           </SheetClose>
                           <SheetClose asChild><Link href="/profile" className={`text-lg transition-colors ${pathname?.startsWith('/profile') ? 'text-primary font-bold' : 'font-medium hover:text-primary/80'}`}>Mi Perfil</Link></SheetClose>

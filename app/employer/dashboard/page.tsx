@@ -80,8 +80,8 @@ export default async function EmployerDashboard() {
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 cursor-pointer gap-1 transition-colors px-3 py-1">
                   <CreditCard className="h-3.5 w-3.5" /> {(profile?.credits || 0)} Créditos
                 </Badge>
-                <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 cursor-pointer gap-1 transition-colors px-3 py-1">
-                  <Zap className="h-3.5 w-3.5" /> {(profile?.urgent_credits || 0)} Urgentes
+                <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/20 hover:bg-orange-500/20 cursor-pointer gap-1 transition-colors px-3 py-1">
+                  <Zap className="h-3.5 w-3.5 text-orange-500" /> {(profile?.urgent_credits || 0)} Urgentes
                 </Badge>
               </Link>
             </div>

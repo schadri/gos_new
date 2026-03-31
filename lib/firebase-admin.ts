@@ -12,8 +12,8 @@ if (!admin.apps.length && isConfigValid) {
             credential: admin.credential.cert({
                 projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                // The private key must have newlines unescaped. Next.js does this but to be safe:
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                // Remove wrapping quotes if they were pasted in Coolify, and unescape newlines
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
             }),
         });
     } catch (error) {

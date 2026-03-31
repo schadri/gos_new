@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function GET(request: Request) {
-    const requestUrl = new URL(request.url)
-    const { searchParams } = requestUrl
-    // Use the actual request origin if no env var is provided, avoids jumping between VPS and Prod during tests
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || requestUrl.origin
+    const { searchParams } = new URL(request.url)
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.goscentral.online'
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/'
 

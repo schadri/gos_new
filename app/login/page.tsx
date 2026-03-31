@@ -84,10 +84,9 @@ function LoginContent() {
     if (flow === 'talent') nextRoute = '/talent/register'
     if (flow === 'employer') nextRoute = '/employer/register'
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.goscentral.online'
     const redirectUrl = isTauri() 
     ? `gos://auth/callback-client?next=${encodeURIComponent(nextRoute)}`
-    : `${origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
+    : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.goscentral.online'}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
     console.log(`Login: redirectUrl targeted = ${redirectUrl}`)
 

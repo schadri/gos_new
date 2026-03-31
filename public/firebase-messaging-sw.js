@@ -1,104 +1,70 @@
 importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js");
 
-self.addEventListener('install', function (event) {
-    console.log('FCM Service Worker installing...');
+// 1. Registro inmediato de eventos básicos
+self.addEventListener('install', (event) => {
     self.skipWaiting();
 });
 
-self.addEventListener('activate', function (event) {
-    console.log('FCM Service Worker activated');
+self.addEventListener('activate', (event) => {
     event.waitUntil(clients.claim());
 });
 
-let firebaseConfig = null;
+// 2. Variables globales para mantener el estado
 let messaging = null;
 
-const initializeMessaging = (config) => {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(config);
-        messaging = firebase.messaging();
-        
-        messaging.onBackgroundMessage((payload) => {
-            console.log('[firebase-messaging-sw.js] Background message:', payload);
-            
-            const title = payload.notification?.title || payload.data?.title;
-            const body = payload.notification?.body || payload.data?.body;
+// 3. REGISTRO INICIAL OBLIGATORIO
+// Registramos el click de notificación aquí afuera para que el navegador lo vea de entrada
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const click_action = event.notification.data?.click_action || '/';
+    
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then((windowClients) => {
+            for (let client of windowClients) {
+                if (client.url.includes(click_action) && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) return clients.openWindow(click_action);
+        })
+    );
+});
 
-            if (title) {
+// 4. Manejo de mensajes para inicializar
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'FIREBASE_CONFIG') {
+        const config = event.data.config;
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(config);
+            messaging = firebase.messaging();
+
+            // Al usar la versión compat dentro de un evento asíncrono, 
+            // asegúrate de que el SDK de Firebase registre el listener de push correctamente.
+            messaging.onBackgroundMessage((payload) => {
+                const title = payload.notification?.title || payload.data?.title || 'Nueva notificación';
                 const notificationOptions = {
-                    body: body,
+                    body: payload.notification?.body || payload.data?.body,
                     icon: '/apple-icon.png',
                     badge: '/apple-icon.png',
                     data: payload.data,
                 };
-
-                // Check if any client is focused
-                const promiseChain = clients.matchAll({
-                    type: 'window',
-                    includeUncontrolled: true
-                }).then((windowClients) => {
-                    let anyClientFocused = false;
-                    for (let i = 0; i < windowClients.length; i++) {
-                        if (windowClients[i].focused) {
-                            anyClientFocused = true;
-                            break;
-                        }
-                    }
-
-                    if (!anyClientFocused) {
-                        return self.registration.showNotification(title, notificationOptions);
-                    } else {
-                        console.log('[firebase-messaging-sw.js] App is focused, skipping system notification.');
-                    }
-                });
-
-                // In SW we should keep the worker alive until the promise finishes
-                // messaging.onBackgroundMessage implicitly handles event.waitUntil if it returns a promise 
-                // but compatibility layers varies. 
-                return promiseChain;
-            }
-        });
-    }
-};
-
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'FIREBASE_CONFIG') {
-        firebaseConfig = event.data.config;
-        console.log('[firebase-messaging-sw.js] Received config from client');
-        initializeMessaging(firebaseConfig);
+                
+                // Retornar la promesa para mantener vivo el SW
+                return self.registration.showNotification(title, notificationOptions);
+            });
+        }
     }
     
+    // Trigger manual para pruebas
     if (event.data && event.data.type === 'SHOW_SYSTEM_NOTIFICATION') {
-        const title = event.data.title;
-        const options = event.data.options || {};
-        console.log('[firebase-messaging-sw.js] Manual trigger:', title);
-        
         event.waitUntil(
-            self.registration.showNotification(title, {
-                body: options.body,
+            self.registration.showNotification(event.data.title, {
+                body: event.data.options?.body,
                 icon: '/apple-icon.png',
-                badge: '/apple-icon.png',
-                data: options.data,
+                data: event.data.options?.data,
             })
         );
     }
-});
-
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    event.waitUntil(
-        clients.matchAll({ type: 'window' }).then((windowClients) => {
-            const click_actions = event.notification.data?.click_action || '/';
-            for (let i = 0; i < windowClients.length; i++) {
-                const client = windowClients[i];
-                if (client.url.includes(click_actions) && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(click_actions);
-            }
-        })
-    );
 });

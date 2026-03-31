@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     const preference = new Preference(client)
 
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://goscentral.online'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://goscentral.online'
 
     const response = await preference.create({
       body: {
@@ -51,12 +51,12 @@ export async function POST(request: Request) {
           email: user.email,
         },
         external_reference: user.id, // Guardamos el user.id para saber a quién darle los créditos
-        auto_return: 'approved',
         back_urls: {
-          success: `${baseUrl}/employer/credits?success=true`,
-          failure: `${baseUrl}/employer/credits?success=false`,
-          pending: `${baseUrl}/employer/credits?success=pending`,
+          success: `${baseUrl}/employer/credits`,
+          failure: `${baseUrl}/employer/credits`,
+          pending: `${baseUrl}/employer/credits`,
         },
+        auto_return: 'approved',
         metadata: {
           credits: selectedPackage.credits,
           urgent_credits: selectedPackage.urgent_credits
@@ -64,10 +64,10 @@ export async function POST(request: Request) {
       }
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       id: response.id,
       init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point 
+      sandbox_init_point: response.sandbox_init_point
     })
 
   } catch (error: any) {

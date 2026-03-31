@@ -51,8 +51,11 @@ export async function GET(request: Request) {
                 console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
                 const existingRole = (profile as any).user_type
                 
-                // VERIFICAR SI LA CUENTA SE ACABA DE CREAR (hace menos de 1 minuto)
-                const isNewUser = new Date(user.created_at).getTime() > Date.now() - 60000
+                // VERIFICAR SI LA CUENTA SE ACABA DE CREAR (comparando fecha de creación vs este login)
+                // Usamos properties de Supabase para evitar problemas de desfase de reloj (clock drift) en el VPS
+                const createdAt = new Date(user.created_at).getTime()
+                const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt
+                const isNewUser = Math.abs(lastSignIn - createdAt) < 60000 
 
                 if (isNewUser) {
                     // Es un usuario de Google nuevo. El Trigger de DB omitió el rol y puso TALENT por defecto.

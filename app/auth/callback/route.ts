@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
+    const { searchParams } = new URL(request.url)
+    const BASE_URL = 'https://www.goscentral.online'
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/'
 
     // We create a response object early so we can attach cookies to it
-    const response = NextResponse.redirect(`${origin}${next}`)
+    const response = NextResponse.redirect(`${BASE_URL}${next}`)
 
     if (code) {
         const supabase = createServerClient(
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
                             return { name, value: value.join('=') }
                         })
                     },
-                    setAll(cookiesToSet) {
+                    setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
                         cookiesToSet.forEach(({ name, value, options }) => {
                             response.cookies.set(name, value, options)
                         })
@@ -81,10 +82,10 @@ export async function GET(request: Request) {
                 }
             }
 
-            console.log(`Auth Callback: Final redirection to ${origin}${finalRedirect}`)
+            console.log(`Auth Callback: Final redirection to ${BASE_URL}${finalRedirect}`)
 
             // Re-create redirect to the FINAL destination, preserving the cookies already set
-            const finalResponse = NextResponse.redirect(`${origin}${finalRedirect}`)
+            const finalResponse = NextResponse.redirect(`${BASE_URL}${finalRedirect}`)
             // Sync cookies from the temporary response to the final response
             response.headers.getSetCookie().forEach((cookieHeader) => {
                 finalResponse.headers.append('Set-Cookie', cookieHeader)
@@ -97,5 +98,5 @@ export async function GET(request: Request) {
         }
     }
 
-    return NextResponse.redirect(`${origin}/login?error=auth-callback-failed`)
+    return NextResponse.redirect(`${BASE_URL}/login?error=auth-callback-failed`)
 }

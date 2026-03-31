@@ -59,16 +59,14 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (isProtected && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    const url = new URL('/login', 'https://www.goscentral.online')
     url.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
   // If logged in user visits auth pages (except callback), redirect to home
   if (user && request.nextUrl.pathname.startsWith('/auth/') && !request.nextUrl.pathname.startsWith('/auth/callback')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/'
+    const url = new URL('/', 'https://www.goscentral.online')
     return NextResponse.redirect(url)
   }
 
@@ -81,8 +79,8 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle()
 
     if (profile?.user_type) {
-      const url = request.nextUrl.clone()
-      url.pathname = profile.user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+      const pathname = profile.user_type === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+      const url = new URL(pathname, 'https://www.goscentral.online')
       return NextResponse.redirect(url)
     }
   }

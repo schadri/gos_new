@@ -34,7 +34,11 @@ export async function POST(request: Request) {
 
     const preference = new Preference(client)
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://goscentral.online'
+    // Forzamos explícitamente www para evitar errores 503 del Proxy Inverso en VPS si el apex domain no está mapeado correctamente.
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.goscentral.online'
+    if (baseUrl.includes('goscentral.online') && !baseUrl.includes('www.')) {
+      baseUrl = baseUrl.replace('https://goscentral.online', 'https://www.goscentral.online')
+    }
 
     const response = await preference.create({
       body: {

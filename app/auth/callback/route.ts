@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
-    const BASE_URL = 'https://www.goscentral.online'
+    const requestUrl = new URL(request.url)
+    const { searchParams } = requestUrl
+    // Use the actual request origin if no env var is provided, avoids jumping between VPS and Prod during tests
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || requestUrl.origin
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/'
 
@@ -50,24 +52,44 @@ export async function GET(request: Request) {
             if (profile) {
                 console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
                 const existingRole = (profile as any).user_type
+                
+                // VERIFICAR SI LA CUENTA SE ACABA DE CREAR (hace menos de 1 minuto)
+                const isNewUser = new Date(user.created_at).getTime() > Date.now() - 60000
 
-                // Bloquear registro cruzado: ya es postulante pero intenta ser emprendedor
-                if (existingRole === 'TALENT' && next.includes('/employer/register')) {
-                    console.log('Auth Callback: Cross-role violation (TALENT trying to register as BUSINESS). Signing out.')
-                    await supabase.auth.signOut()
-                    finalRedirect = '/login?error=rol_invalido_emprendedor'
-                }
-                // Bloquear registro cruzado: ya es emprendedor pero intenta ser postulante
-                else if (existingRole === 'BUSINESS' && next.includes('/talent/register')) {
-                    console.log('Auth Callback: Cross-role violation (BUSINESS trying to register as TALENT). Signing out.')
-                    await supabase.auth.signOut()
-                    finalRedirect = '/login?error=rol_invalido_postulante'
-                }
-                // If we are in a recovery flow, let 'next' take precedence
-                else if (next.includes('/reset-password')) {
-                    finalRedirect = next
+                if (isNewUser) {
+                    // Es un usuario de Google nuevo. El Trigger de DB omitió el rol y puso TALENT por defecto.
+                    // Corregimos de forma segura según la intención real.
+                    if (next.includes('/employer/register') && existingRole !== 'BUSINESS') {
+                        await supabase.from('profiles').update({ user_type: 'BUSINESS' }).eq('id', user.id)
+                        await supabase.auth.updateUser({ data: { user_type: 'BUSINESS', role: 'employer' } })
+                        finalRedirect = '/employer/register'
+                    } else if (next.includes('/talent/register') && existingRole !== 'TALENT') {
+                        await supabase.from('profiles').update({ user_type: 'TALENT' }).eq('id', user.id)
+                        await supabase.auth.updateUser({ data: { role: 'talent' } })
+                        finalRedirect = '/talent/register'
+                    } else {
+                        finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                    }
                 } else {
-                    finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                    // Lógica para usuarios pre-existentes antiguos
+                    // Bloquear registro cruzado: ya es postulante pero intenta ser emprendedor
+                    if (existingRole === 'TALENT' && next.includes('/employer/register')) {
+                        console.log('Auth Callback: Cross-role violation (TALENT trying to register as BUSINESS). Signing out.')
+                        await supabase.auth.signOut()
+                        finalRedirect = '/login?error=rol_invalido_emprendedor'
+                    }
+                    // Bloquear registro cruzado: ya es emprendedor pero intenta ser postulante
+                    else if (existingRole === 'BUSINESS' && next.includes('/talent/register')) {
+                        console.log('Auth Callback: Cross-role violation (BUSINESS trying to register as TALENT). Signing out.')
+                        await supabase.auth.signOut()
+                        finalRedirect = '/login?error=rol_invalido_postulante'
+                    }
+                    // If we are in a recovery flow, let 'next' take precedence
+                    else if (next.includes('/reset-password')) {
+                        finalRedirect = next
+                    } else {
+                        finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                    }
                 }
             } else {
                 console.log('Auth Callback: No profile found. Handling registration flow...')

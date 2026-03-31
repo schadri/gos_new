@@ -27,17 +27,22 @@ export default function EmployerCreditsPage() {
   React.useEffect(() => {
     // Show success/failure toast based on URL params from MP
     const successParam = searchParams.get('success')
-    if (successParam === 'true') {
+    const statusParam = searchParams.get('status')
+    
+    if (successParam === 'true' || statusParam === 'approved') {
       toast.success('¡Compra exitosa! Tus créditos se acreditarán en breve.')
-      router.replace('/employer/credits')
-    } else if (successParam === 'false') {
+      window.history.replaceState({}, '', '/employer/credits')
+    } else if (successParam === 'false' || statusParam === 'rejected' || statusParam === 'null') {
       toast.error('Hubo un error con el pago. Por favor intenta nuevamente.')
-      router.replace('/employer/credits')
-    } else if (successParam === 'pending') {
+      window.history.replaceState({}, '', '/employer/credits')
+    } else if (successParam === 'pending' || statusParam === 'pending') {
       toast.info('Tu pago está pendiente de confirmación.')
-      router.replace('/employer/credits')
+      window.history.replaceState({}, '', '/employer/credits')
+    } else if (searchParams.get('payment_id') || searchParams.get('preference_id')) {
+        // Fallback for cleaning up any other MP rogue params
+        window.history.replaceState({}, '', '/employer/credits')
     }
-  }, [searchParams, router])
+  }, [searchParams])
 
   React.useEffect(() => {
     const fetchBalance = async () => {

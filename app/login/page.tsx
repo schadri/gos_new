@@ -166,8 +166,8 @@ function LoginContent() {
 
         toast.success('¡Bienvenido!')
         const role = data.user.user_metadata?.role
-        if (role === 'employer') router.push('/employer/dashboard')
-        else router.push('/jobs')
+        if (role === 'employer') window.location.href = 'https://www.goscentral.online/employer/dashboard'
+        else window.location.href = 'https://www.goscentral.online/jobs'
       }
     } finally {
       setLoading(false)

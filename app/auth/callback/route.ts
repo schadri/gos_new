@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
@@ -60,13 +61,18 @@ export async function GET(request: Request) {
                 if (isNewUser) {
                     // Es un usuario de Google nuevo. El Trigger de DB omitió el rol y puso TALENT por defecto.
                     // Corregimos de forma segura según la intención real.
+                    const adminSupabase = getSupabaseAdmin()
+                    
                     if (next.includes('/employer/register') && existingRole !== 'BUSINESS') {
-                        await supabase.from('profiles').update({ user_type: 'BUSINESS' }).eq('id', user.id)
-                        await supabase.auth.updateUser({ data: { user_type: 'BUSINESS', role: 'employer' } })
+                        const avatarUrl = user.user_metadata?.avatar_url || null
+                        // FORCE update via admin to prevent silent RLS block inside the callback wrapper
+                        await adminSupabase.from('profiles').update({ user_type: 'BUSINESS', company_logo: avatarUrl }).eq('id', user.id)
+                        await adminSupabase.auth.admin.updateUserById(user.id, { user_metadata: { user_type: 'BUSINESS', role: 'employer', avatar_url: avatarUrl } })
                         finalRedirect = '/employer/register'
                     } else if (next.includes('/talent/register') && existingRole !== 'TALENT') {
-                        await supabase.from('profiles').update({ user_type: 'TALENT' }).eq('id', user.id)
-                        await supabase.auth.updateUser({ data: { role: 'talent' } })
+                        // FORCE update via admin
+                        await adminSupabase.from('profiles').update({ user_type: 'TALENT' }).eq('id', user.id)
+                        await adminSupabase.auth.admin.updateUserById(user.id, { user_metadata: { role: 'talent' } })
                         finalRedirect = '/talent/register'
                     } else {
                         finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'

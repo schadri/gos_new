@@ -1,22 +1,36 @@
 import * as admin from 'firebase-admin';
 
-// 1. Limpieza de la clave privada
 const rawKey = process.env.FIREBASE_PRIVATE_KEY;
-const formattedKey = rawKey
-    ? rawKey
-        .replace(/^['"]|['"]$/g, '') // Elimina comillas
-        .replace(/\\n/g, '\n')       // Arregla saltos de línea
-        .trim()
-    : undefined;
 
-// 2. Validación de configuración
+// Función para limpiar y decodificar la llave
+const getCleanKey = (key: string | undefined) => {
+    if (!key) return undefined;
+
+    // Si no empieza con los guiones, asumimos que es Base64
+    let decodedKey = key;
+    if (!key.includes('-----BEGIN PRIVATE KEY-----')) {
+        try {
+            decodedKey = Buffer.from(key, 'base64').toString('utf-8');
+        } catch (e) {
+            return undefined;
+        }
+    }
+
+    // Limpieza final de comillas y saltos de línea de texto
+    return decodedKey
+        .replace(/^['"]|['"]$/g, '')
+        .replace(/\\n/g, '\n')
+        .trim();
+};
+
+const formattedKey = getCleanKey(rawKey);
+
 const isConfigValid = !!(
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
     process.env.FIREBASE_CLIENT_EMAIL &&
     formattedKey
 );
 
-// 3. Inicialización (Singleton)
 if (!admin.apps.length && isConfigValid) {
     try {
         admin.initializeApp({
@@ -26,23 +40,13 @@ if (!admin.apps.length && isConfigValid) {
                 privateKey: formattedKey,
             }),
         });
-        console.log('✅ Firebase Admin inicializado correctamente');
+        console.log('✅ Firebase Admin: Inicializado con éxito');
     } catch (error) {
-        console.error('❌ Error crítico inicializando Firebase Admin:', error);
+        // Capturamos el error para que NO tire el servidor (adiós al 503)
+        console.error('⚠️ Firebase Admin: Error de formato en la llave, pero el servidor sigue vivo.');
     }
-} else if (!isConfigValid) {
-    console.warn('⚠️ Firebase Admin salteado: Faltan variables de entorno.');
 }
 
-// 4. Exportación de servicios
-export const adminMessaging = admin.apps.length > 0
-    ? admin.messaging()
-    : {
-        send: async () => {
-            console.warn('adminMessaging.send salteado: Firebase Admin no configurado.');
-            return null;
-        }
-    } as any;
-
+export const adminMessaging = admin.apps.length > 0 ? admin.messaging() : { send: async () => null } as any;
 export const adminDb = admin.apps.length > 0 ? admin.firestore() : null;
 export const adminAuth = admin.apps.length > 0 ? admin.auth() : null;

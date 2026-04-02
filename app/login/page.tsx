@@ -135,7 +135,7 @@ function LoginContent() {
         const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
 
         const { error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: { 
             data: { 
@@ -155,12 +155,17 @@ function LoginContent() {
         if (flow === 'employer') router.push('/employer/register')
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         })
 
         if (error) {
-          toast.error('Credenciales incorrectas')
+          console.error("Login Error:", error);
+          if (error.message.includes('Invalid login credentials') || error.message.includes('Credenciales incorrectas')) {
+             toast.error('Credenciales incorrectas o el email no está registrado.')
+          } else {
+             toast.error(`Error: ${error.message}`)
+          }
           return
         }
 

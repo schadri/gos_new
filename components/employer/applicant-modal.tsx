@@ -47,7 +47,7 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
               <div className="flex items-start justify-between">
                 <div>
                   <DialogTitle className="text-2xl font-bold mb-1 pr-4">{profile.full_name || 'Candidato'}</DialogTitle>
-                  <p className="text-lg text-muted-foreground font-medium">{profile.position?.[0] || 'Profesional'}</p>
+                  <p className="text-lg text-muted-foreground font-medium">{Array.isArray(profile.position) ? profile.position.join(' - ') : (profile.position || 'Profesional')}</p>
                 </div>
                 <ShareApplicantButton 
                   applicantId={profile.id} 

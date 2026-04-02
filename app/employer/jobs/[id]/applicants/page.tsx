@@ -113,7 +113,7 @@ export default async function ApplicantsPage({ params }: { params: Promise<{ id:
                     </Avatar>
                     <div>
                       <h3 className="text-2xl font-bold mb-1">{app.profiles?.full_name || 'Usuario Anónimo'}</h3>
-                      <p className="text-lg text-muted-foreground font-medium">{app.profiles?.position?.[0] || 'Profesional'}</p>
+                      <p className="text-lg text-muted-foreground font-medium">{Array.isArray(app.profiles?.position) ? app.profiles.position.join(' - ') : (app.profiles?.position || 'Profesional')}</p>
                     </div>
                   </div>
                     <div className="flex flex-col items-end gap-2">

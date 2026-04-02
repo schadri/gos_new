@@ -41,12 +41,20 @@ export default function EmployerRegistration() {
 
   const handleSaveProfile = async () => {
     try {
-      if (!companyName) {
+      if (!companyName || companyName.trim() === '') {
         toast.error('El nombre del emprendimiento es obligatorio')
         return
       }
       if (!location) {
         toast.error('La ubicación es obligatoria')
+        return
+      }
+      if (!description || description.trim() === '') {
+        toast.error('La descripción del negocio es obligatoria')
+        return
+      }
+      if (!logoUrl) {
+        toast.error('El logo de la empresa es obligatorio')
         return
       }
 
@@ -128,7 +136,7 @@ export default function EmployerRegistration() {
           </div>
 
           <div className="grid gap-3">
-            <Label className="text-base font-semibold">Logo de la Empresa (Opcional)</Label>
+            <Label className="text-base font-semibold">Logo de la Empresa</Label>
             <FileUpload value={logoUrl} onChange={setLogoUrl} label="Subir logo" />
           </div>
 

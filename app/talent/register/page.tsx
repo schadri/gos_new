@@ -44,12 +44,28 @@ export default function TalentRegistration() {
 
   const handleSaveProfile = async () => {
     try {
-      if (!fullName) {
+      if (!fullName || fullName.trim() === '') {
         toast.error('El nombre completo es obligatorio')
+        return
+      }
+      if (!position || position.length === 0) {
+        toast.error('Debes seleccionar al menos un Puesto Objetivo')
+        return
+      }
+      if (!photoUrl) {
+        toast.error('La foto de perfil es obligatoria')
+        return
+      }
+      if (!cvUrl) {
+        toast.error('El Currículum Vitae (CV) es obligatorio')
         return
       }
       if (!location) {
         toast.error('La ubicación es obligatoria')
+        return
+      }
+      if (!keywords || keywords.length === 0) {
+        toast.error('Debes agregar al menos una Habilidad Destacada')
         return
       }
 

@@ -71,10 +71,24 @@ export default async function JobDetail({ params }: { params: Promise<{ id: stri
       if (profile?.position && Array.isArray(profile.position)) {
         const userCategories = profile.position.map((p: string) => {
           const group = POSITIONS.find(g => g.items.includes(p))
-          return group ? group.category : null
+          return group ? group.category.toLowerCase() : null
         }).filter(Boolean)
         
-        if (job.category && userCategories.length > 0 && !userCategories.includes(job.category)) {
+        let jobCategoryNorm = (job.category || '').toLowerCase()
+        // Map legacy values if needed
+        const legacyMap: Record<string, string> = {
+          'cocina': 'cocina',
+          'salon': 'servicio y bebidas',
+          'hotel': 'hotelería',
+          'gerencia': 'gestión',
+          'limpieza': 'limpieza y mantenimiento',
+          'eventos': 'eventos'
+        }
+        if (legacyMap[jobCategoryNorm]) {
+           jobCategoryNorm = legacyMap[jobCategoryNorm]
+        }
+        
+        if (jobCategoryNorm && userCategories.length > 0 && !userCategories.includes(jobCategoryNorm)) {
           isWrongCategory = true
         }
       }

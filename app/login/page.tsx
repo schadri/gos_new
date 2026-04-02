@@ -134,7 +134,7 @@ function LoginContent() {
 
         const typeValue = flow === 'employer' ? 'BUSINESS' : 'TALENT'
 
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: { 
@@ -147,6 +147,12 @@ function LoginContent() {
 
         if (error) {
           toast.error(error.message)
+          return
+        }
+
+        if (data.user && !data.session) {
+          toast.success('¡Registro exitoso! Por favor, revisa tu correo electrónico para confirmar tu cuenta.', { duration: 8000 })
+          router.push('/login')
           return
         }
 

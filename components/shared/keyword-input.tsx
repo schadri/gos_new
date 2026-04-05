@@ -55,7 +55,7 @@ export function KeywordInput({
       ]
     },
     {
-      title: "✨ Atributos Personales",
+      title: "Atributos Personales",
       items: [
         "Puntualidad",
         "Pulcritud y Presencia",

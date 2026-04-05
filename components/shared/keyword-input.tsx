@@ -21,54 +21,74 @@ export function KeywordInput({
 }) {
   const maxLimit = max || 8
 
-  // User's exact list of keywords
-  const baseSuggestions = [
-    // Habilidades Técnicas
-    "Manejo de Sistemas POS (Maxirest/Fudo/Opera)",
-    "Seguridad e Higiene Alimentaria",
-    "Manipulación de Alimentos (BPM)",
-    "Servicio de Mesa y Protocolo",
-    "Manejo de Bandeja",
-    "Coctelería y Mixología",
-    "Barismo y Arte Latte",
-    "Mise en Place y Despacho",
-    "Control de Stock e Inventarios",
-    "Costeo de Recetas y Mermas",
-    "Panadería y Pastelería",
-    "Técnicas de Cocción",
-    "Inglés Técnico",
-    "Portugués Técnico",
-    "Check-in / Check-out",
-    "Gestión de Reservas y OTA's",
-    "Housekeeping y Limpieza Técnica",
-    // Atributos Personales
-    "Puntualidad",
-    "Pulcritud y Presencia",
-    "Compromiso",
-    "Iniciativa",
-    "Liderazgo",
-    "Organización",
-    "Creatividad",
-    "Proactividad",
-    "Trabajo en Equipo",
-    "Adaptabilidad",
-    "Resolución de Problemas",
-    "Vocación de Servicio",
-    "Versatilidad",
-    "Eficiencia",
-    "Capacidad de Aprendizaje",
-    "Resiliencia (Trabajo bajo presión)",
-    "Comunicación Asertiva",
-    "Venta Sugestiva",
-    "Empatía",
-    "Atención al Detalle",
-    "Flexibilidad Horaria",
-    "Autogestión"
+  // User's exact list of keywords separated by groups
+  const suggestionGroups = [
+    {
+      title: "Sugerencias principales",
+      items: [
+        "Puntual", "Prolijo", "Comprometido", "Iniciativa", "Liderazgo", 
+        "Organizado", "Creativo", "Proactivo", "Trabajo en Equipo", 
+        "Adaptabilidad", "Resolución de Problemas", "Vocación de Servicio", 
+        "Versatilidad", "Eficiente", "Capacidad de Aprendizaje"
+      ]
+    },
+    {
+      title: "Habilidades Técnicas",
+      items: [
+        "Manejo de Sistemas POS (Maxirest/Fudo/Opera)",
+        "Seguridad e Higiene Alimentaria",
+        "Manipulación de Alimentos (BPM)",
+        "Servicio de Mesa y Protocolo",
+        "Manejo de Bandeja",
+        "Coctelería y Mixología",
+        "Barismo y Arte Latte",
+        "Mise en Place y Despacho",
+        "Control de Stock e Inventarios",
+        "Costeo de Recetas y Mermas",
+        "Panadería y Pastelería",
+        "Técnicas de Cocción",
+        "Inglés Técnico",
+        "Portugués Técnico",
+        "Check-in / Check-out",
+        "Gestión de Reservas y OTA's",
+        "Housekeeping y Limpieza Técnica"
+      ]
+    },
+    {
+      title: "✨ Atributos Personales",
+      items: [
+        "Puntualidad",
+        "Pulcritud y Presencia",
+        "Compromiso",
+        "Iniciativa",
+        "Liderazgo",
+        "Organización",
+        "Creatividad",
+        "Proactividad",
+        "Trabajo en Equipo",
+        "Adaptabilidad",
+        "Resolución de Problemas",
+        "Vocación de Servicio",
+        "Versatilidad",
+        "Eficiencia",
+        "Capacidad de Aprendizaje",
+        "Resiliencia (Trabajo bajo presión)",
+        "Comunicación Asertiva",
+        "Venta Sugestiva",
+        "Empatía",
+        "Atención al Detalle",
+        "Flexibilidad Horaria",
+        "Autogestión"
+      ]
+    }
   ]
 
   // We filter out what is already selected
-  const activeSuggestions = React.useMemo(() => {
-    return baseSuggestions.filter(s => !keywords.includes(s))
+  const activeGroups = React.useMemo(() => {
+    return suggestionGroups.map(group => ({
+      title: group.title,
+      items: group.items.filter(s => !keywords.includes(s))
+    })).filter(group => group.items.length > 0)
   }, [keywords])
 
 
@@ -117,19 +137,28 @@ export function KeywordInput({
         </p>
       </div>
 
-      {activeSuggestions.length > 0 && keywords.length < maxLimit && (
+      {activeGroups.length > 0 && keywords.length < maxLimit && (
         <div className="pt-2">
           <p className="text-xs text-muted-foreground mb-3 font-medium">Selecciona tus habilidades principales:</p>
-          <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-            {activeSuggestions.map((s, idx) => (
-              <Badge 
-                key={idx} 
-                variant="outline" 
-                className="cursor-pointer hover:bg-primary/10 hover:text-primary font-normal text-muted-foreground transition-colors border-muted"
-                onClick={() => addKeyword(s)}
-              >
-                + {s}
-              </Badge>
+          <div className="max-h-[300px] overflow-y-auto custom-scrollbar pr-2 pb-2 space-y-4">
+            {activeGroups.map((group, gIdx) => (
+              <div key={gIdx}>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground/70 mb-2 font-semibold">
+                  {group.title}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {group.items.map((s, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant="outline" 
+                      className="cursor-pointer hover:bg-primary/10 hover:text-primary font-normal text-muted-foreground transition-colors border-muted"
+                      onClick={() => addKeyword(s)}
+                    >
+                      + {s}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>

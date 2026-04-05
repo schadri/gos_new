@@ -167,7 +167,7 @@ export function FileUpload({
         <input 
           ref={fileInputRef}
           type="file" 
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           accept={accept}
           onChange={handleFileChange}
           disabled={isUploading}

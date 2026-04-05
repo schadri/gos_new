@@ -214,7 +214,7 @@ export function EditProfileModal({
                     </Button>
                   )}
                 </div>
-                <FileUpload value={cvUrl} onChange={setCvUrl} accept=".pdf,.doc,.docx" label="Actualizar CV" />
+                <FileUpload value={cvUrl} onChange={setCvUrl} accept="application/pdf,.pdf,.doc,.docx" label="Actualizar CV" />
               </div>
 
               <div className="grid gap-2 pb-2">

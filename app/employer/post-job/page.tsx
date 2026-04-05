@@ -475,7 +475,8 @@ function PostJobForm() {
                   "Puntual", "Prolijo", "Comprometido", "Iniciativa", "Liderazgo", 
                   "Organizado", "Creativo", "Proactivo", "Trabajo en Equipo", 
                   "Adaptabilidad", "Resolución de Problemas", "Vocación de Servicio", 
-                  "Versatilidad", "Eficiente", "Capacidad de Aprendizaje"
+                  "Versatilidad", "Eficiente", "Capacidad de Aprendizaje", "Manejo de Sistemas POS (Maxirest/Fudo/Opera)","Seguridad e Higiene Alimentaria","Manipulación de Alimentos (BPM)","Servicio de Mesa y Protocolo","Manejo de Bandeja","Coctelería y Mixología","Barismo y Arte Latte","Mise en Place y Despacho","Control de Stock e Inventarios","Costeo de Recetas y Mermas","Panadería y Pastelería","Técnicas de Cocción","Inglés Técnico","Portugués Técnico","Check-in / Check-out","Gestión de Reservas y OTA's","Housekeeping y Limpieza Técnica"
+
                 ]}
               />
             </div>

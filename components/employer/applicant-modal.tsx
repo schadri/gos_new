@@ -128,11 +128,15 @@ export function ApplicantModal({ profile, applicationDate, experienceYears }: Ap
                   </DialogHeader>
                   <div className="flex-1 p-4 md:p-6 bg-muted/20 min-h-0">
                     <div className="w-full h-full bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative">
-                      <iframe 
-                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(profile.cv_url) || '')}&embedded=true`} 
-                        className="w-full h-full border-none"
-                        title="CV Viewer"
-                      />
+                      {profile.cv_url.toLowerCase().match(/\.(jpeg|jpg|gif|png|webp)/) ? (
+                        <img src={getAvatarUrl(profile.cv_url) || ''} alt="CV Viewer" className="w-full h-full object-contain" />
+                      ) : (
+                        <iframe 
+                          src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(profile.cv_url) || '')}&embedded=true`} 
+                          className="w-full h-full border-none"
+                          title="CV Viewer"
+                        />
+                      )}
                     </div>
                   </div>
                   <div className="p-4 md:p-6 bg-card border-t flex justify-center flex-shrink-0">

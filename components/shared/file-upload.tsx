@@ -12,12 +12,14 @@ export function FileUpload({
   value,
   onChange,
   accept = "image/*",
-  label = "Subir archivo"
+  label = "Subir archivo",
+  cropImage = true
 }: {
   value?: string | null;
   onChange: (url: string | null) => void;
   accept?: string;
   label?: string;
+  cropImage?: boolean;
 }) {
   const [isUploading, setIsUploading] = React.useState(false)
   const [editorImage, setEditorImage] = React.useState<string | null>(null)
@@ -30,8 +32,8 @@ export function FileUpload({
     const file = e.target.files?.[0]
     if (!file) return
 
-    // If it's an image, open the editor first
-    if (isImageAccept && file.type.startsWith('image/')) {
+    // If it's an image and cropping is enabled, open the editor first
+    if (isImageAccept && cropImage && file.type.startsWith('image/')) {
       const reader = new FileReader()
       reader.onload = () => {
         setEditorImage(reader.result as string)

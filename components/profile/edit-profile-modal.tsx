@@ -148,11 +148,15 @@ export function EditProfileModal({
               {cvUrl ? (
                 <>
                   <div className="flex-1 bg-white rounded-2xl overflow-hidden shadow-inner border border-border/40 relative mb-4">
-                    <iframe 
-                      src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(cvUrl) || '')}&embedded=true`} 
-                      className="w-full h-full border-0"
-                      title="Curriculum Vitae"
-                    />
+                    {cvUrl.toLowerCase().match(/\.(jpeg|jpg|gif|png|webp)/) ? (
+                      <img src={getAvatarUrl(cvUrl) || ''} alt="Curriculum Vitae" className="w-full h-full object-contain" />
+                    ) : (
+                      <iframe 
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(getAvatarUrl(cvUrl) || '')}&embedded=true`} 
+                        className="w-full h-full border-0"
+                        title="Curriculum Vitae"
+                      />
+                    )}
                   </div>
                   <div className="flex justify-center flex-shrink-0">
                     <Button 
@@ -214,7 +218,7 @@ export function EditProfileModal({
                     </Button>
                   )}
                 </div>
-                <FileUpload value={cvUrl} onChange={setCvUrl} accept="application/pdf,.pdf,.doc,.docx" label="Actualizar CV" />
+                <FileUpload value={cvUrl} onChange={setCvUrl} accept="application/pdf,.pdf,.doc,.docx,image/*" label="Actualizar CV" cropImage={false} />
               </div>
 
               <div className="grid gap-2 pb-2">

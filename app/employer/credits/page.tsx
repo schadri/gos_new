@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 
 const PACKAGES = [
-  { id: 'pack-5', title: '5 Ofertas', price: 5000, credits: 5, urgentCredits: 2, popular: false },
+  { id: 'pack-5', title: '5 Ofertas', price: 500, credits: 5, urgentCredits: 2, popular: false },
   { id: 'pack-10', title: '10 Ofertas', price: 9000, credits: 10, urgentCredits: 5, popular: true, overridePrice: 'AR$ 10.000' },
   { id: 'pack-15', title: '15 Ofertas', price: 13000, credits: 15, urgentCredits: 10, popular: false },
   { id: 'pack-20', title: '20 Ofertas', price: 16000, credits: 20, urgentCredits: 15, popular: false },

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 
 // Mapeo de paquetes (puedes ajustar los precios después)
 const CREDIT_PACKAGES: Record<string, { title: string, price: number, credits: number, urgent_credits: number }> = {
-  'pack-5': { title: 'Paquete Básico: 5 Créditos + 2 Urgentes', price: 5000, credits: 5, urgent_credits: 2 },
+  'pack-5': { title: 'Paquete Básico: 5 Créditos + 2 Urgentes', price: 500, credits: 5, urgent_credits: 2 },
   'pack-10': { title: 'Paquete Estándar: 10 Créditos + 5 Urgentes', price: 9000, credits: 10, urgent_credits: 5 },
   'pack-15': { title: 'Paquete Avanzado: 15 Créditos + 10 Urgentes', price: 13000, credits: 15, urgent_credits: 10 },
   'pack-20': { title: 'Paquete Pro: 20 Créditos + 15 Urgentes', price: 16000, credits: 20, urgent_credits: 15 },

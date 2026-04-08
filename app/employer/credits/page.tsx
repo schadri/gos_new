@@ -101,7 +101,7 @@ export default function EmployerCreditsPage() {
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">Créditos de Publicación</h1>
         </div>
         <p className="text-muted-foreground mt-4 text-xl font-medium max-w-2xl">
-          Compra paquetes de créditos para publicar ofertas de empleo. 1 Crédito = 1 Oferta publicada.
+          Suscribite a nuestros paquetes para recibir créditos todos los meses. 1 Crédito = 1 Oferta.
         </p>
       </div>
 
@@ -160,6 +160,7 @@ export default function EmployerCreditsPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black">AR$ {pkg.price.toLocaleString('es-AR')}</span>
+                  <span className="text-muted-foreground font-semibold">/ mes</span>
                 </div>
                 
                 <ul className="space-y-3 mt-6">
@@ -181,7 +182,7 @@ export default function EmployerCreditsPage() {
                   {purchasing === pkg.id ? (
                     <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Procesando pago...</>
                   ) : (
-                    <><CreditCard className="h-5 w-5 mr-2" /> Comprar Paquete</>
+                    <><CreditCard className="h-5 w-5 mr-2" /> Suscribirse</>
                   )}
                 </Button>
               </CardFooter>

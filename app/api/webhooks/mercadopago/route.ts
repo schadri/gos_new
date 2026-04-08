@@ -3,6 +3,13 @@ import crypto from 'crypto'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { createClient } from '@supabase/supabase-js'
 
+const CREDIT_PACKAGES: Record<string, { title: string, price: number, credits: number, urgent_credits: number }> = {
+  'pack-5': { title: 'Paquete Básico: 5 Créditos + 2 Urgentes', price: 500, credits: 5, urgent_credits: 2 },
+  'pack-10': { title: 'Paquete Estándar: 10 Créditos + 5 Urgentes', price: 9000, credits: 10, urgent_credits: 5 },
+  'pack-15': { title: 'Paquete Avanzado: 15 Créditos + 10 Urgentes', price: 13000, credits: 15, urgent_credits: 10 },
+  'pack-20': { title: 'Paquete Pro: 20 Créditos + 15 Urgentes', price: 16000, credits: 20, urgent_credits: 15 },
+}
+
 export async function POST(request: Request) {
   console.log('[Webhook] 🔵 Nueva petición recibida')
 
@@ -75,26 +82,26 @@ export async function POST(request: Request) {
       console.log(`[Webhook] 🔍 Estado del pago HTTP devuelto por MP: ${paymentData.status}`)
 
       if (paymentData.status === 'approved') {
-        const userId = paymentData.external_reference
-        console.log(`[Webhook] 👤 Usuario que pagó: ${userId}`)
+        const extRef = paymentData.external_reference || ''
+        const [userId, packageId] = extRef.split('___')
+        
+        console.log(`[Webhook] 👤 Usuario que pagó: ${userId}, Paquete: ${packageId}`)
 
         let creditsPurchased = 0
         let urgentCreditsPurchased = 0
 
-        // Si usamos metadatos en la preferencia (prioridad):
-        if ((paymentData.metadata as any)?.credits) {
-          creditsPurchased = Number((paymentData.metadata as any)?.credits)
-        }
-        if ((paymentData.metadata as any)?.urgent_credits) {
-          urgentCreditsPurchased = Number((paymentData.metadata as any)?.urgent_credits)
-        }
-
-        // Respaldo de urgentes si el titulo lo dice (para testing simulado)
-        if (creditsPurchased === 0) {
-            if (paymentData.additional_info?.items?.[0]?.title?.includes('10')) { creditsPurchased = 10; urgentCreditsPurchased = 5; }
-            else if (paymentData.additional_info?.items?.[0]?.title?.includes('5')) { creditsPurchased = 5; urgentCreditsPurchased = 2; }
-            else if (paymentData.additional_info?.items?.[0]?.title?.includes('15')) { creditsPurchased = 15; urgentCreditsPurchased = 10; }
-            else if (paymentData.additional_info?.items?.[0]?.title?.includes('20')) { creditsPurchased = 20; urgentCreditsPurchased = 15; }
+        // Si es suscripción pasamos packId en external_reference
+        if (packageId && CREDIT_PACKAGES[packageId]) {
+          creditsPurchased = CREDIT_PACKAGES[packageId].credits
+          urgentCreditsPurchased = CREDIT_PACKAGES[packageId].urgent_credits
+        } else {
+          // Retrocompatibilidad con checkout pro (si queda algún pago viejo)
+          if ((paymentData.metadata as any)?.credits) {
+            creditsPurchased = Number((paymentData.metadata as any)?.credits)
+          }
+          if ((paymentData.metadata as any)?.urgent_credits) {
+            urgentCreditsPurchased = Number((paymentData.metadata as any)?.urgent_credits)
+          }
         }
 
         console.log(`[Webhook] 💰 Créditos: ${creditsPurchased}, Urgentes: ${urgentCreditsPurchased}`)

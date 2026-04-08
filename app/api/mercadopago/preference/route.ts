@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { MercadoPagoConfig, PreApproval } from 'mercadopago'
 import { createClient } from '@/lib/supabase/server'
 
 // Mapeo de paquetes (puedes ajustar los precios después)
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Asegúrate de definir MP_ACCESS_TOKEN en tu archivo .env.local
     const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || '' })
 
-    const preference = new Preference(client)
+    const preapproval = new PreApproval(client)
 
     // Forzamos explícitamente www para evitar errores 503 del Proxy Inverso en VPS si el apex domain no está mapeado correctamente.
     let baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.goscentral.online'
@@ -40,42 +40,29 @@ export async function POST(request: Request) {
       baseUrl = baseUrl.replace('https://goscentral.online', 'https://www.goscentral.online')
     }
 
-    const response = await preference.create({
+    const response = await preapproval.create({
       body: {
-        items: [
-          {
-            id: packageId,
-            title: selectedPackage.title,
-            quantity: 1,
-            unit_price: selectedPackage.price,
-            currency_id: 'ARS',
-          }
-        ],
-        payer: {
-          email: user.email,
+        reason: selectedPackage.title,
+        external_reference: `${user.id}___${packageId}`, // Guardamos userId y packageId
+        payer_email: user.email,
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: 'months',
+          transaction_amount: selectedPackage.price,
+          currency_id: 'ARS',
         },
-        external_reference: user.id, // Guardamos el user.id para saber a quién darle los créditos
-        back_urls: {
-          success: `${baseUrl}/employer/credits`,
-          failure: `${baseUrl}/employer/credits`,
-          pending: `${baseUrl}/employer/credits`,
-        },
-        auto_return: 'approved',
-        metadata: {
-          credits: selectedPackage.credits,
-          urgent_credits: selectedPackage.urgent_credits
-        }
+        back_url: `${baseUrl}/employer/credits`,
+        status: 'pending' // Estado inicial hasta que el usuario la acepte
       }
     })
 
     return NextResponse.json({
       id: response.id,
       init_point: response.init_point,
-      sandbox_init_point: response.sandbox_init_point
     })
 
   } catch (error: any) {
-    console.error('Error creating MP preference:', error)
-    return NextResponse.json({ error: 'Failed to create preference' }, { status: 500 })
+    console.error('Error creating MP preapproval:', error)
+    return NextResponse.json({ error: 'Failed to create preapproval' }, { status: 500 })
   }
 }

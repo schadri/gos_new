@@ -5,7 +5,6 @@ import { RoleRedirector } from '@/components/shared/role-redirector'
 import { RedirectLoading } from '@/components/shared/redirect-loading'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
 import { LogoGOS } from '@/components/logo-gos'
-import { WindowsDownloadPrompt } from '@/components/shared/windows-download-prompt'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -127,9 +126,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      
-      
-      <WindowsDownloadPrompt />
     </div>
   )
 }

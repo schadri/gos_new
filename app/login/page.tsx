@@ -86,7 +86,7 @@ function LoginContent() {
 
     const redirectUrl = isTauri() 
     ? `gos://auth/callback-client?next=${encodeURIComponent(nextRoute)}`
-    : `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.goscentral.online'}/auth/callback?next=${encodeURIComponent(nextRoute)}`
+    : `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextRoute)}`
 
     console.log(`Login: redirectUrl targeted = ${redirectUrl}`)
 

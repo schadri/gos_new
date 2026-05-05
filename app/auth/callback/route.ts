@@ -3,10 +3,10 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url)
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.goscentral.online'
-    const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/'
+    const requestUrl = new URL(request.url)
+    const BASE_URL = requestUrl.origin
+    const code = requestUrl.searchParams.get('code')
+    const next = requestUrl.searchParams.get('next') ?? '/'
 
     // We create a response object early so we can attach cookies to it update 
     const response = NextResponse.redirect(`${BASE_URL}${next}`)

@@ -191,10 +191,16 @@ create policy "Job owners can update application status" on public.job_applicati
   exists (select 1 from public.jobs where jobs.id = job_applications.job_id and jobs.created_by = auth.uid())
 );
 create policy "Applicants can update own applications" on public.job_applications for update using (auth.uid() = applicant_id);
+create policy "Applicants can delete own applications" on public.job_applications for delete using (auth.uid() = applicant_id);
+create policy "Job owners can delete applications" on public.job_applications for delete using (
+  exists (select 1 from public.jobs where jobs.id = job_applications.job_id and jobs.created_by = auth.uid())
+);
 
 -- CHATS
 create policy "Users can view their own chats" on public.chats for select using (auth.uid() = employer_id or auth.uid() = applicant_id);
 create policy "Users can insert their own chats" on public.chats for insert with check (auth.uid() = employer_id or auth.uid() = applicant_id);
+create policy "Users can update their own chats" on public.chats for update using (auth.uid() = employer_id or auth.uid() = applicant_id);
+create policy "Users can delete their own chats" on public.chats for delete using (auth.uid() = employer_id or auth.uid() = applicant_id);
 
 -- MESSAGES
 create policy "Users can view messages of their chats" on public.messages for select using (

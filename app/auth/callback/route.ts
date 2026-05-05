@@ -75,7 +75,7 @@ export async function GET(request: Request) {
                         await adminSupabase.auth.admin.updateUserById(user.id, { user_metadata: { role: 'talent' } })
                         finalRedirect = '/talent/register'
                     } else {
-                        finalRedirect = existingRole === 'BUSINESS' ? '/employer/dashboard' : '/jobs'
+                        finalRedirect = existingRole === 'BUSINESS' ? '/employer/register' : '/talent/register'
                     }
                 } else {
                     // Lógica para usuarios pre-existentes antiguos
@@ -107,7 +107,8 @@ export async function GET(request: Request) {
                     await supabase.from('profiles').upsert({ id: user.id, user_type: 'TALENT' })
                     finalRedirect = '/talent/register'
                 } else {
-                    finalRedirect = '/'
+                    await supabase.from('profiles').upsert({ id: user.id, user_type: 'TALENT' })
+                    finalRedirect = '/talent/register'
                 }
             }
 

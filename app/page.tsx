@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RoleRedirector } from '@/components/shared/role-redirector'
 import { RedirectLoading } from '@/components/shared/redirect-loading'
+import { AuthHashCatcher } from '@/components/shared/auth-hash-catcher'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
 import { LogoGOS } from '@/components/logo-gos'
 
@@ -33,6 +34,7 @@ export default async function Home() {
 
   return (
     <div className="relative w-full bg-mesh min-h-screen flex flex-col">
+      <AuthHashCatcher />
       <RoleRedirector />
       
       {/* Decorative Orbs - Using brand colors for "Intensity" */}

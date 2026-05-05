@@ -79,12 +79,14 @@ export function FileUpload({
         throw new Error('No se pudo verificar tu sesión. Por favor, asegúrate de estar logueado y recarga la página.')
       }
 
-      const isImage = accept.includes('image')
-      const bucket = isImage ? 'avatars' : 'documents'
+      // Only treat it as an avatar if it strictly only accepts images.
+      // CVs accept pdf and image/*, so they shouldn't be treated as avatars.
+      const isAvatarBucket = accept === 'image/*'
+      const bucket = isAvatarBucket ? 'avatars' : 'documents'
       
       // Fixed path per user — this ensures old file is replaced (upsert)
-      const fileExt = isImage ? 'jpg' : (file.name.split('.').pop() || 'pdf')
-      const filePath = isImage
+      const fileExt = isAvatarBucket ? 'jpg' : (file.name.split('.').pop() || 'pdf')
+      const filePath = isAvatarBucket
         ? `${user.id}/avatar.${fileExt}`
         : `${user.id}/cv.${fileExt}`
 

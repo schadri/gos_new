@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/'
 
-    // We create a response object early so we can attach cookies to it
+    // We create a response object early so we can attach cookies to it update 
     const response = NextResponse.redirect(`${BASE_URL}${next}`)
 
     if (code) {
@@ -51,18 +51,18 @@ export async function GET(request: Request) {
             if (profile) {
                 console.log(`Auth Callback: Existing profile found (${(profile as any).user_type}). Redirecting to dashboard.`)
                 const existingRole = (profile as any).user_type
-                
+
                 // VERIFICAR SI LA CUENTA SE ACABA DE CREAR (comparando fecha de creación vs este login)
                 // Usamos properties de Supabase para evitar problemas de desfase de reloj (clock drift) en el VPS
                 const createdAt = new Date(user.created_at).getTime()
                 const lastSignIn = user.last_sign_in_at ? new Date(user.last_sign_in_at).getTime() : createdAt
-                const isNewUser = Math.abs(lastSignIn - createdAt) < 60000 
+                const isNewUser = Math.abs(lastSignIn - createdAt) < 60000
 
                 if (isNewUser) {
                     // Es un usuario de Google nuevo. El Trigger de DB omitió el rol y puso TALENT por defecto.
                     // Corregimos de forma segura según la intención real.
                     const adminSupabase = getSupabaseAdmin()
-                    
+
                     if (next.includes('/employer/register') && existingRole !== 'BUSINESS') {
                         const avatarUrl = user.user_metadata?.avatar_url || null
                         // FORCE update via admin to prevent silent RLS block inside the callback wrapper
